@@ -111,7 +111,7 @@ type NewPurchaseInvoice = {
 export default function PurchaseInvoicesPage() {
   const [, navigate] = useLocation();
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 20;
+  const pageSize = 15;
   const [filters, setFilters] = useState({
     status: "",
     paymentStatus: "",
@@ -903,8 +903,19 @@ export default function PurchaseInvoicesPage() {
       <Card className="shadow-lg border border-gray-200 mb-8">
         <CardHeader>
           <div className="flex justify-between items-center mb-4">
-            <div>
-              <h3 className="text-lg font-semibold">Purchase Invoices</h3>
+            <div className="flex-1 max-w-md relative">
+              <Input
+                type="text"
+                placeholder="Search invoices..."
+                value={filters.search}
+                onChange={(e) => {
+                  setFilters({ ...filters, search: e.target.value });
+                  setCurrentPage(1); // Reset to first page when searching
+                }}
+                className="pl-10 border border-gray-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 rounded-md shadow-none"
+                data-testid="input-search-invoices"
+              />
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             </div>
             <div className="flex items-center space-x-2">
               <DropdownMenu>

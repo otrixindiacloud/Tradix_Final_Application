@@ -109,21 +109,30 @@ export default function Invoicing() {
   });
 
   const updateInvoiceStatus = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const response = await apiRequest("PUT", `/api/invoices/${id}`, { status });
+    mutationFn: async ({ id, status, paidAmount }: { id: string; status: string; paidAmount?: number }) => {
+      const updateData: any = { status };
+      if (paidAmount !== undefined) {
+        // Convert number to string for decimal field
+        updateData.paidAmount = paidAmount.toFixed(2);
+      }
+      const response = await apiRequest("PUT", `/api/invoices/${id}`, updateData);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
+      const message = variables.paidAmount !== undefined 
+        ? `Invoice marked as paid. Paid amount: ${formatCurrency(variables.paidAmount)}`
+        : "Invoice status updated successfully";
       toast({
         title: "Success",
-        description: "Invoice status updated successfully",
+        description: message,
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("Error updating invoice:", error);
       toast({
         title: "Error",
-        description: "Failed to update invoice status",
+        description: error?.message || "Failed to update invoice status",
         variant: "destructive",
       });
     },
@@ -462,20 +471,20 @@ export default function Invoicing() {
       render: (value: number) => value ? formatCurrency(value) : formatCurrency(0),
       className: "text-right",
     },
-    {
-      key: "dueDate",
-      header: "Due Date",
-      render: (value: string) => {
-        if (!value) return "-";
-        const isOverdue = new Date(value) < new Date();
-        return (
-          <div className={isOverdue ? "text-red-600 font-medium" : ""}>
-            {formatDate(value)}
-            {isOverdue && <span className="ml-1 text-xs">(Overdue)</span>}
-          </div>
-        );
-      },
-    },
+    // {
+    //   key: "dueDate",
+    //   header: "Due Date",
+    //   render: (value: string) => {
+    //     if (!value) return "-";
+    //     const isOverdue = new Date(value) < new Date();
+    //     return (
+    //       <div className={isOverdue ? "text-red-600 font-medium" : ""}>
+    //         {formatDate(value)}
+    //         {isOverdue && <span className="ml-1 text-xs">(Overdue)</span>}
+    //       </div>
+    //     );
+    //   },
+    // },
     {
       key: "invoiceDate",
       header: "Invoice Date",
@@ -521,7 +530,11 @@ export default function Invoicing() {
               variant="success"
               onClick={(e) => {
                 e.stopPropagation();
-                updateInvoiceStatus.mutate({ id: invoice.id, status: "Paid" });
+                updateInvoiceStatus.mutate({ 
+                  id: invoice.id, 
+                  status: "Paid",
+                  paidAmount: Number(invoice.totalAmount) || 0
+                });
               }}
               data-testid={`button-mark-paid-${invoice.id}`}
             >
@@ -926,10 +939,10 @@ export default function Invoicing() {
                       <span className="text-gray-600">Date:</span>
                       <span>{formatDate(selectedInvoice.invoiceDate)}</span>
                     </div>
-                    <div className="flex justify-between">
+                    {/* <div className="flex justify-between">
                       <span className="text-gray-600">Due Date:</span>
                       <span>{selectedInvoice.dueDate ? formatDate(selectedInvoice.dueDate) : "Upon Receipt"}</span>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
 

@@ -141,17 +141,30 @@ export default function EnquiryDetail() {
     onSuccess: (quotation) => {
       toast({
         title: "Success", 
-        description: "Quotation created successfully from enquiry",
+        description: "Quotation created successfully and enquiry status updated to 'Quoted'",
       });
-      // Invalidate quotation queries to update the quotations list
-      queryClient.invalidateQueries({ queryKey: ["/api/quotations"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
-      // Also invalidate any specific quotation queries with filters
+      
+      // Invalidate ALL enquiry queries (including those with different filters)
+      // This ensures the enquiries table updates regardless of active filters
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          return query.queryKey[0] === "/api/enquiries";
+        }
+      });
+      
+      // Invalidate quotation queries
       queryClient.invalidateQueries({ 
         predicate: (query) => {
           return query.queryKey[0] === "/api/quotations";
         }
       });
+      
+      // Invalidate customers (for any customer-related stats)
+      queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
+      
+      // Invalidate dashboard stats to update counts
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
+      
       setShowConvertDialog(false);
       navigate(`/quotations/${quotation.id}`);
     },

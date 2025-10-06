@@ -88,7 +88,7 @@ export default function Suppliers() {
     },
   });
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 20;
+  const pageSize = 15;
   const [showNewSupplier, setShowNewSupplier] = useState(false);
   const [showEditSupplier, setShowEditSupplier] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);

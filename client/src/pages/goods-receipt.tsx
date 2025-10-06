@@ -525,6 +525,11 @@ export default function GoodsReceipt() {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [statusChangeDialogOpen, setStatusChangeDialogOpen] = useState(false);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 20;
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -1096,12 +1101,52 @@ export default function GoodsReceipt() {
       {/* Goods Receipt Table - Goods Receipt Headers (single table only) */}
       <Card className="mt-8">
         <CardHeader>
-          <CardTitle>Goods Receipt Headers</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>Goods Receipt Headers</CardTitle>
+            <div className="relative w-64">
+              <Input
+                type="text"
+                placeholder="Search receipts..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1); // Reset to first page when searching
+                }}
+                className="pl-10 border border-gray-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 rounded-md shadow-none"
+                data-testid="input-search-receipts"
+              />
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          <DataTable
-            data={Array.isArray(goodsReceipts) ? goodsReceipts : []}
-            columns={[
+          {(() => {
+            // Filter goods receipts based on search term
+            const allReceipts = Array.isArray(goodsReceipts) ? goodsReceipts : [];
+            const filteredReceipts = allReceipts.filter((receipt: any) => {
+              if (!searchTerm) return true;
+              const term = searchTerm.toLowerCase();
+              return (
+                receipt.receiptNumber?.toLowerCase().includes(term) ||
+                receipt.supplierName?.toLowerCase().includes(term) ||
+                receipt.lpoNumber?.toLowerCase().includes(term) ||
+                receipt.storageLocation?.toLowerCase().includes(term) ||
+                receipt.status?.toLowerCase().includes(term)
+              );
+            });
+
+            // Pagination logic
+            const totalPages = Math.ceil(filteredReceipts.length / pageSize);
+            const paginatedReceipts = filteredReceipts.slice(
+              (currentPage - 1) * pageSize,
+              currentPage * pageSize
+            );
+
+            return (
+              <>
+                <DataTable
+                  data={paginatedReceipts}
+                  columns={[
               {
                 key: "receiptNumber",
                 header: "Receipt Number",
@@ -1188,6 +1233,36 @@ export default function GoodsReceipt() {
             isLoading={isLoading}
             emptyMessage="No goods receipt headers found."
           />
+          
+          {/* Pagination Controls */}
+          {filteredReceipts.length > pageSize && (
+            <div className="flex justify-center items-center gap-2 mt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(currentPage - 1)}
+                data-testid="button-prev-page"
+              >
+                Previous
+              </Button>
+              <span className="mx-2 text-sm">
+                Page {currentPage} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(currentPage + 1)}
+                data-testid="button-next-page"
+              >
+                Next
+              </Button>
+            </div>
+          )}
+        </>
+      );
+    })()}
         </CardContent>
       </Card>
       {/* Dialogs for view/edit/delete actions */}

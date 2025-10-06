@@ -414,6 +414,24 @@ export class QuotationStorage extends BaseStorage {
 
       // Return fresh quotation with updated totals (re-query)
       const refreshed = await this.getQuotation(quotation.id);
+      
+      // Update enquiry status to "Quoted"
+      console.log("=== ATTEMPTING TO UPDATE ENQUIRY STATUS ===");
+      console.log("Enquiry ID:", enquiryId);
+      try {
+        const { EnquiryStorage } = await import('./enquiry-storage.js');
+        console.log("EnquiryStorage imported successfully");
+        const enquiryStorage = new EnquiryStorage();
+        console.log("EnquiryStorage instance created");
+        
+        const updateResult = await enquiryStorage.updateEnquiry(enquiryId, { status: "Quoted" });
+        console.log("✅ Successfully updated enquiry status to 'Quoted'", updateResult);
+      } catch (statusError) {
+        console.error("❌ Error updating enquiry status:", statusError);
+        console.error("Error details:", JSON.stringify(statusError, Object.getOwnPropertyNames(statusError), 2));
+        // Don't throw - quotation was created successfully
+      }
+      
       console.log("Successfully generated quotation with items from enquiry");
       return refreshed || quotation;
     } catch (error) {

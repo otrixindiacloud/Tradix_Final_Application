@@ -150,7 +150,7 @@ export default function SupplierQuotesPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [, navigate] = useLocation();
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 20;
+  const pageSize = 15;
   const [filters, setFilters] = useState({
     status: "",
     priority: "",
