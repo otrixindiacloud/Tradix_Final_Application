@@ -1,6 +1,6 @@
 import { db, pool } from "../db";
 import { eq, and, gte, lte, sql, desc, ilike, or } from "drizzle-orm";
-import { supplierQuotes, supplierQuoteItems, suppliers } from "@shared/schema";
+import { supplierQuotes, supplierQuoteItems, suppliers, enquiries, customers, quotations } from "@shared/schema";
 
 export class SupplierQuoteStorage {
   static async list(params: any) {
@@ -50,6 +50,7 @@ export class SupplierQuoteStorage {
         SELECT 
           sq.id,
           sq.quote_number as "quoteNumber",
+          sq.quotation_number as "quotationNumber",
           sq.supplier_id as "supplierId",
           sq.status,
           sq.priority,
@@ -72,7 +73,6 @@ export class SupplierQuoteStorage {
           sq.evaluation_score as "evaluationScore",
           sq.competitive_rank as "competitiveRank",
           sq.is_preferred_supplier as "isPreferredSupplier",
-          sq.supplier_quotation_document as "supplierQuotationDocument",
           sq.created_by as "createdBy",
           sq.created_at as "createdAt",
           sq.updated_at as "updatedAt",
@@ -111,6 +111,7 @@ export class SupplierQuoteStorage {
         return {
           id: row.id,
           quoteNumber: row.quoteNumber,
+          quotationNumber: row.quotationNumber,
           supplierId: row.supplierId,
           status: row.status,
           priority: row.priority,
@@ -154,6 +155,7 @@ export class SupplierQuoteStorage {
         SELECT 
           sq.id,
           sq.quote_number as "quoteNumber",
+          sq.quotation_number as "quotationNumber",
           sq.supplier_id as "supplierId",
           sq.status,
           sq.priority,
@@ -176,7 +178,6 @@ export class SupplierQuoteStorage {
           sq.evaluation_score as "evaluationScore",
           sq.competitive_rank as "competitiveRank",
           sq.is_preferred_supplier as "isPreferredSupplier",
-          sq.supplier_quotation_document as "supplierQuotationDocument",
           sq.created_by as "createdBy",
           sq.created_at as "createdAt",
           sq.updated_at as "updatedAt",
@@ -211,6 +212,7 @@ export class SupplierQuoteStorage {
       return {
         id: row.id,
         quoteNumber: row.quoteNumber,
+        quotationNumber: row.quotationNumber,
         supplierId: row.supplierId,
         status: row.status,
         priority: row.priority,
@@ -380,6 +382,7 @@ export class SupplierQuoteStorage {
         deliveryTerms: 'delivery_terms',
         notes: 'notes',
         rfqNumber: 'rfq_number',
+        quotationNumber: 'quotation_number',
         totalAmount: 'total_amount',
         currency: 'currency',
         enquiryId: 'enquiry_id',

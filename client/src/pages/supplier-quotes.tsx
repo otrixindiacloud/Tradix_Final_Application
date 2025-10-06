@@ -126,6 +126,7 @@ interface SupplierQuote {
   competitiveRank?: number;
   isPreferredSupplier: boolean;
   evaluationScore?: number;
+  supplierQuotationDocument?: string; // File path or URL to supplier's quotation document
   createdAt: string;
   updatedAt: string;
 }
@@ -354,7 +355,11 @@ export default function SupplierQuotesPage() {
       const res = await fetch(`/api/supplier-quotes/${id}`, {
         method: "DELETE"
       });
-      if (!res.ok) throw new Error("Failed to delete supplier quote");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        const errorMessage = errorData.message || `HTTP ${res.status}: Failed to delete supplier quote`;
+        throw new Error(errorMessage);
+      }
       return await res.json();
     },
     onSuccess: () => {
@@ -365,10 +370,11 @@ export default function SupplierQuotesPage() {
       });
       setDeletingQuote(null);
     },
-    onError: () => {
+    onError: (error: Error) => {
+      console.error("Delete supplier quote error:", error);
       toast({
         title: "Error",
-        description: "Failed to delete supplier quote",
+        description: error.message || "Failed to delete supplier quote",
         variant: "destructive",
       });
     },
@@ -584,6 +590,11 @@ export default function SupplierQuotesPage() {
           const customerMatch = notes.match(/from customer\s+([^,\s]+)/i);
           return customerMatch && customerMatch[1] ? customerMatch[1] : 'No Customer';
         })(),
+        'Enquiry Number': (() => {
+          const notes = quote.notes || '';
+          const enquiryMatch = notes.match(/(?:enquiry|quote request for enquiry)\s+(?:no|number)?[\s:]*([A-Z0-9-]+)/i);
+          return enquiryMatch && enquiryMatch[1] ? enquiryMatch[1] : 'No Enquiry';
+        })(),
         'RFQ Number': quote.rfqNumber || '',
         'Requisition Number': quote.requisitionNumber || '',
         'Status': quote.status,
@@ -768,6 +779,31 @@ export default function SupplierQuotesPage() {
       },
     },
     {
+      key: "enquiryNumber",
+      header: "Enquiry No",
+      render: (_: string, quote: any) => {
+        // Extract enquiry number from notes
+        const notes = quote.notes || '';
+        const enquiryMatch = notes.match(/(?:enquiry|quote request for enquiry)\s+(?:no|number)?[\s:]*([A-Z0-9-]+)/i);
+        
+        if (enquiryMatch && enquiryMatch[1]) {
+          return (
+            <div className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-blue-500" />
+              <span className="font-medium text-gray-900">{enquiryMatch[1]}</span>
+            </div>
+          );
+        }
+        
+        return (
+          <div className="flex items-center gap-2">
+            <FileText className="h-4 w-4 text-gray-400" />
+            <span className="text-gray-400">No Enquiry</span>
+          </div>
+        );
+      },
+    },
+    {
       key: "status",
       header: "Status",
       render: (value: string, quote: SupplierQuote) => (
@@ -804,6 +840,33 @@ export default function SupplierQuotesPage() {
             <div className="text-xs text-blue-600">
               Rank #{quote.competitiveRank}
             </div>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "supplierQuotationDocument",
+      header: "Quotation",
+      className: "text-center",
+      render: (_: any, quote: SupplierQuote) => (
+        <div className="text-center">
+          {quote.supplierQuotationDocument ? (
+            <div className="flex items-center justify-center gap-2">
+              <FileText className="h-4 w-4 text-blue-500" />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.open(quote.supplierQuotationDocument, '_blank');
+                }}
+                className="text-blue-600 hover:text-blue-800 p-1 h-auto"
+              >
+                View
+              </Button>
+            </div>
+          ) : (
+            <span className="text-gray-400 text-sm">No Document</span>
           )}
         </div>
       ),
@@ -1644,9 +1707,31 @@ export default function SupplierQuotesPage() {
                       <td className="border border-gray-200 p-3 font-medium">Customer</td>
                       {selectedQuotes.map(quoteId => {
                         const quote = enrichedSupplierQuotes.find((q: SupplierQuote) => q.id === quoteId);
+                        let customerName = '';
+                        if (quote?.customer?.name) {
+                          customerName = quote.customer.name;
+                        } else {
+                          const notes = quote?.notes || '';
+                          const customerMatch = notes.match(/from customer\s+([^,\s]+)/i);
+                          customerName = customerMatch && customerMatch[1] ? customerMatch[1] : 'No Customer';
+                        }
                         return (
                           <td key={quoteId} className="border border-gray-200 p-3">
-                            {quote?.customer?.name || 'No Customer'}
+                            {customerName}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                    <tr>
+                      <td className="border border-gray-200 p-3 font-medium">Enquiry Number</td>
+                      {selectedQuotes.map(quoteId => {
+                        const quote = enrichedSupplierQuotes.find((q: SupplierQuote) => q.id === quoteId);
+                        const notes = quote?.notes || '';
+                        const enquiryMatch = notes.match(/(?:enquiry|quote request for enquiry)\s+(?:no|number)?[\s:]*([A-Z0-9-]+)/i);
+                        const enquiryNumber = enquiryMatch && enquiryMatch[1] ? enquiryMatch[1] : 'No Enquiry';
+                        return (
+                          <td key={quoteId} className="border border-gray-200 p-3">
+                            {enquiryNumber}
                           </td>
                         );
                       })}

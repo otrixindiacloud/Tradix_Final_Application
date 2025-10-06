@@ -63,94 +63,77 @@ function amountInWords(total: number, currency: string) {
   return `${currency} ${words} ${fractional > 0 ? fractional + '/100' : ''}`.trim();
 }
 
-// Enhanced invoice PDF - Tax Invoice format matching second image structure
+// Enhanced invoice PDF - Clean Tax Invoice format matching professional UI design
 export function buildEnhancedInvoicePdf(ctx: InvoicePdfContext): Buffer {
   const { invoice, items, customer } = ctx;
   const doc = baseDoc();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
 
-  // Main header - dynamic between Proforma and Tax Invoice
-  doc.setFontSize(16).setFont('helvetica', 'bold');
+  // Page numbering and copy type (top)
+  doc.setFontSize(8).setFont('helvetica', 'normal');
   doc.setTextColor(0, 0, 0);
-  const isProforma = String((invoice as any).invoiceType || '').toLowerCase() === 'proforma';
-  doc.text(isProforma ? 'PROFORMA INVOICE' : 'TAX INVOICE', pageWidth / 2, 20, { align: 'center' });
+  doc.text('Page No. 1 of 1', 15, 15);
+  doc.text('Original Copy', pageWidth - 15, 15, { align: 'right' });
+
+  // Main header - TAX INVOICE
+  doc.setFontSize(18).setFont('helvetica', 'bold');
+  doc.text('TAX INVOICE', pageWidth / 2, 35, { align: 'center' });
+
+  // Company details section
+  const companyY = 45;
+  doc.setFontSize(10).setFont('helvetica', 'bold');
+  doc.text('GOLDEN STYLE W.L.L', pageWidth / 2, companyY, { align: 'center' });
   
-  // Top right corner - Invoice details
-  const invoiceDetailsY = 30;
   doc.setFontSize(9).setFont('helvetica', 'normal');
-  doc.text('Inv No :', pageWidth - 80, invoiceDetailsY);
-  doc.text(`INV-${invoice.invoiceNumber}`, pageWidth - 50, invoiceDetailsY);
-  doc.text('Date :', pageWidth - 80, invoiceDetailsY + 5);
-  doc.text(fmtDate((invoice as any).invoiceDate || invoice.createdAt), pageWidth - 50, invoiceDetailsY + 5);
+  doc.text('Building 728, Road 2012, Town 2564, Bahrain', pageWidth / 2, companyY + 6, { align: 'center' });
+  doc.text('Mobile: +973 12345678 | Email: info@goldenstyle.com', pageWidth / 2, companyY + 12, { align: 'center' });
+  doc.text('VAT Reg No: 100004744700962', pageWidth / 2, companyY + 18, { align: 'center' });
 
-  // VAT Registration and company details (top left)
-  doc.setFontSize(9).setFont('helvetica', 'bold');
-  doc.text('VAT Reg No : 100004744700962', 20, invoiceDetailsY);
-  doc.setFont('helvetica', 'normal');
+  // Invoice details section
+  const invoiceDetailsY = companyY + 35;
+  doc.setFontSize(9).setFont('helvetica', 'normal');
+  doc.text('Invoice Number:', 15, invoiceDetailsY);
+  doc.text(`INV-${invoice.invoiceNumber}`, 70, invoiceDetailsY);
+  doc.text('Invoice Date:', 15, invoiceDetailsY + 6);
+  doc.text(fmtDate((invoice as any).invoiceDate || invoice.createdAt), 70, invoiceDetailsY + 6);
+  doc.text('Due Date:', 15, invoiceDetailsY + 12);
+  doc.text(fmtDate((invoice as any).dueDate), 70, invoiceDetailsY + 12);
+  doc.text('Place of Supply:', 15, invoiceDetailsY + 18);
+  doc.text('Bahrain', 70, invoiceDetailsY + 18);
+  doc.text('Reverse Charge:', 15, invoiceDetailsY + 24);
+  doc.text('No', 70, invoiceDetailsY + 24);
   
-  // Core invoice meta table (dynamic: SO, Delivery, Type, Status, Payment Terms, Due Date, Exchange Rate)
-  const companyTableY = 45;
-  const coreHead = [['Invoice Type','Status','Sales Order','Delivery','Payment Terms','Due Date','Currency','Exch Rate']];
-  const coreBody = [[
-    (invoice as any).invoiceType || 'Final',
-    invoice.status || '',
-    (invoice as any).salesOrderId ? String((invoice as any).salesOrderId).slice(0,8) : '',
-    (invoice as any).deliveryId ? String((invoice as any).deliveryId).slice(0,8) : '',
-    (invoice as any).paymentTerms || '',
-    fmtDate((invoice as any).dueDate),
-    (invoice as any).currency || 'BHD',
-    (invoice as any).exchangeRate || '1.0000'
-  ]];
-  autoTable(doc, {
-    startY: companyTableY,
-    head: coreHead,
-    body: coreBody,
-    styles: { fontSize: 7, cellPadding: 2 },
-    headStyles: { fillColor: [255,255,255], textColor: 0, fontStyle: 'bold' },
-    margin: { left: 20, right: 20 },
-    didParseCell: (data:any) => { if (data.section==='head') data.cell.styles.halign='center'; }
-  });
-
-  // Customer information section
-  const afterCompanyTable = (doc as any).lastAutoTable?.finalY + 10 || companyTableY + 25;
+  // Billing and Shipping Details section
+  const billingY = invoiceDetailsY + 35;
   
-  // Customer Name and Deliver To headers
-  doc.setFontSize(9).setFont('helvetica', 'bold');
-  doc.text('Customer Name :', 20, afterCompanyTable);
-  doc.text('Deliver To :', pageWidth / 2 + 20, afterCompanyTable);
+  // Billing Details (left column)
+  doc.setFontSize(10).setFont('helvetica', 'bold');
+  doc.text('Billing Details', 15, billingY);
   
-  // Customer details
-  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9).setFont('helvetica', 'normal');
   const customerName = (customer as any).customerName || customer.name || 'Customer';
-  doc.text(customerName.toUpperCase(), 20, afterCompanyTable + 8);
+  doc.text(customerName, 15, billingY + 8);
   
-  // Customer address and details (left side)
-  const custDetailsY = afterCompanyTable + 15;
-  const custLines = [
-    customer.address || 'EX KANDO POLYTHENE AND PROJECTS',
-    customer.email || 'Building 574, Road 381 Manama Centre',
-    customer.phone || 'Office Block 302, Manama,',
-    customer.taxId ? `TRN :${customer.taxId}` : 'TRN :20000001520002'
-  ];
+  // Split long text to prevent cutoff
+  const billingInfo = `GSTIN: ${customer.taxId || 'N/A'} | Mobile: ${customer.phone || 'N/A'}`;
+  const emailInfo = `Email: ${customer.email || 'N/A'}`;
+  doc.text(billingInfo, 15, billingY + 14);
+  doc.text(emailInfo, 15, billingY + 20);
+  doc.text(customer.address || 'Address not provided', 15, billingY + 26);
   
-  custLines.forEach((line, idx) => {
-    doc.text(line, 20, custDetailsY + idx * 5);
-  });
+  // Shipping Details (right column)
+  doc.setFontSize(10).setFont('helvetica', 'bold');
+  doc.text('Shipping Details', pageWidth / 2 + 15, billingY);
+  
+  doc.setFontSize(9).setFont('helvetica', 'normal');
+  doc.text(customerName, pageWidth / 2 + 15, billingY + 8);
+  doc.text(billingInfo, pageWidth / 2 + 15, billingY + 14);
+  doc.text(emailInfo, pageWidth / 2 + 15, billingY + 20);
+  doc.text(customer.address || 'Address not provided', pageWidth / 2 + 15, billingY + 26);
 
-  // Deliver to address (right side)
-  const deliverLines = [
-    'EX KANDO POLYTHENE AND PROJECTS',
-    'Building 574, Road 381 Manama Centre, Office Block 302',
-    'Manama'
-  ];
-  
-  deliverLines.forEach((line, idx) => {
-    doc.text(line, pageWidth / 2 + 20, custDetailsY + idx * 5);
-  });
-
-  // Enhanced Items table with comprehensive tabular structure
-  const tableStartY = custDetailsY + 35;
+  // Items table with clean design
+  const tableStartY = billingY + 35;
   const currency = (invoice as any).currency || 'BHD';
   
   const rows = items.map((it, i) => {
@@ -163,218 +146,138 @@ export function buildEnhancedInvoicePdf(ctx: InvoicePdfContext): Buffer {
     const vatAmount = (netAmount * vatRate) / 100;
     const lineTotal = netAmount + vatAmount;
     
-    // Enhanced description with item details
-    let enhancedDesc = it.description || 'Item Description';
-    if (it.supplierCode) enhancedDesc += `\nSupplier Code: ${it.supplierCode}`;
-    if (it.barcode) enhancedDesc += `\nBarcode: ${it.barcode}`;
-    if ((it as any).item?.category) enhancedDesc += `\nCategory: ${(it as any).item.category}`;
-    
     return [
       (i + 1).toString(),
-      enhancedDesc,
-      `${qty} PCS`,
-      `${currency} ${rate.toFixed(3)}`,
-      discountRate > 0 ? `${discountRate.toFixed(1)}%` : '0%',
-      `${currency} ${discountAmount.toFixed(2)}`,
-      `${currency} ${netAmount.toFixed(2)}`,
+      it.description || 'Item Description',
+      (it as any).hsnCode || 'N/A',
+      qty.toFixed(2),
+      'Pcs',
+      rate.toFixed(2),
+      discountRate > 0 ? `${discountRate.toFixed(2)}%` : '0.00%',
       `${vatRate}%`,
-      `${currency} ${vatAmount.toFixed(2)}`,
-      `${currency} ${lineTotal.toFixed(2)}`
+      lineTotal.toFixed(2)
     ];
   });
 
+  // Add discount row if there's a discount
+  const totalDiscount = items.reduce((sum, it) => {
+    const qty = Number(it.quantity) || 0;
+    const rate = Number(it.unitPrice) || 0;
+    const discountRate = Number(it.discountPercentage) || 0;
+    return sum + (rate * qty * discountRate) / 100;
+  }, 0);
+
+  if (totalDiscount > 0) {
+    rows.push(['', '', '', '', '', '', 'Discount', '', `-${totalDiscount.toFixed(2)}`]);
+  }
+
+  // Add total row
+  const grandTotal = items.reduce((sum, it) => {
+    const qty = Number(it.quantity) || 0;
+    const rate = Number(it.unitPrice) || 0;
+    const discountRate = Number(it.discountPercentage) || 0;
+    const discountAmount = (rate * qty * discountRate) / 100;
+    const netAmount = (rate * qty) - discountAmount;
+    const vatRate = Number(it.taxRate) || 10;
+    const vatAmount = (netAmount * vatRate) / 100;
+    return sum + netAmount + vatAmount;
+  }, 0) - totalDiscount;
+
+  rows.push(['', '', '', '', '', '', 'Total', '', grandTotal.toFixed(2)]);
+
   autoTable(doc, {
     startY: tableStartY,
-    head: [['Sl.', 'Description & Item Details', 'Qty', 'Unit Rate', 'Disc. %', 'Disc. Amt', 'Net Amount', 'VAT %', 'VAT Amt', 'Line Total']],
+    head: [['Sr.', 'Item Description', 'HSN/SAC', 'Qty', 'Unit', 'List Price', 'Disc.', 'Tax %', 'Amount (₹)']],
     body: rows,
     styles: { 
-      fontSize: 7, 
-      cellPadding: 2, 
+      fontSize: 8, 
+      cellPadding: 6, 
       lineColor: [0, 0, 0],
       lineWidth: 0.1,
-      valign: 'middle'
+      valign: 'middle',
+      overflow: 'linebreak',
+      cellWidth: 15,
+      textColor: [0, 0, 0]
     },
     headStyles: { 
-      fillColor: [255, 255, 255], // White background
-      textColor: [0, 0, 0], // Black text
+      fillColor: [255, 255, 255],
+      textColor: [0, 0, 0],
       fontStyle: 'bold',
-      halign: 'center'
+      halign: 'center',
+      fontSize: 9,
+      cellPadding: 5,
+      lineColor: [0, 0, 0],
+      lineWidth: 0.1
     },
     columnStyles: {
-      0: { cellWidth: 12, halign: 'center' },
-      1: { cellWidth: 60, halign: 'left' },
-      2: { cellWidth: 15, halign: 'center' },
-      3: { cellWidth: 20, halign: 'right' },
-      4: { cellWidth: 15, halign: 'center' },
-      5: { cellWidth: 18, halign: 'right' },
-      6: { cellWidth: 20, halign: 'right' },
-      7: { cellWidth: 12, halign: 'center' },
-      8: { cellWidth: 18, halign: 'right' },
-      9: { cellWidth: 20, halign: 'right', fontStyle: 'bold' }
+      0: { cellWidth: 8, halign: 'center' },  // Sr.
+      1: { cellWidth: 50, halign: 'left' }, // Item Description
+      2: { cellWidth: 18, halign: 'center' }, // HSN/SAC
+      3: { cellWidth: 12, halign: 'center' }, // Qty
+      4: { cellWidth: 10, halign: 'center' }, // Unit
+      5: { cellWidth: 18, halign: 'right' }, // List Price
+      6: { cellWidth: 12, halign: 'center' }, // Disc.
+      7: { cellWidth: 12, halign: 'center' }, // Tax %
+      8: { cellWidth: 18, halign: 'right' }  // Amount
     },
-    alternateRowStyles: {
-      fillColor: [255, 255, 255]
-    },
-    margin: { left: 15, right: 15 }
+    margin: { left: 10, right: 10 },
+    pageBreak: 'auto',
+    tableWidth: 'wrap',
+    showHead: 'everyPage'
   });
 
   const afterItemsTable = (doc as any).lastAutoTable?.finalY || tableStartY + 40;
 
-  // Amount calculations (use stored values if present)
+  // Amount calculations
   const subtotal = Number((invoice as any).subtotal) || items.reduce((sum, it) => sum + ((Number(it.quantity) || 0) * (Number(it.unitPrice) || 0)), 0);
   const discountPerc = Number((invoice as any).discountPercentage) || 0;
   const discountAmount = Number((invoice as any).discountAmount) || (subtotal * discountPerc / 100);
-  const taxRate = Number((invoice as any).taxRate) || 0;
+  const taxRate = Number((invoice as any).taxRate) || 10;
   const taxAmount = Number((invoice as any).taxAmount) || ((subtotal - discountAmount) * taxRate / 100);
   const total = Number((invoice as any).totalAmount) || (subtotal - discountAmount + taxAmount);
   const paidAmount = Number((invoice as any).paidAmount) || 0;
   const outstandingAmount = Number((invoice as any).outstandingAmount) || (total - paidAmount);
-  const subtotalBase = Number((invoice as any).subtotalBase) || 0;
-  const discountAmountBase = Number((invoice as any).discountAmountBase) || 0;
-  const taxAmountBase = Number((invoice as any).taxAmountBase) || 0;
-  const totalAmountBase = Number((invoice as any).totalAmountBase) || 0;
-  const baseCurrency = (invoice as any).baseCurrency || (invoice as any).currency || 'BHD';
 
-  // Financial summary table (Invoice Currency)
-  const finStartY = afterItemsTable + 5;
-  autoTable(doc, {
-    startY: finStartY,
-    head: [[`${currency} Summary`, 'Amount']],
-    body: [
-      ['Subtotal', subtotal.toFixed(2)],
-      ['Discount', discountAmount.toFixed(2)],
-      ['Tax Rate', taxRate.toFixed(2) + '%'],
-      ['Tax Amount', taxAmount.toFixed(2)],
-      ['Total', total.toFixed(2)],
-      ['Paid', paidAmount.toFixed(2)],
-      ['Outstanding', outstandingAmount.toFixed(2)]
-    ],
-    styles: { fontSize: 8, cellPadding: 2 },
-    headStyles: { fillColor: [220,220,220], textColor:0, fontStyle:'bold' },
-    columnStyles: { 0: { cellWidth: 60 }, 1: { cellWidth: 30, halign:'right' } },
-    margin: { left: 20 }
-  });
-
-  // Base currency table if different
-  if (baseCurrency && baseCurrency !== currency) {
-    autoTable(doc, {
-      startY: (doc as any).lastAutoTable.finalY + 3,
-      head: [[`${baseCurrency} Base Summary`, 'Amount']],
-      body: [
-        ['Subtotal (Base)', subtotalBase.toFixed(2)],
-        ['Discount (Base)', discountAmountBase.toFixed(2)],
-        ['Tax (Base)', taxAmountBase.toFixed(2)],
-        ['Total (Base)', totalAmountBase.toFixed(2)]
-      ],
-      styles: { fontSize: 8, cellPadding: 2 },
-      headStyles: { fillColor: [255,255,255], textColor:0, fontStyle:'bold' },
-      columnStyles: { 0: { cellWidth: 60 }, 1: { cellWidth: 30, halign:'right' } },
-      margin: { left: 90 }
-    });
-  }
-
-  const summaryY = (doc as any).lastAutoTable?.finalY + 8;
-
-  // Summary box styling
-  doc.setDrawColor(0);
-  doc.setLineWidth(0.5);
+  // Summary sections - Two column layout
+  const summaryY = afterItemsTable + 10;
   
-  // Summary labels and amounts
-  const summaryItems = [
-    ['Amount Chargeable (in words):', ''],
-    [amountInWords(total, currency), ''],
-    ['Subtotal:', subtotal.toFixed(2)],
-    ['Discount:', discountAmount.toFixed(2)],
-    ['Tax:', taxAmount.toFixed(2)],
-    ['Total*:', total.toFixed(2)],
-    ['Paid:', paidAmount.toFixed(2)],
-    ['Outstanding:', outstandingAmount.toFixed(2)]
+  // Left side - Total in words
+  doc.setFontSize(9).setFont('helvetica', 'bold');
+  doc.text('Total in Words:', 15, summaryY);
+  doc.setFont('helvetica', 'normal');
+  const amountWords = `Rs. ${amountInWords(total, currency)}`;
+  const splitAmountWords = doc.splitTextToSize(amountWords, (pageWidth / 2) - 20);
+  doc.text(splitAmountWords, 15, summaryY + 6);
+  
+  // Right side - Terms and Conditions (requested instead of Settlement/Bank details)
+  doc.setFont('helvetica', 'bold').setFontSize(9);
+  doc.text('Terms and Conditions', pageWidth / 2 + 15, summaryY);
+  doc.setFont('helvetica', 'normal').setFontSize(8);
+  doc.text('E & O.E', pageWidth / 2 + 15, summaryY + 6);
+  const termsRight = [
+    '1. Goods once sold will not be taken back.',
+    '2. Interest @ 18% p.a. will be charged if payment is delayed.',
+    "3. Subject to 'Bahrain' jurisdiction only."
   ];
-
-  let currentY = summaryY;
-  summaryItems.forEach(([label, amount], idx) => {
-    if (idx < 2) {
-      // Amount in words section
-      doc.setFont('helvetica', 'bold').setFontSize(8);
-      doc.text(label, 20, currentY);
-      if (amount) {
-        doc.setFont('helvetica', 'normal');
-        doc.text(amount, 20, currentY + 5);
-      }
-      currentY += (idx === 0) ? 5 : 10;
-    } else {
-      // Financial amounts
-      doc.setFont('helvetica', 'normal').setFontSize(9);
-      doc.text(label, pageWidth - 80, currentY);
-      doc.setFont('helvetica', 'bold');
-      doc.text(`${currency} ${amount}`, pageWidth - 25, currentY, { align: 'right' });
-      if (label.includes('Total*')) {
-        doc.line(pageWidth - 80, currentY + 1, pageWidth - 20, currentY + 1);
-      }
-      currentY += 6;
-    }
+  termsRight.forEach((t, i) => {
+    const split = doc.splitTextToSize(t, (pageWidth / 2) - 25);
+    doc.text(split, pageWidth / 2 + 15, summaryY + 12 + (i * 6));
   });
-
-  // Notes, Internal Notes, Return Reason
-  const notesY = currentY + 6;
-  doc.setFont('helvetica','bold').setFontSize(8).text('Notes:', 20, notesY);
-  doc.setFont('helvetica','normal');
-  const notes = (invoice as any).notes || '---';
-  const internalNotes = (invoice as any).internalNotes || '';
-  const returnReason = (invoice as any).returnReason || '';
-  const splitNotes = doc.splitTextToSize(notes, pageWidth - 40);
-  doc.text(splitNotes, 20, notesY + 4);
-  let afterNotesY = notesY + 4 + splitNotes.length * 4;
-  if (internalNotes) {
-    doc.setFont('helvetica','bold').text('Internal Notes:', 20, afterNotesY + 2);
-    doc.setFont('helvetica','normal');
-    const intLines = doc.splitTextToSize(internalNotes, pageWidth - 40);
-    doc.text(intLines, 20, afterNotesY + 6);
-    afterNotesY += 6 + intLines.length * 4;
-  }
-  if (returnReason) {
-    doc.setFont('helvetica','bold').text('Return Reason:', 20, afterNotesY + 2);
-    doc.setFont('helvetica','normal');
-    const rrLines = doc.splitTextToSize(returnReason, pageWidth - 40);
-    doc.text(rrLines, 20, afterNotesY + 6);
-    afterNotesY += 6 + rrLines.length * 4;
-  }
-
-  const termsY = afterNotesY + 6;
-  doc.setFont('helvetica', 'bold').setFontSize(8).text('Declaration:', 20, termsY);
-  doc.setFont('helvetica', 'normal').text('We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.', 20, termsY + 4, { maxWidth: pageWidth - 40 });
   
-  // Bottom section with company stamp and signature areas
-  const bottomY = termsY + 18;
-  doc.setFontSize(7).text('CK 6491-1, Reg.Address: Building 728, Road 2012, Town 2564, Country:Bahrain', 20, bottomY);
-  // Document meta
-  const metaLeftY = bottomY + 6;
-  doc.setFont('helvetica','bold').setFontSize(7).text('Created:', 20, metaLeftY);
-  doc.setFont('helvetica','normal').text(fmtDate((invoice as any).createdAt), 40, metaLeftY);
-  doc.setFont('helvetica','bold').text('Updated:', 20, metaLeftY + 4);
-  doc.setFont('helvetica','normal').text(fmtDate((invoice as any).updatedAt), 40, metaLeftY + 4);
-  if ((invoice as any).paymentMethod) {
-    doc.setFont('helvetica','bold').text('Payment Method:', 20, metaLeftY + 8);
-    doc.setFont('helvetica','normal').text(String((invoice as any).paymentMethod), 50, metaLeftY + 8);
-  }
-  if ((invoice as any).paymentReference) {
-    doc.setFont('helvetica','bold').text('Payment Ref:', 20, metaLeftY + 12);
-    doc.setFont('helvetica','normal').text(String((invoice as any).paymentReference), 50, metaLeftY + 12);
-  }
-  if ((invoice as any).lastPaymentDate) {
-    doc.setFont('helvetica','bold').text('Last Payment:', 20, metaLeftY + 16);
-    doc.setFont('helvetica','normal').text(fmtDate((invoice as any).lastPaymentDate), 50, metaLeftY + 16);
-  }
+  // Tax breakdown - full width below the two columns
+  const taxY = summaryY + 20;
+  const saleAmount = subtotal - discountAmount;
+  const cgst = taxAmount / 2;
+  const sgst = taxAmount / 2;
+  const taxBreakdown1 = `Sale @${taxRate}% = ${saleAmount.toFixed(2)}, CGST = ${cgst.toFixed(2)}, SGST = ${sgst.toFixed(2)}`;
+  const taxBreakdown2 = `Total Sale = ${saleAmount.toFixed(2)}, Tax = ${taxAmount.toFixed(2)}, Cess = 0.00, Add. Cess = 0.00`;
   
-  // Signature area
-  doc.setFont('helvetica','bold').text('for GOLDEN STYLE W.L.L', pageWidth - 80, bottomY + 8);
-  doc.setFont('helvetica','normal').text('Authorised Signatory', pageWidth - 80, bottomY + 16);
+  const splitTax1 = doc.splitTextToSize(taxBreakdown1, pageWidth - 30);
+  const splitTax2 = doc.splitTextToSize(taxBreakdown2, pageWidth - 30);
+  doc.text(splitTax1, 15, taxY);
+  doc.text(splitTax2, 15, taxY + 6);
 
-  // Footer
-  const footerY = pageHeight - 20;
-  doc.setFontSize(7).setTextColor(0);
-  doc.text('Generated by GT ERP', 20, footerY);
-  doc.text(new Date().toLocaleDateString(), pageWidth - 20, footerY, { align: 'right' });
+  // Footer sections removed as Terms & Conditions now shown to the right of Total in Words
 
   return Buffer.from(doc.output('arraybuffer'));
 }
@@ -496,44 +399,52 @@ export function generateQuotationPdf(ctx: QuotationPdfContext): PdfGenerateResul
       `${currency} ${discAmt.toFixed(2)}`,
       `${currency} ${net.toFixed(2)}`,
       vatPerc?`${vatPerc.toFixed(1)}%`:'0%',
-      `${currency} ${vatAmt.toFixed(2)}`,
-      `${currency} ${lineTotal.toFixed(2)}`
+      `${currency} ${vatAmt.toFixed(2)}`
     ];
   });
   
   autoTable(doc, {
     startY: afterAddress,
-    head: [[ 'Sl.', 'Item Description & Specifications', 'Qty', 'Unit Rate', 'Disc.%', 'Disc. Amt', 'Net Total', 'VAT %', 'VAT Amt', 'Line Total' ]],
+    head: [[ 'S.I.', 'Item Description & Specifications', 'Qty', 'Unit Rate', 'Disc. %', 'Disc. Amt', 'Net Total', 'VAT %', 'VAT Amt' ]],
     body: itemRows,
     styles: { 
       fontSize: 7, 
-      cellPadding: 2, 
+      cellPadding: 4, 
       valign:'middle',
-      lineColor: [0, 0, 0],
-      lineWidth: 0.1
+      lineColor: [0, 0, 0], // Black borders
+      lineWidth: 0.1,
+      overflow: 'linebreak',
+      cellWidth: 'wrap',
+      textColor: [0, 0, 0] // Black text
     },
     headStyles: { 
-      fillColor: [255, 255, 255], // White background
+      fillColor: [255, 255, 255], // White header background
       textColor: [0, 0, 0], // Black text
       fontStyle:'bold',
-      halign: 'center'
+      halign: 'center',
+      fontSize: 8,
+      cellPadding: 4,
+      lineColor: [0, 0, 0], // Black borders
+      lineWidth: 0.1
     },
     columnStyles: {
-      0: { cellWidth: 12, halign:'center' },
-      1: { cellWidth: 55, halign: 'left' },
-      2: { cellWidth: 15, halign:'center' },
-      3: { cellWidth: 20, halign:'right' },
-      4: { cellWidth: 15, halign:'center' },
-      5: { cellWidth: 18, halign:'right' },
-      6: { cellWidth: 20, halign:'right' },
-      7: { cellWidth: 12, halign:'center' },
-      8: { cellWidth: 18, halign:'right' },
-      9: { cellWidth: 20, halign:'right', fontStyle: 'bold' }
+      0: { cellWidth: 8, halign:'center' }, // S.I.
+      1: { cellWidth: 45, halign: 'left' }, // Item Description & Specifications
+      2: { cellWidth: 12, halign:'center' }, // Qty
+      3: { cellWidth: 15, halign:'right' }, // Unit Rate
+      4: { cellWidth: 10, halign:'center' }, // Disc. %
+      5: { cellWidth: 12, halign:'right' }, // Disc. Amt
+      6: { cellWidth: 18, halign:'right' }, // Net Total
+      7: { cellWidth: 10, halign:'center' }, // VAT %
+      8: { cellWidth: 15, halign:'right' }  // VAT Amt
     },
     alternateRowStyles: {
-      fillColor: [255, 255, 255]
+      fillColor: [248, 249, 250] // Light gray alternating rows
     },
-    margin: { left: 15, right: 15 }
+    margin: { left: 20, right: 20 },
+    pageBreak: 'auto',
+    tableWidth: 'wrap',
+    showHead: 'everyPage'
   });
 
   const afterItems = (doc as any).lastAutoTable.finalY + 4;
@@ -602,30 +513,46 @@ export function buildEnhancedPurchaseInvoicePdf(ctx: PurchaseInvoicePdfContext):
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
 
-  // Main header - Purchase Invoice
-  doc.setFontSize(16).setFont('helvetica', 'bold');
-  doc.setTextColor(0, 0, 0);
-  doc.text('PURCHASE INVOICE', pageWidth / 2, 20, { align: 'center' });
+  // Professional header - black and white
+  doc.setFillColor(255, 255, 255); // White background
+  doc.rect(0, 0, pageWidth, 35, 'F');
   
-  // Top right corner - Invoice details
-  const invoiceDetailsY = 30;
-  doc.setFontSize(9).setFont('helvetica', 'normal');
+  // Main header - Purchase Invoice
+  doc.setFontSize(18).setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  doc.text('PURCHASE INVOICE', pageWidth / 2, 22, { align: 'center' });
+  
+  // Add a line below header
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(1);
+  doc.line(0, 35, pageWidth, 35);
+  
+  // Top right corner - Invoice details (black text)
+  const invoiceDetailsY = 45;
+  doc.setFontSize(9).setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
   doc.text('Invoice No :', pageWidth - 80, invoiceDetailsY);
+  doc.setFont('helvetica', 'normal');
   doc.text(invoice.invoiceNumber || 'N/A', pageWidth - 50, invoiceDetailsY);
+  doc.setFont('helvetica', 'bold');
   doc.text('Date :', pageWidth - 80, invoiceDetailsY + 5);
+  doc.setFont('helvetica', 'normal');
   doc.text(fmtDate(invoice.invoiceDate || invoice.createdAt), pageWidth - 50, invoiceDetailsY + 5);
+  doc.setFont('helvetica', 'bold');
   doc.text('Due Date :', pageWidth - 80, invoiceDetailsY + 10);
+  doc.setFont('helvetica', 'normal');
   doc.text(fmtDate(invoice.dueDate), pageWidth - 50, invoiceDetailsY + 10);
 
-  // Company details (top left)
+  // Company details (top left) - black text
   doc.setFontSize(9).setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
   doc.text('Company: GOLDEN STYLE W.L.L', 20, invoiceDetailsY);
   doc.setFont('helvetica', 'normal');
   doc.text('VAT Reg No: 100004744700962', 20, invoiceDetailsY + 5);
   doc.text('Building 728, Road 2012, Town 2564, Bahrain', 20, invoiceDetailsY + 10);
   
   // Core invoice meta table
-  const companyTableY = 50;
+  const companyTableY = 65;
   const coreHead = [['Invoice Type','Status','Purchase Order','Goods Receipt','Payment Terms','Currency','Payment Method']];
   const coreBody = [[
     'Purchase Invoice',
@@ -640,22 +567,43 @@ export function buildEnhancedPurchaseInvoicePdf(ctx: PurchaseInvoicePdfContext):
     startY: companyTableY,
     head: coreHead,
     body: coreBody,
-    styles: { fontSize: 7, cellPadding: 2 },
-    headStyles: { fillColor: [255,255,255], textColor: 0, fontStyle: 'bold' },
-    margin: { left: 20, right: 20 },
+    styles: { 
+      fontSize: 7, 
+      cellPadding: 2,
+      lineColor: [0, 0, 0],
+      lineWidth: 0.1
+    },
+    headStyles: { 
+      fillColor: [255, 255, 255], // White header
+      textColor: [0, 0, 0], // Black text
+      fontStyle: 'bold',
+      halign: 'center'
+    },
+    alternateRowStyles: {
+      fillColor: [255, 255, 255] // White alternating rows
+    },
+    margin: { left: 12, right: 12 },
     didParseCell: (data:any) => { if (data.section==='head') data.cell.styles.halign='center'; }
   });
 
   // Supplier information section
   const afterCompanyTable = (doc as any).lastAutoTable?.finalY + 10 || companyTableY + 25;
   
-  // Supplier Name and Bill To headers
-  doc.setFontSize(9).setFont('helvetica', 'bold');
+  // Supplier Name and Bill To headers with professional styling
+  doc.setFontSize(10).setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0); // Black text
   doc.text('Supplier Name :', 20, afterCompanyTable);
   doc.text('Bill To :', pageWidth / 2 + 20, afterCompanyTable);
   
+  // Add underline for headers
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(1);
+  doc.line(20, afterCompanyTable + 2, 20 + 100, afterCompanyTable + 2);
+  doc.line(pageWidth / 2 + 20, afterCompanyTable + 2, pageWidth / 2 + 20 + 50, afterCompanyTable + 2);
+  
   // Supplier details
-  doc.setFont('helvetica', 'normal');
+  doc.setFont('helvetica', 'bold').setFontSize(9);
+  doc.setTextColor(0, 0, 0);
   const supplierName = supplier?.name || supplier?.supplierName || invoice.supplierName || 'Supplier';
   doc.text(supplierName.toUpperCase(), 20, afterCompanyTable + 8);
   
@@ -668,6 +616,8 @@ export function buildEnhancedPurchaseInvoicePdf(ctx: PurchaseInvoicePdfContext):
     supplier?.taxId ? `Tax ID: ${supplier.taxId}` : 'Tax ID: N/A'
   ];
   
+  doc.setFont('helvetica', 'normal').setFontSize(8);
+  doc.setTextColor(0, 0, 0);
   supplierLines.forEach((line, idx) => {
     doc.text(line, 20, supplierDetailsY + idx * 5);
   });
@@ -680,12 +630,25 @@ export function buildEnhancedPurchaseInvoicePdf(ctx: PurchaseInvoicePdfContext):
     'VAT Reg: 100004744700962'
   ];
   
+  doc.setFont('helvetica', 'bold').setFontSize(8);
+  doc.setTextColor(0, 0, 0);
   billToLines.forEach((line, idx) => {
     doc.text(line, pageWidth / 2 + 20, supplierDetailsY + idx * 5);
   });
 
+  // Add a section header for items
+  const itemsHeaderY = supplierDetailsY + 24;
+  doc.setFontSize(10).setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  doc.text('ITEMS & SERVICES', 20, itemsHeaderY);
+  
+  // Add underline for items header
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(1);
+  doc.line(20, itemsHeaderY + 2, 20 + 120, itemsHeaderY + 2);
+
   // Enhanced Items table
-  const tableStartY = supplierDetailsY + 35;
+  const tableStartY = itemsHeaderY + 6;
   const currency = invoice.currency || 'BHD';
   
   const rows = items.map((it, i) => {
@@ -713,44 +676,54 @@ export function buildEnhancedPurchaseInvoicePdf(ctx: PurchaseInvoicePdfContext):
       `${currency} ${discountAmount.toFixed(2)}`,
       `${currency} ${netAmount.toFixed(2)}`,
       `${vatRate}%`,
-      `${currency} ${vatAmount.toFixed(2)}`,
-      `${currency} ${lineTotal.toFixed(2)}`
+      `${currency} ${vatAmount.toFixed(2)}`
     ];
   });
 
   autoTable(doc, {
     startY: tableStartY,
-    head: [['Sl.', 'Description & Item Details', 'Qty', 'Unit Rate', 'Disc. %', 'Disc. Amt', 'Net Amount', 'VAT %', 'VAT Amt', 'Line Total']],
+    head: [['S.I.', 'Description & Item Details', 'Qty', 'Unit Rate', 'Disc. %', 'Disc. Amt', 'Net Amount', 'VAT %', 'VAT Amt']],
     body: rows,
     styles: { 
-      fontSize: 7, 
-      cellPadding: 2, 
-      lineColor: [0, 0, 0],
+      fontSize: 5, 
+      cellPadding: 1, 
+      lineColor: [0, 0, 0], // Black borders
       lineWidth: 0.1,
-      valign: 'middle'
+      valign: 'middle',
+      overflow: 'linebreak',
+      cellWidth: 'wrap',
+      textColor: [0, 0, 0] // Black text
     },
     headStyles: { 
-      fillColor: [255, 255, 255],
-      textColor: [0, 0, 0],
+      fillColor: [255, 255, 255], // White header background
+      textColor: [0, 0, 0], // Black text
       fontStyle: 'bold',
-      halign: 'center'
+      halign: 'center',
+      fontSize: 6,
+      cellPadding: 1,
+      lineColor: [0, 0, 0], // Black borders
+      lineWidth: 0.1
     },
     columnStyles: {
-      0: { cellWidth: 12, halign: 'center' },
-      1: { cellWidth: 60, halign: 'left' },
-      2: { cellWidth: 15, halign: 'center' },
-      3: { cellWidth: 20, halign: 'right' },
-      4: { cellWidth: 15, halign: 'center' },
-      5: { cellWidth: 18, halign: 'right' },
-      6: { cellWidth: 20, halign: 'right' },
-      7: { cellWidth: 12, halign: 'center' },
-      8: { cellWidth: 18, halign: 'right' },
-      9: { cellWidth: 20, halign: 'right', fontStyle: 'bold' }
+      0: { cellWidth: 6, halign: 'center' }, // S.I.
+      1: { cellWidth: 40, halign: 'left' }, // Description & Item Details
+      2: { cellWidth: 9, halign: 'center' }, // Qty
+      3: { cellWidth: 12, halign: 'right' }, // Unit Rate
+      4: { cellWidth: 8, halign: 'center' }, // Disc. %
+      5: { cellWidth: 10, halign: 'right' }, // Disc. Amt
+      6: { cellWidth: 15, halign: 'right' }, // Net Amount
+      7: { cellWidth: 8, halign: 'center' }, // VAT %
+      8: { cellWidth: 12, halign: 'right' }  // VAT Amt
     },
     alternateRowStyles: {
-      fillColor: [255, 255, 255]
+      fillColor: [255, 255, 255] // White alternating rows
     },
-    margin: { left: 15, right: 15 }
+    margin: { left: 12, right: 12 },
+    // Keep the entire table on a single page
+    pageBreak: 'avoid',
+    rowPageBreak: 'avoid',
+    tableWidth: 'wrap',
+    showHead: 'firstPage'
   });
 
   const afterItemsTable = (doc as any).lastAutoTable?.finalY || tableStartY + 40;
@@ -763,26 +736,42 @@ export function buildEnhancedPurchaseInvoicePdf(ctx: PurchaseInvoicePdfContext):
   const paidAmount = Number(invoice.paidAmount) || 0;
   const remainingAmount = Number(invoice.remainingAmount) || (total - paidAmount);
 
-  // Financial summary table
-  const finStartY = afterItemsTable + 5;
+  // Keep summary on same page; compress spacing
+  let finStartY = afterItemsTable + 4;
   autoTable(doc, {
     startY: finStartY,
     head: [[`${currency} Summary`, 'Amount']],
     body: [
-      ['Subtotal', subtotal.toFixed(2)],
-      ['Discount', discountAmount.toFixed(2)],
-      ['Tax Amount', taxAmount.toFixed(2)],
-      ['Total', total.toFixed(2)],
-      ['Paid', paidAmount.toFixed(2)],
-      ['Remaining', remainingAmount.toFixed(2)]
+      ['Subtotal', `${currency} ${subtotal.toFixed(2)}`],
+      ['Discount', `${currency} ${discountAmount.toFixed(2)}`],
+      ['Tax Amount', `${currency} ${taxAmount.toFixed(2)}`],
+      ['Total', `${currency} ${total.toFixed(2)}`],
+      ['Paid', `${currency} ${paidAmount.toFixed(2)}`],
+      ['Remaining', `${currency} ${remainingAmount.toFixed(2)}`]
     ],
-    styles: { fontSize: 8, cellPadding: 2 },
-    headStyles: { fillColor: [220,220,220], textColor:0, fontStyle:'bold' },
-    columnStyles: { 0: { cellWidth: 60 }, 1: { cellWidth: 30, halign:'right' } },
-    margin: { left: 20 }
+    styles: { 
+      fontSize: 7, 
+      cellPadding: 2,
+      lineColor: [0, 0, 0],
+      lineWidth: 0.1
+    },
+    headStyles: { 
+      fillColor: [255, 255, 255], // White header
+      textColor: [0, 0, 0], // Black text
+      fontStyle: 'bold',
+      halign: 'center'
+    },
+    columnStyles: { 
+      0: { cellWidth: 70, halign: 'left', fontStyle: 'bold' }, 
+      1: { cellWidth: 36, halign: 'right', fontStyle: 'bold' } 
+    },
+    alternateRowStyles: {
+      fillColor: [255, 255, 255] // White alternating rows
+    },
+    margin: { left: pageWidth - 118, right: 12 }
   });
 
-  const summaryY = (doc as any).lastAutoTable?.finalY + 8;
+  let summaryY = (doc as any).lastAutoTable?.finalY + 4;
 
   // Summary box styling
   doc.setDrawColor(0);
@@ -804,66 +793,31 @@ export function buildEnhancedPurchaseInvoicePdf(ctx: PurchaseInvoicePdfContext):
   summaryItems.forEach(([label, amount], idx) => {
     if (idx < 2) {
       // Amount in words section
-      doc.setFont('helvetica', 'bold').setFontSize(8);
+      doc.setFont('helvetica', 'bold').setFontSize(7);
       doc.text(label, 20, currentY);
       if (amount) {
         doc.setFont('helvetica', 'normal');
         doc.text(amount, 20, currentY + 5);
       }
-      currentY += (idx === 0) ? 5 : 10;
+      currentY += (idx === 0) ? 4 : 8;
     } else {
       // Financial amounts
-      doc.setFont('helvetica', 'normal').setFontSize(9);
+      doc.setFont('helvetica', 'normal').setFontSize(7);
       doc.text(label, pageWidth - 80, currentY);
       doc.setFont('helvetica', 'bold');
       doc.text(`${currency} ${amount}`, pageWidth - 25, currentY, { align: 'right' });
       if (label.includes('Total*')) {
         doc.line(pageWidth - 80, currentY + 1, pageWidth - 20, currentY + 1);
       }
-      currentY += 6;
+      currentY += 5;
     }
   });
 
-  // Notes section
-  const notesY = currentY + 6;
-  doc.setFont('helvetica','bold').setFontSize(8).text('Notes:', 20, notesY);
-  doc.setFont('helvetica','normal');
-  const notes = invoice.notes || '---';
-  const splitNotes = doc.splitTextToSize(notes, pageWidth - 40);
-  doc.text(splitNotes, 20, notesY + 4);
-
-  const termsY = notesY + 4 + splitNotes.length * 4 + 6;
-  doc.setFont('helvetica', 'bold').setFontSize(8).text('Declaration:', 20, termsY);
-  doc.setFont('helvetica', 'normal').text('We declare that this purchase invoice shows the actual price of the goods described and that all particulars are true and correct.', 20, termsY + 4, { maxWidth: pageWidth - 40 });
-  
-  // Bottom section with company details
-  const bottomY = termsY + 18;
-  doc.setFontSize(7).text('CK 6491-1, Reg.Address: Building 728, Road 2012, Town 2564, Country:Bahrain', 20, bottomY);
-  
-  // Document meta
-  const metaLeftY = bottomY + 6;
-  doc.setFont('helvetica','bold').setFontSize(7).text('Created:', 20, metaLeftY);
-  doc.setFont('helvetica','normal').text(fmtDate(invoice.createdAt), 40, metaLeftY);
-  doc.setFont('helvetica','bold').text('Updated:', 20, metaLeftY + 4);
-  doc.setFont('helvetica','normal').text(fmtDate(invoice.updatedAt), 40, metaLeftY + 4);
-  if (invoice.paymentMethod) {
-    doc.setFont('helvetica','bold').text('Payment Method:', 20, metaLeftY + 8);
-    doc.setFont('helvetica','normal').text(String(invoice.paymentMethod), 50, metaLeftY + 8);
-  }
-  if (invoice.bankReference) {
-    doc.setFont('helvetica','bold').text('Bank Ref:', 20, metaLeftY + 12);
-    doc.setFont('helvetica','normal').text(String(invoice.bankReference), 50, metaLeftY + 12);
-  }
-  
-  // Signature area
-  doc.setFont('helvetica','bold').text('for GOLDEN STYLE W.L.L', pageWidth - 80, bottomY + 8);
-  doc.setFont('helvetica','normal').text('Authorised Signatory', pageWidth - 80, bottomY + 16);
-
-  // Footer
-  const footerY = pageHeight - 20;
-  doc.setFontSize(7).setTextColor(0);
-  doc.text('Generated by GT ERP', 20, footerY);
-  doc.text(new Date().toLocaleDateString(), pageWidth - 20, footerY, { align: 'right' });
+  // Footer/meta positioning respecting page bottom
+  const footerTop = Math.min(pageHeight - 22, currentY + 8);
+  doc.setFontSize(7).setTextColor(0, 0, 0);
+  doc.text('Generated by GT ERP System', 20, footerTop);
+  doc.text(`Generated on: ${new Date().toLocaleDateString()}`, pageWidth - 20, footerTop, { align: 'right' });
 
   return Buffer.from(doc.output('arraybuffer'));
 }

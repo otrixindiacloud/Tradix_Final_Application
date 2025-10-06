@@ -75,6 +75,7 @@ export class SupplierQuoteStorage {
           sq.evaluation_score as "evaluationScore",
           sq.competitive_rank as "competitiveRank",
           sq.is_preferred_supplier as "isPreferredSupplier",
+          sq.supplier_quotation_document as "supplierQuotationDocument",
           sq.created_by as "createdBy",
           sq.created_at as "createdAt",
           sq.updated_at as "updatedAt",
@@ -83,17 +84,9 @@ export class SupplierQuoteStorage {
           s.email as "supplierEmail",
           s.phone as "supplierPhone",
           s.address as "supplierAddress",
-          s.contact_person as "supplierContactPerson",
-          c.id as "customerId",
-          c.name as "customerName",
-          c.email as "customerEmail",
-          c.phone as "customerPhone",
-          c.address as "customerAddress",
-          c.customer_type as "customerType"
+          s.contact_person as "supplierContactPerson"
         FROM supplier_quotes sq
         LEFT JOIN suppliers s ON sq.supplier_id = s.id
-        LEFT JOIN enquiries e ON sq.enquiry_id = e.id
-        LEFT JOIN customers c ON e.customer_id = c.id
         ${whereClause}
         ORDER BY sq.created_at DESC
       `;
@@ -113,15 +106,6 @@ export class SupplierQuoteStorage {
           phone: row.supplierPhone,
           address: row.supplierAddress,
           contactPerson: row.supplierContactPerson,
-        } : null;
-
-        const customer = row.customerId ? {
-          id: row.customerId,
-          name: row.customerName,
-          email: row.customerEmail,
-          phone: row.customerPhone,
-          address: row.customerAddress,
-          customerType: row.customerType,
         } : null;
 
         return {
@@ -153,9 +137,7 @@ export class SupplierQuoteStorage {
           createdAt: row.createdAt,
           updatedAt: row.updatedAt,
           supplier,
-          supplierName: supplier?.name || "No Supplier",
-          customer,
-          __customerEmbedded: true
+          supplierName: supplier?.name || "No Supplier"
         };
       });
 
@@ -201,6 +183,7 @@ export class SupplierQuoteStorage {
         approvedBy: supplierQuotes.approvedBy,
         approvedAt: supplierQuotes.approvedAt,
         rejectionReason: supplierQuotes.rejectionReason,
+        supplierQuotationDocument: supplierQuotes.supplierQuotationDocument,
         createdBy: supplierQuotes.createdBy,
         createdAt: supplierQuotes.createdAt,
         updatedAt: supplierQuotes.updatedAt,
@@ -270,13 +253,36 @@ export class SupplierQuoteStorage {
   }
 
   static async delete(id: string) {
-    // Use transaction to ensure atomicity
-    await db.transaction(async (tx) => {
-      // Delete supplier quote items first (due to foreign key constraint)
-      await tx.delete(supplierQuoteItems).where(eq(supplierQuoteItems.supplierQuoteId, id));
-      // Then delete the supplier quote
-      await tx.delete(supplierQuotes).where(eq(supplierQuotes.id, id));
-    });
-    return { message: "Supplier quote deleted successfully" };
+    try {
+      console.log(`[SupplierQuoteStorage.delete][START] { id: '${id}' }`);
+      
+      // Check if the quote exists first
+      const existingQuote = await db.select().from(supplierQuotes).where(eq(supplierQuotes.id, id)).limit(1);
+      if (existingQuote.length === 0) {
+        console.log(`[SupplierQuoteStorage.delete][ERROR] Quote not found: ${id}`);
+        throw new Error('Supplier quote not found');
+      }
+      
+      // Use transaction to ensure atomicity
+      await db.transaction(async (tx) => {
+        // Delete supplier quote items first (due to foreign key constraint)
+        const deletedItems = await tx.delete(supplierQuoteItems).where(eq(supplierQuoteItems.supplierQuoteId, id));
+        console.log(`[SupplierQuoteStorage.delete] Deleted ${deletedItems.rowCount || 0} items`);
+        
+        // Then delete the supplier quote
+        const deletedQuote = await tx.delete(supplierQuotes).where(eq(supplierQuotes.id, id));
+        console.log(`[SupplierQuoteStorage.delete] Deleted quote: ${deletedQuote.rowCount || 0} rows`);
+        
+        if (deletedQuote.rowCount === 0) {
+          throw new Error('Failed to delete supplier quote');
+        }
+      });
+      
+      console.log(`[SupplierQuoteStorage.delete][SUCCESS] { id: '${id}' }`);
+      return { message: "Supplier quote deleted successfully" };
+    } catch (error) {
+      console.error(`[SupplierQuoteStorage.delete][ERROR] { id: '${id}' }`, error);
+      throw error;
+    }
   }
 }

@@ -27,10 +27,12 @@ export class SalesOrderStorage extends BaseStorage implements ISalesOrderStorage
     let query = db
       .select({ 
         so: salesOrders, 
-        cust: customers 
+        cust: customers,
+        quot: quotations
       })
       .from(salesOrders)
-      .leftJoin(customers, eq(salesOrders.customerId, customers.id));
+      .leftJoin(customers, eq(salesOrders.customerId, customers.id))
+      .leftJoin(quotations, eq(salesOrders.quotationId, quotations.id));
 
     // Drizzle ORM chaining: .where() must come after .leftJoin()
     if (conditions.length) {
@@ -38,7 +40,7 @@ export class SalesOrderStorage extends BaseStorage implements ISalesOrderStorage
     }
 
     const rows = await query.orderBy(desc(salesOrders.createdAt)).limit(limit).offset(offset);
-    // Map to enriched shape with embedded customer + transition flag
+    // Map to enriched shape with embedded customer + quotation + transition flag
     return rows.map(r => {
       const c = r.cust ? {
         id: (r.cust as any).id,
@@ -46,7 +48,13 @@ export class SalesOrderStorage extends BaseStorage implements ISalesOrderStorage
         customerType: (r.cust as any).customerType || null,
         address: (r.cust as any).address || (r.cust as any).billingAddress || null,
       } : null;
-      return { ...r.so, customer: c, __customerEmbedded: true };
+      const q = r.quot ? {
+        id: (r.quot as any).id,
+        quoteNumber: (r.quot as any).quoteNumber,
+        revision: (r.quot as any).revision,
+        status: (r.quot as any).status,
+      } : null;
+      return { ...r.so, customer: c, quotation: q, __customerEmbedded: true };
     });
   }
 
@@ -55,9 +63,11 @@ export class SalesOrderStorage extends BaseStorage implements ISalesOrderStorage
       .select({
         salesOrder: salesOrders,
         customer: customers,
+        quotation: quotations,
       })
       .from(salesOrders)
       .leftJoin(customers, eq(salesOrders.customerId, customers.id))
+      .leftJoin(quotations, eq(salesOrders.quotationId, quotations.id))
       .where(eq(salesOrders.id, id))
       .limit(1);
     
@@ -89,7 +99,15 @@ export class SalesOrderStorage extends BaseStorage implements ISalesOrderStorage
           paymentTerms: (row.customer as any).paymentTerms ?? null,
         }
       : null;
-    return { ...row.salesOrder, customer, __customerEmbedded: true };
+    const quotation = row.quotation
+      ? {
+          id: (row.quotation as any).id,
+          quoteNumber: (row.quotation as any).quoteNumber,
+          revision: (row.quotation as any).revision,
+          status: (row.quotation as any).status,
+        }
+      : null;
+    return { ...row.salesOrder, customer, quotation, __customerEmbedded: true };
   }
 
   async createSalesOrder(salesOrder: any) {

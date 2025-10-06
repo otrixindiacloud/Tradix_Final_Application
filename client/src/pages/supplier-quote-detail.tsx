@@ -18,7 +18,8 @@ import {
   DollarSign,
   FileText,
   Star,
-  TrendingUp
+  TrendingUp,
+  Eye
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -48,6 +49,7 @@ interface SupplierQuote {
   score?: number;
   rank?: number;
   itemCount: number;
+  supplierQuotationDocument?: string; // File path or URL to supplier's quotation document
   createdAt: string;
   updatedAt: string;
 }
@@ -166,7 +168,40 @@ export default function SupplierQuoteDetailPage() {
     return "text-red-600";
   };
 
-  if (!quote) {
+  // Show loading state while fetching data
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-2xl font-bold text-gray-900">Loading Supplier Quote...</h2>
+          <p className="text-gray-600 mt-2">Please wait while we fetch the quote details.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if there was an error fetching data
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900">Error Loading Quote</h2>
+          <p className="text-gray-600 mt-2">{error}</p>
+          <button 
+            onClick={() => navigate("/supplier-quotes")}
+            className="group flex items-center gap-3 bg-white hover:bg-gray-50 text-gray-900 font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 transition-all duration-200 transform hover:-translate-y-0.5 border border-gray-200 mt-4"
+          >
+            <ArrowLeft className="h-4 w-4 text-blue-600 group-hover:scale-110 transition-transform duration-200" />
+            <div className="text-sm font-bold">Back to Supplier Quotes</div>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show not found state only if we're not loading and there's no error but no quote data
+  if (!quote && !loading && !error) {
     return (
       <div className="p-6">
         <div className="text-center">
@@ -222,10 +257,10 @@ export default function SupplierQuoteDetailPage() {
           </button>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              {quote.quoteNumber}
+              {quote?.quoteNumber || 'Loading...'}
             </h1>
             <p className="text-gray-600">
-              From {quote.supplierName}
+              From {quote?.supplierName || 'Loading...'}
             </p>
           </div>
         </div>
@@ -235,7 +270,7 @@ export default function SupplierQuoteDetailPage() {
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
-          {quote.status === "Under Review" && (
+          {quote?.status === "Under Review" && (
             <>
               <Button 
                 variant="outline"
@@ -282,7 +317,7 @@ export default function SupplierQuoteDetailPage() {
               </div>
               <div>
                 <p className="text-sm font-bold text-black">Status</p>
-                <StatusPill status={quote.status} />
+                <StatusPill status={quote?.status || ''} />
               </div>
             </div>
           </CardContent>
@@ -296,8 +331,8 @@ export default function SupplierQuoteDetailPage() {
               </div>
               <div>
                 <p className="text-sm font-bold text-black">Priority</p>
-                <Badge className={getPriorityColor(quote.priority)}>
-                  {quote.priority}
+                <Badge className={getPriorityColor(quote?.priority || '')}>
+                  {quote?.priority}
                 </Badge>
               </div>
             </div>
@@ -312,7 +347,7 @@ export default function SupplierQuoteDetailPage() {
               </div>
               <div>
                 <p className="text-sm font-bold text-black">Total Amount</p>
-                <p className="font-semibold">{quote.currency} {quote.totalAmount}</p>
+                <p className="font-semibold">{quote?.currency} {quote?.totalAmount}</p>
               </div>
             </div>
           </CardContent>
@@ -326,8 +361,8 @@ export default function SupplierQuoteDetailPage() {
               </div>
               <div>
                 <p className="text-sm font-bold text-black">Score</p>
-                <p className={`font-semibold ${getScoreColor(quote.score || 0)}`}>
-                  {quote.score}/10
+                <p className={`font-semibold ${getScoreColor(quote?.score || 0)}`}>
+                  {quote?.score}/10
                 </p>
               </div>
             </div>
@@ -342,7 +377,7 @@ export default function SupplierQuoteDetailPage() {
               </div>
               <div>
                 <p className="text-sm font-bold text-black">Rank</p>
-                <p className="font-semibold">#{quote.rank}</p>
+                <p className="font-semibold">#{ quote?.rank}</p>
               </div>
             </div>
           </CardContent>
@@ -360,16 +395,16 @@ export default function SupplierQuoteDetailPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-gray-500">Supplier</label>
-                <p className="mt-1">{quote.supplierName}</p>
+                <p className="mt-1">{quote?.supplierName}</p>
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-500">Requisition</label>
-                <p className="mt-1">{quote.requisitionNumber || 'No Requisition'}</p>
+                <p className="mt-1">{quote?.requisitionNumber || 'No Requisition'}</p>
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-500">Request Date</label>
                 <p className="mt-1">{
-                  quote.requestDate && !isNaN(Date.parse(quote.requestDate))
+                  quote?.requestDate && !isNaN(Date.parse(quote?.requestDate))
                     ? formatDate(new Date(quote.requestDate), 'MMM dd, yyyy')
                     : 'N/A'
                 }</p>
@@ -377,7 +412,7 @@ export default function SupplierQuoteDetailPage() {
               <div>
                 <label className="text-sm font-medium text-gray-500">Response Date</label>
                 <p className="mt-1">
-                  {quote.responseDate && !isNaN(Date.parse(quote.responseDate))
+                  {quote?.responseDate && !isNaN(Date.parse(quote?.responseDate))
                     ? formatDate(new Date(quote.responseDate), 'MMM dd, yyyy')
                     : 'Pending'}
                 </p>
@@ -385,14 +420,14 @@ export default function SupplierQuoteDetailPage() {
               <div>
                 <label className="text-sm font-medium text-gray-500">Valid Until</label>
                 <p className="mt-1">{
-                  quote.validUntil && !isNaN(Date.parse(quote.validUntil))
+                  quote?.validUntil && !isNaN(Date.parse(quote?.validUntil))
                     ? formatDate(new Date(quote.validUntil), 'MMM dd, yyyy')
                     : 'N/A'
                 }</p>
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-500">Currency</label>
-                <p className="mt-1">{quote.currency}</p>
+                <p className="mt-1">{quote?.currency}</p>
               </div>
             </div>
           </CardContent>
@@ -406,21 +441,73 @@ export default function SupplierQuoteDetailPage() {
           <CardContent className="space-y-4">
             <div>
               <label className="text-sm font-medium text-gray-500">Payment Terms</label>
-              <p className="mt-1 text-gray-900">{quote.paymentTerms}</p>
+              <p className="mt-1 text-gray-900">{quote?.paymentTerms}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-gray-500">Delivery Terms</label>
-              <p className="mt-1 text-gray-900">{quote.deliveryTerms}</p>
+              <p className="mt-1 text-gray-900">{quote?.deliveryTerms}</p>
             </div>
-            {quote.notes && (
+            {quote?.notes && (
               <div>
                 <label className="text-sm font-medium text-gray-500">Notes</label>
-                <p className="mt-1 text-gray-900">{quote.notes}</p>
+                <p className="mt-1 text-gray-900">{quote?.notes}</p>
               </div>
             )}
           </CardContent>
         </Card>
       </div>
+
+      {/* Supplier Quotation Document Section */}
+      {quote?.supplierQuotationDocument && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Supplier Quotation Document
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center gap-3">
+                <FileText className="h-8 w-8 text-blue-500" />
+                <div>
+                  <p className="font-medium text-gray-900">Quotation Document</p>
+                  <p className="text-sm text-gray-500">
+                    {quote?.supplierQuotationDocument.includes('http') ? 'External Link' : 'Uploaded File'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.open(quote.supplierQuotationDocument, '_blank')}
+                  className="flex items-center gap-2"
+                >
+                  <Eye className="h-4 w-4" />
+                  View
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const link = document.createElement('a');
+                    link.href = quote.supplierQuotationDocument!;
+                    link.download = `quotation-${quote.quoteNumber}.pdf`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Download
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Items Section */}
       <Card>
@@ -457,15 +544,15 @@ export default function SupplierQuoteDetailPage() {
                           </div>
                         </td>
                         <td className="p-2">{item.quantity} {item.unitOfMeasure || 'pcs'}</td>
-                        <td className="p-2">{quote.currency} {parseFloat(item.unitPrice).toLocaleString()}</td>
-                        <td className="p-2 font-medium">{quote.currency} {parseFloat(item.lineTotal).toLocaleString()}</td>
+                        <td className="p-2">{quote?.currency} {parseFloat(item.unitPrice).toLocaleString()}</td>
+                        <td className="p-2 font-medium">{quote?.currency} {parseFloat(item.lineTotal).toLocaleString()}</td>
                         <td className="p-2">{item.leadTime || '-'}</td>
                         <td className="p-2">{item.warranty || '-'}</td>
                       </tr>
                     ))}
                     <tr className="border-t-2 border-gray-200 font-semibold">
                       <td colSpan={3} className="p-2 text-right">Total Amount:</td>
-                      <td className="p-2">{quote.currency} {quote.totalAmount}</td>
+                      <td className="p-2">{quote?.currency} {quote?.totalAmount}</td>
                       <td colSpan={2}></td>
                     </tr>
                   </>

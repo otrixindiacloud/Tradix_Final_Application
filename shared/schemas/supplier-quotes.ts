@@ -38,6 +38,7 @@ export const supplierQuotes = pgTable("supplier_quotes", {
   approvedBy: uuid("approved_by").references(() => users.id),
   approvedAt: timestamp("approved_at"),
   rejectionReason: text("rejection_reason"),
+  supplierQuotationDocument: text("supplier_quotation_document"), // File path or URL to supplier's quotation document
   createdBy: uuid("created_by").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS supplier_quotes (
     approved_by UUID REFERENCES users(id),
     approved_at TIMESTAMP,
     rejection_reason TEXT,
+    supplier_quotation_document TEXT,
     created_by UUID REFERENCES users(id),
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
