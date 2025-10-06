@@ -9,11 +9,11 @@ var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, { get: all[name], enumerable: true });
 };
-var __copyProps = (to, from, except, desc19) => {
+var __copyProps = (to, from, except, desc22) => {
   if (from && typeof from === "object" || typeof from === "function") {
     for (let key of __getOwnPropNames(from))
       if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc19 = __getOwnPropDesc(from, key)) || desc19.enumerable });
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc22 = __getOwnPropDesc(from, key)) || desc22.enumerable });
   }
   return to;
 };
@@ -115,6 +115,8 @@ __export(schema_exports, {
   insertPriceListSchema: () => insertPriceListSchema,
   insertPricingRuleSchema: () => insertPricingRuleSchema,
   insertProductCategorySchema: () => insertProductCategorySchema,
+  insertPurchaseInvoiceItemSchema: () => insertPurchaseInvoiceItemSchema,
+  insertPurchaseInvoiceSchema: () => insertPurchaseInvoiceSchema,
   insertPurchaseOrderSchema: () => insertPurchaseOrderSchema,
   insertQuotationApprovalSchema: () => insertQuotationApprovalSchema,
   insertQuotationItemAcceptanceSchema: () => insertQuotationItemAcceptanceSchema,
@@ -131,6 +133,8 @@ __export(schema_exports, {
   insertStockMovementSchema: () => insertStockMovementSchema,
   insertSupplierLpoItemSchema: () => insertSupplierLpoItemSchema,
   insertSupplierLpoSchema: () => insertSupplierLpoSchema,
+  insertSupplierQuoteItemSchema: () => insertSupplierQuoteItemSchema,
+  insertSupplierQuoteSchema: () => insertSupplierQuoteSchema,
   insertSupplierReturnItemSchema: () => insertSupplierReturnItemSchema,
   insertSupplierReturnSchema: () => insertSupplierReturnSchema,
   insertSupplierSchema: () => insertSupplierSchema,
@@ -173,6 +177,8 @@ __export(schema_exports, {
   pricingRulesRelations: () => pricingRulesRelations,
   productCategories: () => productCategories,
   productCategoriesRelations: () => productCategoriesRelations,
+  purchaseInvoiceItems: () => purchaseInvoiceItems,
+  purchaseInvoices: () => purchaseInvoices,
   purchaseOrders: () => purchaseOrders,
   purchaseOrdersRelations: () => purchaseOrdersRelations,
   quotationApprovals: () => quotationApprovals,
@@ -210,6 +216,8 @@ __export(schema_exports, {
   supplierLpoItems: () => supplierLpoItems,
   supplierLpoStatusEnum: () => supplierLpoStatusEnum,
   supplierLpos: () => supplierLpos,
+  supplierQuoteItems: () => supplierQuoteItems,
+  supplierQuotes: () => supplierQuotes,
   supplierReturnItems: () => supplierReturnItems,
   supplierReturns: () => supplierReturns,
   suppliers: () => suppliers,
@@ -236,7 +244,7 @@ import {
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { nanoid as nanoid2 } from "nanoid";
-var deliveryItem, physicalStock, stockTransfer, stockIssue, materialRequest, materialRequestSchema, inventoryItem, goodsReceipt, shippingTracking, customerPoUpload, customerTypeEnum, customerClassificationEnum, enquiryStatusEnum, enquirySourceEnum, quotationStatusEnum, salesOrderStatusEnum, supplierLpoStatusEnum, goodsReceiptStatusEnum, deliveryStatusEnum, invoiceStatusEnum, requisitionStatusEnum, requisitionPriorityEnum, requisitionItemUrgencyEnum, physicalStockStatusEnum, stockCountStatusEnum, shipmentStatusEnum, shipmentPriorityEnum, shipmentServiceTypeEnum, trackingEventTypeEnum, users, customers, suppliers, items, legacyInventory, enquiries, enquiryItems, requisitions, requisitionItems, approvalLevelEnum, quotations, quotationItems, approvalRules, quotationApprovals, salesOrders, salesOrderItems, supplierLpos, supplierLpoItems, goodsReceipts, legacyGoodsReceiptItems, deliveries, deliveryItems, invoices, invoiceItems, deliveryPickingSessions, deliveryPickedItems, creditNotes, creditNoteItems, auditLogs, customerAcceptances, purchaseOrders, quotationItemAcceptances, poLineItems, acceptanceConfirmations, shipments, shipmentTrackingEvents, customersRelations, suppliersRelations, itemsRelations, enquiriesRelations, requisitionsRelations, requisitionItemsRelations, quotationsRelations, customerAcceptancesRelations, purchaseOrdersRelations, quotationItemAcceptancesRelations, poLineItemsRelations, salesOrdersRelations, shipmentsRelations, shipmentTrackingEventsRelations, insertCustomerSchema, insertSupplierSchema, insertItemSchema, insertEnquirySchema, updateEnquirySchema, insertEnquiryItemSchema, insertRequisitionSchema, insertRequisitionItemSchema, insertQuotationSchema, createQuotationRevisionSchema, insertQuotationItemSchema, insertApprovalRuleSchema, insertQuotationApprovalSchema, insertCustomerAcceptanceSchema, insertPurchaseOrderSchema, insertQuotationItemAcceptanceSchema, insertPoLineItemSchema, insertAcceptanceConfirmationSchema, insertSalesOrderSchema, insertSalesOrderItemSchema, insertSupplierLpoSchema, insertSupplierLpoItemSchema, insertInvoiceSchema, inventoryItems, inventoryVariants, inventoryLevels, goodsReceiptHeaders, goodsReceiptItems, scanningSessions, scannedItems, supplierReturns, supplierReturnItems, stockMovements, insertInventoryItemSchema, insertInventoryVariantSchema, insertInventoryLevelSchema, insertScanningSessionSchema, insertScannedItemSchema, insertSupplierReturnSchema, insertSupplierReturnItemSchema, insertGoodsReceiptHeaderSchema, insertGoodsReceiptItemSchema, insertStockMovementSchema, insertDeliverySchema, insertDeliveryItemSchema, insertInvoiceItemSchema, insertDeliveryPickingSessionSchema, insertDeliveryPickedItemSchema, insertShipmentSchema, insertShipmentTrackingEventSchema, insertCreditNoteSchema, insertCreditNoteItemSchema, pricingMarkupLevelEnum, pricingRuleTypeEnum, productCategories, markupConfiguration, itemPricing, customerPricing, pricingRules, priceLists, priceListItems, priceChangeHistory, bulkPricingOperations, productCategoriesRelations, markupConfigurationRelations, itemPricingRelations, customerPricingRelations, pricingRulesRelations, priceListsRelations, priceListItemsRelations, priceChangeHistoryRelations, bulkPricingOperationsRelations, insertProductCategorySchema, insertMarkupConfigurationSchema, insertItemPricingSchema, insertCustomerPricingSchema, insertPricingRuleSchema, insertPriceListSchema, insertPriceListItemSchema, insertPriceChangeHistorySchema, insertBulkPricingOperationSchema, physicalStockCounts, physicalStockCountItems, physicalStockScanningSessions, physicalStockScannedItems, physicalStockAdjustments, physicalStockAdjustmentItems, insertPhysicalStockCountSchema, insertPhysicalStockCountItemSchema, insertPhysicalStockScanningSessionSchema, insertPhysicalStockScannedItemSchema, insertPhysicalStockAdjustmentSchema, insertPhysicalStockAdjustmentItemSchema;
+var deliveryItem, physicalStock, stockTransfer, stockIssue, materialRequest, materialRequestSchema, inventoryItem, goodsReceipt, shippingTracking, customerPoUpload, customerTypeEnum, customerClassificationEnum, enquiryStatusEnum, enquirySourceEnum, quotationStatusEnum, salesOrderStatusEnum, supplierLpoStatusEnum, goodsReceiptStatusEnum, deliveryStatusEnum, invoiceStatusEnum, requisitionStatusEnum, requisitionPriorityEnum, requisitionItemUrgencyEnum, physicalStockStatusEnum, stockCountStatusEnum, shipmentStatusEnum, shipmentPriorityEnum, shipmentServiceTypeEnum, trackingEventTypeEnum, users, customers, suppliers, items, legacyInventory, enquiries, enquiryItems, requisitions, requisitionItems, approvalLevelEnum, quotations, quotationItems, approvalRules, quotationApprovals, salesOrders, salesOrderItems, supplierLpos, supplierLpoItems, goodsReceipts, legacyGoodsReceiptItems, deliveries, deliveryItems, invoices, invoiceItems, deliveryPickingSessions, deliveryPickedItems, creditNotes, creditNoteItems, auditLogs, customerAcceptances, purchaseOrders, quotationItemAcceptances, poLineItems, acceptanceConfirmations, shipments, shipmentTrackingEvents, customersRelations, suppliersRelations, itemsRelations, enquiriesRelations, requisitionsRelations, requisitionItemsRelations, quotationsRelations, customerAcceptancesRelations, purchaseOrdersRelations, quotationItemAcceptancesRelations, poLineItemsRelations, salesOrdersRelations, shipmentsRelations, shipmentTrackingEventsRelations, insertCustomerSchema, insertSupplierSchema, insertItemSchema, insertEnquirySchema, updateEnquirySchema, insertEnquiryItemSchema, insertRequisitionSchema, insertRequisitionItemSchema, insertQuotationSchema, createQuotationRevisionSchema, insertQuotationItemSchema, insertApprovalRuleSchema, insertQuotationApprovalSchema, insertCustomerAcceptanceSchema, insertPurchaseOrderSchema, insertQuotationItemAcceptanceSchema, insertPoLineItemSchema, insertAcceptanceConfirmationSchema, insertSalesOrderSchema, insertSalesOrderItemSchema, insertSupplierLpoSchema, insertSupplierLpoItemSchema, insertInvoiceSchema, inventoryItems, inventoryVariants, inventoryLevels, goodsReceiptHeaders, purchaseInvoices, purchaseInvoiceItems, goodsReceiptItems, scanningSessions, scannedItems, supplierReturns, supplierReturnItems, stockMovements, insertInventoryItemSchema, insertInventoryVariantSchema, insertInventoryLevelSchema, insertScanningSessionSchema, insertScannedItemSchema, insertSupplierReturnSchema, insertSupplierReturnItemSchema, insertGoodsReceiptHeaderSchema, insertGoodsReceiptItemSchema, insertPurchaseInvoiceSchema, insertPurchaseInvoiceItemSchema, insertStockMovementSchema, insertDeliverySchema, insertDeliveryItemSchema, insertInvoiceItemSchema, insertDeliveryPickingSessionSchema, insertDeliveryPickedItemSchema, insertShipmentSchema, insertShipmentTrackingEventSchema, insertCreditNoteSchema, insertCreditNoteItemSchema, pricingMarkupLevelEnum, pricingRuleTypeEnum, productCategories, markupConfiguration, itemPricing, customerPricing, pricingRules, priceLists, priceListItems, priceChangeHistory, bulkPricingOperations, productCategoriesRelations, markupConfigurationRelations, itemPricingRelations, customerPricingRelations, pricingRulesRelations, priceListsRelations, priceListItemsRelations, priceChangeHistoryRelations, bulkPricingOperationsRelations, insertProductCategorySchema, insertMarkupConfigurationSchema, insertItemPricingSchema, insertCustomerPricingSchema, insertPricingRuleSchema, insertPriceListSchema, insertPriceListItemSchema, insertPriceChangeHistorySchema, insertBulkPricingOperationSchema, physicalStockCounts, physicalStockCountItems, physicalStockScanningSessions, physicalStockScannedItems, physicalStockAdjustments, physicalStockAdjustmentItems, insertPhysicalStockCountSchema, insertPhysicalStockCountItemSchema, insertPhysicalStockScanningSessionSchema, insertPhysicalStockScannedItemSchema, insertPhysicalStockAdjustmentSchema, insertPhysicalStockAdjustmentItemSchema, supplierQuotes, supplierQuoteItems, insertSupplierQuoteSchema, insertSupplierQuoteItemSchema;
 var init_schema = __esm({
   "shared/schema.ts"() {
     "use strict";
@@ -673,9 +681,9 @@ var init_schema = __esm({
       id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
       supplierLpoId: uuid("supplier_lpo_id").references(() => supplierLpos.id).notNull(),
       salesOrderItemId: uuid("sales_order_item_id").references(() => salesOrderItems.id),
-      quotationItemId: uuid("quotation_item_id").references(() => quotationItems.id),
-      // Direct link to quotation item
-      itemId: uuid("item_id").references(() => items.id).notNull(),
+      quotationItemId: uuid("quotation_item_id").references(() => supplierQuoteItems.id),
+      // Direct link to supplier quote item
+      itemId: uuid("item_id").references(() => items.id),
       lineNumber: integer("line_number"),
       // Item details
       supplierCode: varchar("supplier_code", { length: 100 }).notNull(),
@@ -1045,6 +1053,8 @@ var init_schema = __esm({
       currency: varchar("currency", { length: 10 }).default("AED"),
       shippingCost: decimal("shipping_cost", { precision: 10, scale: 2 }),
       customerReference: varchar("customer_reference", { length: 100 }),
+      customerName: varchar("customer_name", { length: 255 }),
+      // Added for customer name
       specialInstructions: text("special_instructions"),
       packageCount: integer("package_count").default(1),
       isInsured: boolean("is_insured").default(false),
@@ -1053,7 +1063,18 @@ var init_schema = __esm({
       lastUpdate: timestamp("last_update").defaultNow(),
       createdBy: uuid("created_by").references(() => users.id),
       createdAt: timestamp("created_at").defaultNow(),
-      updatedAt: timestamp("updated_at").defaultNow()
+      updatedAt: timestamp("updated_at").defaultNow(),
+      // Additional LPO-related fields
+      lpoId: uuid("lpo_id").references(() => supplierLpos.id),
+      // Link to supplier LPO
+      lpoNumber: varchar("lpo_number", { length: 100 }),
+      // LPO number for reference
+      items: jsonb("items"),
+      // Store items as JSON
+      subtotal: decimal("subtotal", { precision: 12, scale: 2 }),
+      taxAmount: decimal("tax_amount", { precision: 12, scale: 2 }),
+      paymentTerms: varchar("payment_terms", { length: 255 }),
+      deliveryTerms: varchar("delivery_terms", { length: 255 })
     });
     shipmentTrackingEvents = pgTable("shipment_tracking_events", {
       id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -1387,6 +1408,8 @@ var init_schema = __esm({
       receiptNumber: text("receipt_number").notNull().unique(),
       supplierLpoId: uuid("supplier_lpo_id").references(() => supplierLpos.id),
       supplierId: uuid("supplier_id").notNull().references(() => suppliers.id),
+      lpoNumber: varchar("lpo_number", { length: 100 }),
+      // LPO number for reference
       receiptDate: date("receipt_date").notNull(),
       expectedDeliveryDate: date("expected_delivery_date"),
       actualDeliveryDate: date("actual_delivery_date"),
@@ -1398,6 +1421,61 @@ var init_schema = __esm({
       totalQuantityExpected: integer("total_quantity_expected").default(0),
       totalQuantityReceived: integer("total_quantity_received").default(0),
       discrepancyFlag: boolean("discrepancy_flag").default(false),
+      createdAt: timestamp("created_at").defaultNow(),
+      updatedAt: timestamp("updated_at").defaultNow()
+    });
+    purchaseInvoices = pgTable("purchase_invoices", {
+      id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+      invoiceNumber: varchar("invoice_number", { length: 100 }).notNull().unique(),
+      supplierInvoiceNumber: varchar("supplier_invoice_number", { length: 100 }),
+      supplierId: uuid("supplier_id").notNull().references(() => suppliers.id),
+      goodsReceiptId: uuid("goods_receipt_id").notNull().references(() => goodsReceiptHeaders.id),
+      lpoId: uuid("lpo_id").references(() => supplierLpos.id),
+      status: varchar("status", { length: 50 }).notNull().default("Draft"),
+      // Draft, Sent, Paid, Overdue, Cancelled
+      paymentStatus: varchar("payment_status", { length: 50 }).notNull().default("Unpaid"),
+      // Unpaid, Partial, Paid
+      invoiceDate: date("invoice_date").notNull(),
+      dueDate: date("due_date"),
+      receivedDate: date("received_date"),
+      paymentDate: date("payment_date"),
+      subtotal: decimal("subtotal", { precision: 12, scale: 2 }).notNull().default("0.00"),
+      taxAmount: decimal("tax_amount", { precision: 12, scale: 2 }).notNull().default("0.00"),
+      discountAmount: decimal("discount_amount", { precision: 12, scale: 2 }).notNull().default("0.00"),
+      totalAmount: decimal("total_amount", { precision: 12, scale: 2 }).notNull().default("0.00"),
+      paidAmount: decimal("paid_amount", { precision: 12, scale: 2 }).notNull().default("0.00"),
+      remainingAmount: decimal("remaining_amount", { precision: 12, scale: 2 }).notNull().default("0.00"),
+      currency: varchar("currency", { length: 10 }).notNull().default("BHD"),
+      paymentTerms: text("payment_terms"),
+      notes: text("notes"),
+      attachments: jsonb("attachments"),
+      isRecurring: boolean("is_recurring").default(false),
+      createdAt: timestamp("created_at").defaultNow(),
+      updatedAt: timestamp("updated_at").defaultNow()
+    });
+    purchaseInvoiceItems = pgTable("purchase_invoice_items", {
+      id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+      purchaseInvoiceId: uuid("purchase_invoice_id").notNull().references(() => purchaseInvoices.id, { onDelete: "cascade" }),
+      goodsReceiptItemId: uuid("goods_receipt_item_id").references(() => goodsReceiptItems.id),
+      lpoItemId: uuid("lpo_item_id").references(() => supplierLpoItems.id),
+      itemId: uuid("item_id").references(() => inventoryItems.id),
+      variantId: uuid("variant_id").references(() => inventoryVariants.id),
+      barcode: text("barcode"),
+      supplierCode: text("supplier_code"),
+      itemDescription: text("item_description").notNull(),
+      quantity: integer("quantity").notNull(),
+      unitPrice: decimal("unit_price", { precision: 10, scale: 2 }).notNull(),
+      totalPrice: decimal("total_price", { precision: 12, scale: 2 }).notNull(),
+      taxRate: decimal("tax_rate", { precision: 5, scale: 2 }).default("0"),
+      taxAmount: decimal("tax_amount", { precision: 10, scale: 2 }).default("0"),
+      discountRate: decimal("discount_rate", { precision: 5, scale: 2 }).default("0"),
+      discountAmount: decimal("discount_amount", { precision: 10, scale: 2 }).default("0"),
+      unitOfMeasure: text("unit_of_measure"),
+      storageLocation: text("storage_location"),
+      batchNumber: text("batch_number"),
+      expiryDate: date("expiry_date"),
+      condition: text("condition").default("Good"),
+      notes: text("notes"),
       createdAt: timestamp("created_at").defaultNow(),
       updatedAt: timestamp("updated_at").defaultNow()
     });
@@ -1543,6 +1621,25 @@ var init_schema = __esm({
       expiryDate: z.string().optional()
     }).omit({
       id: true,
+      createdAt: true,
+      updatedAt: true
+    });
+    insertPurchaseInvoiceSchema = createInsertSchema(purchaseInvoices, {
+      invoiceDate: z.string(),
+      dueDate: z.string().optional(),
+      receivedDate: z.string().optional(),
+      paymentDate: z.string().optional()
+    }).omit({
+      id: true,
+      createdAt: true,
+      updatedAt: true
+    });
+    insertPurchaseInvoiceItemSchema = createInsertSchema(purchaseInvoiceItems, {
+      expiryDate: z.string().optional()
+    }).omit({
+      id: true,
+      purchaseInvoiceId: true,
+      // This gets added by the storage layer
       createdAt: true,
       updatedAt: true
     });
@@ -2029,6 +2126,73 @@ var init_schema = __esm({
       id: true,
       createdAt: true
     });
+    supplierQuotes = pgTable("supplier_quotes", {
+      id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+      quoteNumber: varchar("quote_number", { length: 50 }).unique().notNull(),
+      revision: integer("revision").default(1),
+      // Revision tracking for audit purposes
+      parentQuoteId: uuid("parent_quote_id"),
+      revisionReason: text("revision_reason"),
+      supersededAt: timestamp("superseded_at"),
+      supersededBy: uuid("superseded_by").references(() => users.id),
+      isSuperseded: boolean("is_superseded").default(false),
+      enquiryId: uuid("enquiry_id").references(() => enquiries.id),
+      supplierId: uuid("supplier_id").references(() => suppliers.id).notNull(),
+      status: quotationStatusEnum("status").default("Draft"),
+      priority: varchar("priority", { length: 20 }).default("Medium"),
+      // "Low", "Medium", "High", "Urgent"
+      quoteDate: timestamp("quote_date").defaultNow(),
+      validUntil: timestamp("valid_until"),
+      responseDate: timestamp("response_date"),
+      subtotal: decimal("subtotal", { precision: 12, scale: 2 }).notNull().default("0"),
+      discountPercentage: decimal("discount_percentage", { precision: 5, scale: 2 }).default("0"),
+      discountAmount: decimal("discount_amount", { precision: 12, scale: 2 }).default("0"),
+      taxAmount: decimal("tax_amount", { precision: 12, scale: 2 }).default("0"),
+      totalAmount: decimal("total_amount", { precision: 12, scale: 2 }).notNull().default("0"),
+      currency: varchar("currency", { length: 3 }).default("BHD"),
+      // "BHD", "AED", "USD", "EUR", "GBP"
+      terms: text("terms"),
+      notes: text("notes"),
+      paymentTerms: text("payment_terms"),
+      deliveryTerms: text("delivery_terms"),
+      rfqNumber: varchar("rfq_number", { length: 100 }),
+      evaluationScore: decimal("evaluation_score", { precision: 3, scale: 1 }),
+      // 0-10
+      competitiveRank: integer("competitive_rank"),
+      approvalStatus: varchar("approval_status", { length: 50 }).default("Pending"),
+      approvedBy: uuid("approved_by").references(() => users.id),
+      approvedAt: timestamp("approved_at"),
+      rejectionReason: text("rejection_reason"),
+      createdBy: uuid("created_by").references(() => users.id),
+      createdAt: timestamp("created_at").defaultNow(),
+      updatedAt: timestamp("updated_at").defaultNow()
+    });
+    supplierQuoteItems = pgTable("supplier_quote_items", {
+      id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+      supplierQuoteId: uuid("supplier_quote_id").references(() => supplierQuotes.id).notNull(),
+      itemDescription: text("item_description").notNull(),
+      quantity: integer("quantity").notNull(),
+      unitOfMeasure: varchar("unit_of_measure", { length: 50 }),
+      unitPrice: decimal("unit_price", { precision: 10, scale: 2 }).notNull(),
+      lineTotal: decimal("line_total", { precision: 12, scale: 2 }).notNull(),
+      specification: text("specification"),
+      brand: varchar("brand", { length: 100 }),
+      model: varchar("model", { length: 100 }),
+      warranty: varchar("warranty", { length: 100 }),
+      leadTime: varchar("lead_time", { length: 100 }),
+      notes: text("notes"),
+      createdAt: timestamp("created_at").defaultNow()
+    });
+    insertSupplierQuoteSchema = createInsertSchema(supplierQuotes).omit({
+      id: true,
+      createdAt: true,
+      updatedAt: true
+    });
+    insertSupplierQuoteItemSchema = createInsertSchema(supplierQuoteItems).omit({
+      id: true,
+      createdAt: true,
+      updatedAt: true
+    });
   }
 });
 
@@ -2040,6 +2204,7 @@ __export(db_exports, {
   pool: () => pool
 });
 import "dotenv/config";
+import * as dotenv from "dotenv";
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-serverless";
 import ws from "ws";
@@ -2048,6 +2213,7 @@ var init_db = __esm({
   "server/db.ts"() {
     "use strict";
     init_schema();
+    dotenv.config();
     neonConfig.webSocketConstructor = ws;
     console.log("DATABASE_URL from env:", process.env.DATABASE_URL ? "SET" : "NOT SET");
     console.log("NODE_ENV:", process.env.NODE_ENV);
@@ -4022,64 +4188,64 @@ var init_pricing_engine = __esm({
       /**
        * Calculate comprehensive pricing for an item
        */
-      async calculatePrice(config, quantity = 1) {
-        const item = await this.getItemWithCost(config.itemId);
+      async calculatePrice(config2, quantity = 1) {
+        const item = await this.getItemWithCost(config2.itemId);
         if (!item) {
-          throw new Error(`Item not found: ${config.itemId}`);
+          throw new Error(`Item not found: ${config2.itemId}`);
         }
         const costPrice = parseFloat(item.costPrice || "0");
         let basePrice = costPrice;
         let finalPrice = costPrice;
         const factors = [];
-        switch (config.method) {
+        switch (config2.method) {
           case "cost_plus" /* COST_PLUS */:
-            finalPrice = this.calculateCostPlus(costPrice, config.markup || 0);
-            factors.push(`Cost-plus with ${config.markup}% markup`);
+            finalPrice = this.calculateCostPlus(costPrice, config2.markup || 0);
+            factors.push(`Cost-plus with ${config2.markup}% markup`);
             break;
           case "margin_based" /* MARGIN_BASED */:
-            finalPrice = this.calculateMarginBased(costPrice, config.targetMargin || 0);
-            factors.push(`Margin-based with ${config.targetMargin}% target margin`);
+            finalPrice = this.calculateMarginBased(costPrice, config2.targetMargin || 0);
+            factors.push(`Margin-based with ${config2.targetMargin}% target margin`);
             break;
           case "competitive" /* COMPETITIVE */:
-            finalPrice = this.calculateCompetitive(costPrice, config.competitorPrices || []);
+            finalPrice = this.calculateCompetitive(costPrice, config2.competitorPrices || []);
             factors.push("Competitive pricing based on market analysis");
             break;
           case "volume_tiered" /* VOLUME_TIERED */:
-            finalPrice = this.calculateVolumeTiered(costPrice, quantity, config.volumeTiers || []);
+            finalPrice = this.calculateVolumeTiered(costPrice, quantity, config2.volumeTiers || []);
             factors.push(`Volume pricing for quantity ${quantity}`);
             break;
           case "dynamic" /* DYNAMIC */:
-            finalPrice = this.calculateDynamic(costPrice, config);
+            finalPrice = this.calculateDynamic(costPrice, config2);
             factors.push("Dynamic pricing with market factors");
             break;
           case "contract" /* CONTRACT */:
-            finalPrice = config.contractPrice || costPrice;
+            finalPrice = config2.contractPrice || costPrice;
             factors.push("Contract pricing");
             break;
           default:
-            const markup2 = config.customerType === "Retail" ? 0.7 : 0.4;
+            const markup2 = config2.customerType === "Retail" ? 0.7 : 0.4;
             finalPrice = costPrice * (1 + markup2);
-            factors.push(`Default ${config.customerType} markup: ${markup2 * 100}%`);
+            factors.push(`Default ${config2.customerType} markup: ${markup2 * 100}%`);
         }
         basePrice = finalPrice;
-        const volumeResult = this.applyVolumeDiscounts(finalPrice, quantity, config.volumeTiers || []);
+        const volumeResult = this.applyVolumeDiscounts(finalPrice, quantity, config2.volumeTiers || []);
         finalPrice = volumeResult.price;
         if (volumeResult.discount > 0) {
           factors.push(`Volume discount: ${volumeResult.discount}%`);
         }
-        if (config.seasonalFactor && config.seasonalFactor !== 1) {
-          finalPrice *= config.seasonalFactor;
-          factors.push(`Seasonal factor: ${config.seasonalFactor}`);
+        if (config2.seasonalFactor && config2.seasonalFactor !== 1) {
+          finalPrice *= config2.seasonalFactor;
+          factors.push(`Seasonal factor: ${config2.seasonalFactor}`);
         }
-        if (config.minPrice && finalPrice < config.minPrice) {
-          finalPrice = config.minPrice;
-          factors.push(`Applied minimum price: ${config.minPrice}`);
+        if (config2.minPrice && finalPrice < config2.minPrice) {
+          finalPrice = config2.minPrice;
+          factors.push(`Applied minimum price: ${config2.minPrice}`);
         }
-        if (config.maxPrice && finalPrice > config.maxPrice) {
-          finalPrice = config.maxPrice;
-          factors.push(`Applied maximum price: ${config.maxPrice}`);
+        if (config2.maxPrice && finalPrice > config2.maxPrice) {
+          finalPrice = config2.maxPrice;
+          factors.push(`Applied maximum price: ${config2.maxPrice}`);
         }
-        const conversionRate = this.getCurrencyRate(config.baseCurrency, config.targetCurrency);
+        const conversionRate = this.getCurrencyRate(config2.baseCurrency, config2.targetCurrency);
         const priceInTargetCurrency = finalPrice * conversionRate;
         const grossMargin = finalPrice - costPrice;
         const marginPercentage = grossMargin / finalPrice * 100;
@@ -4087,21 +4253,21 @@ var init_pricing_engine = __esm({
         const markupPercentage = markup / costPrice * 100;
         let competitorAverage;
         let marketPosition;
-        if (config.competitorPrices && config.competitorPrices.length > 0) {
-          competitorAverage = config.competitorPrices.reduce((a, b) => a + b, 0) / config.competitorPrices.length;
+        if (config2.competitorPrices && config2.competitorPrices.length > 0) {
+          competitorAverage = config2.competitorPrices.reduce((a, b) => a + b, 0) / config2.competitorPrices.length;
           if (finalPrice > competitorAverage * 1.1) marketPosition = "above";
           else if (finalPrice < competitorAverage * 0.9) marketPosition = "below";
           else marketPosition = "at";
         }
         return {
-          itemId: config.itemId,
-          customerId: config.customerId,
-          method: config.method,
+          itemId: config2.itemId,
+          customerId: config2.customerId,
+          method: config2.method,
           costPrice,
           basePrice,
           finalPrice,
-          baseCurrency: config.baseCurrency,
-          targetCurrency: config.targetCurrency,
+          baseCurrency: config2.baseCurrency,
+          targetCurrency: config2.targetCurrency,
           conversionRate,
           priceInTargetCurrency,
           grossMargin,
@@ -4113,7 +4279,7 @@ var init_pricing_engine = __esm({
           competitorAverage,
           marketPosition,
           calculatedAt: /* @__PURE__ */ new Date(),
-          validUntil: config.contractValidTo,
+          validUntil: config2.contractValidTo,
           factors
         };
       }
@@ -4165,12 +4331,12 @@ var init_pricing_engine = __esm({
       /**
        * Dynamic pricing with market factors
        */
-      calculateDynamic(cost, config) {
+      calculateDynamic(cost, config2) {
         let price = cost * 1.3;
-        if (config.marketDemand === "high") price *= 1.1;
-        else if (config.marketDemand === "low") price *= 0.9;
-        if (config.competitorPrices && config.competitorPrices.length > 0) {
-          const avgCompetitor = config.competitorPrices.reduce((a, b) => a + b, 0) / config.competitorPrices.length;
+        if (config2.marketDemand === "high") price *= 1.1;
+        else if (config2.marketDemand === "low") price *= 0.9;
+        if (config2.competitorPrices && config2.competitorPrices.length > 0) {
+          const avgCompetitor = config2.competitorPrices.reduce((a, b) => a + b, 0) / config2.competitorPrices.length;
           if (price > avgCompetitor * 1.1) price = avgCompetitor * 1.05;
           else if (price < avgCompetitor * 0.9) price = avgCompetitor * 0.95;
         }
@@ -4233,7 +4399,7 @@ var init_pricing_engine = __esm({
           { minQuantity: 100, maxQuantity: 499, discountPercentage: 15 },
           { minQuantity: 500, discountPercentage: 20 }
         ];
-        const config = {
+        const config2 = {
           itemId,
           customerId,
           customerType: customer.customerType,
@@ -4245,7 +4411,7 @@ var init_pricing_engine = __esm({
           minMargin: 10
           // Minimum 10% margin
         };
-        return this.calculatePrice(config, quantity);
+        return this.calculatePrice(config2, quantity);
       }
       /**
        * Batch calculate prices for multiple items
@@ -4491,8 +4657,8 @@ var init_pricing_storage = __esm({
         conditions.push(eq10(dynamicPricingConfig.isActive, true));
         return await db.select().from(dynamicPricingConfig).where(conditions.length > 0 ? and7(...conditions) : void 0).orderBy(desc8(dynamicPricingConfig.updatedAt));
       }
-      async createDynamicPricingConfig(config) {
-        const [created] = await db.insert(dynamicPricingConfig).values(config).returning();
+      async createDynamicPricingConfig(config2) {
+        const [created] = await db.insert(dynamicPricingConfig).values(config2).returning();
         await this.logAuditEvent(
           "dynamic_pricing_config",
           created.id,
@@ -4552,7 +4718,7 @@ var init_pricing_storage = __esm({
             const volumeTiers = await this.getVolumePricingTiers(itemId, customerId);
             const competitorPrices = await this.getCompetitorPricing(itemId);
             const competitorPriceValues = competitorPrices.map((cp) => parseFloat(cp.price.toString()));
-            const config = {
+            const config2 = {
               itemId,
               customerId,
               customerType: customer.customerType,
@@ -4567,7 +4733,7 @@ var init_pricing_storage = __esm({
               })),
               competitorPrices: competitorPriceValues
             };
-            result = await pricingEngine.calculatePrice(config, quantity);
+            result = await pricingEngine.calculatePrice(config2, quantity);
           } else {
             result = await pricingEngine.calculateOptimalPrice(itemId, customerId, quantity);
           }
@@ -5803,6 +5969,8 @@ var init_shipment_storage = __esm({
             currency: shipments.currency,
             shippingCost: shipments.shippingCost,
             customerReference: shipments.customerReference,
+            customerName: shipments.customerName,
+            // Added for customer name
             specialInstructions: shipments.specialInstructions,
             packageCount: shipments.packageCount,
             isInsured: shipments.isInsured,
@@ -5811,6 +5979,21 @@ var init_shipment_storage = __esm({
             lastUpdate: shipments.lastUpdate,
             createdAt: shipments.createdAt,
             updatedAt: shipments.updatedAt,
+            // Additional LPO-related fields
+            lpoId: shipments.lpoId,
+            // Added for LPO ID
+            lpoNumber: shipments.lpoNumber,
+            // Added for LPO number
+            items: shipments.items,
+            // Added for items JSON
+            subtotal: shipments.subtotal,
+            // Added for subtotal
+            taxAmount: shipments.taxAmount,
+            // Added for tax amount
+            paymentTerms: shipments.paymentTerms,
+            // Added for payment terms
+            deliveryTerms: shipments.deliveryTerms,
+            // Added for delivery terms
             customer: {
               id: customers.id,
               name: customers.name,
@@ -5859,6 +6042,8 @@ var init_shipment_storage = __esm({
             currency: shipments.currency,
             shippingCost: shipments.shippingCost,
             customerReference: shipments.customerReference,
+            customerName: shipments.customerName,
+            // Added for customer name
             specialInstructions: shipments.specialInstructions,
             packageCount: shipments.packageCount,
             isInsured: shipments.isInsured,
@@ -5867,6 +6052,21 @@ var init_shipment_storage = __esm({
             lastUpdate: shipments.lastUpdate,
             createdAt: shipments.createdAt,
             updatedAt: shipments.updatedAt,
+            // Additional LPO-related fields
+            lpoId: shipments.lpoId,
+            // Added for LPO ID
+            lpoNumber: shipments.lpoNumber,
+            // Added for LPO number
+            items: shipments.items,
+            // Added for items JSON
+            subtotal: shipments.subtotal,
+            // Added for subtotal
+            taxAmount: shipments.taxAmount,
+            // Added for tax amount
+            paymentTerms: shipments.paymentTerms,
+            // Added for payment terms
+            deliveryTerms: shipments.deliveryTerms,
+            // Added for delivery terms
             customer: {
               id: customers.id,
               name: customers.name,
@@ -5945,14 +6145,6 @@ var init_shipment_storage = __esm({
             ...shipmentData,
             lastUpdate: /* @__PURE__ */ new Date()
           }).returning();
-          await this.createTrackingEvent({
-            shipmentId: result[0].id,
-            timestamp: /* @__PURE__ */ new Date(),
-            location: shipmentData.origin || "Origin",
-            status: "Shipment Created",
-            description: "Shipment has been created and is pending pickup",
-            scanType: "Pickup"
-          });
           await this.logAuditEvent(
             "shipment",
             result[0].id,
@@ -5972,11 +6164,25 @@ var init_shipment_storage = __esm({
       }
       async updateShipment(id, shipmentData) {
         try {
-          const result = await db.update(shipments).set({
-            ...shipmentData,
-            updatedAt: /* @__PURE__ */ new Date(),
-            lastUpdate: /* @__PURE__ */ new Date()
-          }).where(eq13(shipments.id, id)).returning();
+          const processedData = {};
+          const dateFields = ["estimatedDelivery", "actualDelivery", "createdAt", "updatedAt", "lastUpdate"];
+          Object.keys(shipmentData).forEach((key) => {
+            const value = shipmentData[key];
+            if (dateFields.includes(key) && value) {
+              if (typeof value === "string") {
+                processedData[key] = new Date(value);
+              } else if (value instanceof Date) {
+                processedData[key] = value;
+              } else {
+                processedData[key] = value;
+              }
+            } else {
+              processedData[key] = value;
+            }
+          });
+          processedData.updatedAt = /* @__PURE__ */ new Date();
+          processedData.lastUpdate = /* @__PURE__ */ new Date();
+          const result = await db.update(shipments).set(processedData).where(eq13(shipments.id, id)).returning();
           if (result.length === 0) {
             throw new Error("Shipment not found");
           }
@@ -5996,7 +6202,6 @@ var init_shipment_storage = __esm({
       }
       async deleteShipment(id) {
         try {
-          await db.delete(shipmentTrackingEvents).where(eq13(shipmentTrackingEvents.shipmentId, id));
           const result = await db.delete(shipments).where(eq13(shipments.id, id)).returning();
           if (result.length === 0) {
             throw new Error("Shipment not found");
@@ -6031,68 +6236,42 @@ var init_shipment_storage = __esm({
           if (result.length === 0) {
             throw new Error("Shipment not found");
           }
-          await this.createTrackingEvent({
-            shipmentId: id,
-            timestamp: /* @__PURE__ */ new Date(),
-            location: location || result[0].currentLocation || "Unknown",
-            status,
-            description: `Shipment status updated to ${status}`,
-            scanType: this.getEventTypeFromStatus(status)
-          });
           return await this.getShipment(id);
         } catch (error) {
           console.error("Error updating shipment status:", error);
           throw new Error("Failed to update shipment status");
         }
       }
-      // Shipment tracking operations
+      // Shipment tracking operations - DISABLED (table doesn't exist)
       async getShipmentTrackingEvents(shipmentId) {
         try {
-          const result = await db.select({
-            id: shipmentTrackingEvents.id,
-            shipmentId: shipmentTrackingEvents.shipmentId,
-            timestamp: shipmentTrackingEvents.timestamp,
-            location: shipmentTrackingEvents.location,
-            status: shipmentTrackingEvents.status,
-            description: shipmentTrackingEvents.description,
-            scanType: shipmentTrackingEvents.scanType,
-            latitude: shipmentTrackingEvents.latitude,
-            longitude: shipmentTrackingEvents.longitude,
-            facilityId: shipmentTrackingEvents.facilityId,
-            nextExpectedLocation: shipmentTrackingEvents.nextExpectedLocation,
-            estimatedArrival: shipmentTrackingEvents.estimatedArrival,
-            createdAt: shipmentTrackingEvents.createdAt,
-            employee: {
-              id: users.id,
-              firstName: users.firstName,
-              lastName: users.lastName
-            }
-          }).from(shipmentTrackingEvents).leftJoin(users, eq13(shipmentTrackingEvents.employeeId, users.id)).where(eq13(shipmentTrackingEvents.shipmentId, shipmentId)).orderBy(desc11(shipmentTrackingEvents.timestamp));
-          return result;
+          console.log("Tracking events table not available, returning empty array");
+          return [];
         } catch (error) {
           console.error("Error fetching tracking events:", error);
-          throw new Error("Failed to fetch tracking events");
+          return [];
         }
       }
       async createTrackingEvent(eventData) {
         try {
-          const result = await db.insert(shipmentTrackingEvents).values({
+          console.log("Tracking events table not available, returning mock data");
+          return {
+            id: `mock-${Date.now()}`,
             ...eventData,
             timestamp: eventData.timestamp || /* @__PURE__ */ new Date()
-          }).returning();
-          return result[0];
+          };
         } catch (error) {
           console.error("Error creating tracking event:", error);
-          throw new Error("Failed to create tracking event");
+          return null;
         }
       }
       async getLatestTrackingEvent(shipmentId) {
         try {
-          const result = await db.select().from(shipmentTrackingEvents).where(eq13(shipmentTrackingEvents.shipmentId, shipmentId)).orderBy(desc11(shipmentTrackingEvents.timestamp)).limit(1);
-          return result[0] || null;
+          console.log("Tracking events table not available, returning null");
+          return null;
         } catch (error) {
           console.error("Error fetching latest tracking event:", error);
-          throw new Error("Failed to fetch latest tracking event");
+          return null;
         }
       }
       // Analytics and reporting
@@ -6156,7 +6335,7 @@ var init_shipment_storage = __esm({
 });
 
 // server/storage/sales-order-storage.ts
-import { eq as eq14, and as and11, desc as desc12, sql as sql10, or as or7, like as like6 } from "drizzle-orm";
+import { eq as eq14, and as and11, desc as desc12, sql as sql10 } from "drizzle-orm";
 var SalesOrderStorage;
 var init_sales_order_storage = __esm({
   "server/storage/sales-order-storage.ts"() {
@@ -6174,7 +6353,10 @@ var init_sales_order_storage = __esm({
           if (filters.dateTo) conditions.push(sql10`${salesOrders.orderDate} <= ${filters.dateTo}`);
           if (filters.search) conditions.push(sql10`${salesOrders.orderNumber} ILIKE ${`%${filters.search}%`}`);
         }
-        let query = db.select({ so: salesOrders, cust: customers }).from(salesOrders).leftJoin(customers, eq14(salesOrders.customerId, customers.id));
+        let query = db.select({
+          so: salesOrders,
+          cust: customers
+        }).from(salesOrders).leftJoin(customers, eq14(salesOrders.customerId, customers.id));
         if (conditions.length) {
           query = query.where(and11(...conditions));
         }
@@ -6247,9 +6429,9 @@ var init_sales_order_storage = __esm({
         if (quotationData.status !== "Accepted") {
           throw new Error("Quotation must be accepted before creating sales order");
         }
-        const purchaseOrder = await db.select().from(purchaseOrders).where(eq14(purchaseOrders.quotationId, quotationId)).limit(1);
-        if (!purchaseOrder[0]) {
-          throw new Error("Purchase order document must be uploaded before creating sales order");
+        const customerPo = await db.select().from(purchaseOrders).where(eq14(purchaseOrders.quotationId, quotationId)).limit(1);
+        if (!customerPo[0]) {
+          throw new Error("Customer PO must be uploaded before creating sales order");
         }
         const quotationItemsData = await db.select().from(quotationItems).where(eq14(quotationItems.quotationId, quotationId));
         const orderNumber = `SO-${(/* @__PURE__ */ new Date()).getFullYear()}-${String(await this.getNextSequenceNumber()).padStart(3, "0")}`;
@@ -6257,6 +6439,8 @@ var init_sales_order_storage = __esm({
           orderNumber,
           quotationId,
           customerId: quotationData.customerId,
+          customerPoNumber: customerPo[0].poNumber,
+          customerPoDocument: customerPo[0].documentPath,
           orderDate: /* @__PURE__ */ new Date(),
           status: "Draft",
           totalAmount: quotationData.totalAmount,
@@ -6299,53 +6483,17 @@ var init_sales_order_storage = __esm({
         if (!parentOrder) {
           throw new Error("Parent sales order not found");
         }
-        return await db.transaction(async (tx) => {
-          const baseOrderNumber = parentOrder.orderNumber.replace(/-A\d+$/, "");
-          const existingOrders = await tx.select({
-            orderNumber: salesOrders.orderNumber,
-            amendmentSequence: salesOrders.amendmentSequence
-          }).from(salesOrders).where(
-            or7(
-              eq14(salesOrders.parentOrderId, parentOrderId),
-              eq14(salesOrders.orderNumber, baseOrderNumber),
-              like6(salesOrders.orderNumber, `${baseOrderNumber}-A%`)
-            )
-          ).for("update");
-          const used = /* @__PURE__ */ new Set();
-          for (const order of existingOrders) {
-            if (order.amendmentSequence && order.amendmentSequence > 0) {
-              used.add(order.amendmentSequence);
-            }
-            const match = /-A(\d+)$/.exec(order.orderNumber);
-            if (match) {
-              used.add(Number(match[1]));
-            }
-          }
-          let nextSeq = 1;
-          while (used.has(nextSeq)) {
-            nextSeq++;
-          }
-          const amendedOrderNumber = `${baseOrderNumber}-A${nextSeq}`;
-          const newVersion = (parentOrder.version || 1) + 1;
-          const amendedSalesOrder = {
-            orderNumber: amendedOrderNumber,
-            amendmentSequence: nextSeq,
-            parentOrderId,
-            customerId: parentOrder.customerId,
-            orderDate: /* @__PURE__ */ new Date(),
-            status: "Draft",
-            totalAmount: parentOrder.totalAmount,
-            createdBy: userId,
-            version: newVersion,
-            amendmentReason: reason,
-            createdAt: /* @__PURE__ */ new Date(),
-            updatedAt: /* @__PURE__ */ new Date()
-          };
-          const result = await tx.insert(salesOrders).values(amendedSalesOrder).returning();
-          const created = result[0];
-          await tx.update(salesOrders).set({ updatedAt: /* @__PURE__ */ new Date() }).where(eq14(salesOrders.id, parentOrderId));
-          return created;
-        });
+        const updatedSalesOrder = {
+          amendmentReason: reason,
+          amendedBy: userId,
+          amendedAt: /* @__PURE__ */ new Date(),
+          updatedAt: /* @__PURE__ */ new Date(),
+          // Keep the same order number and version - no new v2 data
+          // Just mark it as amended
+          isAmended: true
+        };
+        const result = await db.update(salesOrders).set(updatedSalesOrder).where(eq14(salesOrders.id, parentOrderId)).returning();
+        return result[0];
       }
       async validateCustomerLpo(id, validationData) {
         const salesOrder = await this.getSalesOrder(id);
@@ -6363,7 +6511,30 @@ var init_sales_order_storage = __esm({
       }
       // Sales Order Item operations
       async getSalesOrderItems(salesOrderId) {
-        return db.select().from(salesOrderItems).where(eq14(salesOrderItems.salesOrderId, salesOrderId));
+        return db.select({
+          id: salesOrderItems.id,
+          salesOrderId: salesOrderItems.salesOrderId,
+          itemId: salesOrderItems.itemId,
+          lineNumber: salesOrderItems.lineNumber,
+          quantity: salesOrderItems.quantity,
+          unitPrice: salesOrderItems.unitPrice,
+          totalPrice: salesOrderItems.totalPrice,
+          deliveryRequirement: salesOrderItems.deliveryRequirement,
+          specialInstructions: salesOrderItems.specialInstructions,
+          // Item details
+          supplierCode: items.supplierCode,
+          barcode: items.barcode,
+          description: items.description,
+          category: items.category,
+          unitOfMeasure: items.unitOfMeasure,
+          // Supplier details
+          supplierId: suppliers.id,
+          supplierName: suppliers.name,
+          supplierEmail: suppliers.email,
+          supplierPhone: suppliers.phone,
+          supplierAddress: suppliers.address,
+          supplierContactPerson: suppliers.contactPerson
+        }).from(salesOrderItems).leftJoin(items, eq14(salesOrderItems.itemId, items.id)).leftJoin(suppliers, eq14(items.supplierId, suppliers.id)).where(eq14(salesOrderItems.salesOrderId, salesOrderId));
       }
       async getSalesOrderItem(id) {
         const result = await db.select().from(salesOrderItems).where(eq14(salesOrderItems.id, id)).limit(1);
@@ -6610,7 +6781,7 @@ var init_acceptance_storage = __esm({
 });
 
 // server/storage/goods-receipt-storage.ts
-import { eq as eq17 } from "drizzle-orm";
+import { eq as eq17, desc as desc13 } from "drizzle-orm";
 import { randomUUID } from "crypto";
 var GoodsReceiptStorage;
 var init_goods_receipt_storage = __esm({
@@ -6658,6 +6829,7 @@ var init_goods_receipt_storage = __esm({
             receiptNumber: toInsert.receiptNumber,
             supplierLpoId: toInsert.supplierLpoId,
             supplierId: toInsert.supplierId,
+            lpoNumber: toInsert.lpoNumber,
             receiptDate: toInsert.receiptDate,
             expectedDeliveryDate: toInsert.expectedDeliveryDate,
             actualDeliveryDate: toInsert.actualDeliveryDate,
@@ -6743,11 +6915,63 @@ var init_goods_receipt_storage = __esm({
         }
       }
       async getGoodsReceiptHeaders(filters) {
-        let q = db.select().from(goodsReceiptHeaders);
-        return await q;
+        try {
+          const query = db.select({
+            id: goodsReceiptHeaders.id,
+            receiptNumber: goodsReceiptHeaders.receiptNumber,
+            supplierLpoId: goodsReceiptHeaders.supplierLpoId,
+            supplierId: goodsReceiptHeaders.supplierId,
+            lpoNumber: goodsReceiptHeaders.lpoNumber,
+            receiptDate: goodsReceiptHeaders.receiptDate,
+            expectedDeliveryDate: goodsReceiptHeaders.expectedDeliveryDate,
+            actualDeliveryDate: goodsReceiptHeaders.actualDeliveryDate,
+            receivedBy: goodsReceiptHeaders.receivedBy,
+            status: goodsReceiptHeaders.status,
+            notes: goodsReceiptHeaders.notes,
+            totalItems: goodsReceiptHeaders.totalItems,
+            totalQuantityExpected: goodsReceiptHeaders.totalQuantityExpected,
+            totalQuantityReceived: goodsReceiptHeaders.totalQuantityReceived,
+            discrepancyFlag: goodsReceiptHeaders.discrepancyFlag,
+            createdAt: goodsReceiptHeaders.createdAt,
+            updatedAt: goodsReceiptHeaders.updatedAt,
+            // LPO information from join
+            lpoNumberFromLpo: supplierLpos.lpoNumber,
+            lpoDate: supplierLpos.lpoDate,
+            lpoStatus: supplierLpos.status,
+            lpoTotalAmount: supplierLpos.totalAmount,
+            lpoCurrency: supplierLpos.currency,
+            // Supplier information
+            supplierName: suppliers.name,
+            supplierEmail: suppliers.email,
+            supplierPhone: suppliers.phone,
+            supplierContactPerson: suppliers.contactPerson
+          }).from(goodsReceiptHeaders).leftJoin(supplierLpos, eq17(goodsReceiptHeaders.supplierLpoId, supplierLpos.id)).leftJoin(suppliers, eq17(goodsReceiptHeaders.supplierId, suppliers.id)).orderBy(desc13(goodsReceiptHeaders.createdAt));
+          return await query;
+        } catch (error) {
+          console.error("[GoodsReceiptStorage.getGoodsReceiptHeaders] Error:", error);
+          throw error;
+        }
       }
       async getGoodsReceiptHeader(id) {
-        const r = await db.select().from(goodsReceiptHeaders).where(eq17(goodsReceiptHeaders.id, id)).limit(1);
+        const r = await db.select({
+          id: goodsReceiptHeaders.id,
+          receiptNumber: goodsReceiptHeaders.receiptNumber,
+          supplierLpoId: goodsReceiptHeaders.supplierLpoId,
+          supplierId: goodsReceiptHeaders.supplierId,
+          lpoNumber: goodsReceiptHeaders.lpoNumber,
+          receiptDate: goodsReceiptHeaders.receiptDate,
+          expectedDeliveryDate: goodsReceiptHeaders.expectedDeliveryDate,
+          actualDeliveryDate: goodsReceiptHeaders.actualDeliveryDate,
+          receivedBy: goodsReceiptHeaders.receivedBy,
+          status: goodsReceiptHeaders.status,
+          notes: goodsReceiptHeaders.notes,
+          totalItems: goodsReceiptHeaders.totalItems,
+          totalQuantityExpected: goodsReceiptHeaders.totalQuantityExpected,
+          totalQuantityReceived: goodsReceiptHeaders.totalQuantityReceived,
+          discrepancyFlag: goodsReceiptHeaders.discrepancyFlag,
+          createdAt: goodsReceiptHeaders.createdAt,
+          updatedAt: goodsReceiptHeaders.updatedAt
+        }).from(goodsReceiptHeaders).where(eq17(goodsReceiptHeaders.id, id)).limit(1);
         return r[0];
       }
       async getGoodsReceiptItems(headerId) {
@@ -6815,12 +7039,27 @@ var init_goods_receipt_storage = __esm({
           throw err;
         }
       }
+      async deleteGoodsReceiptHeader(id) {
+        try {
+          console.log("[GoodsReceiptStorage.deleteGoodsReceiptHeader][START]", { id });
+          await db.delete(goodsReceiptItems).where(eq17(goodsReceiptItems.receiptHeaderId, id));
+          const deleted = await db.delete(goodsReceiptHeaders).where(eq17(goodsReceiptHeaders.id, id)).returning();
+          if (!deleted.length) {
+            return false;
+          }
+          console.log("[GoodsReceiptStorage.deleteGoodsReceiptHeader][SUCCESS]", { id });
+          return true;
+        } catch (err) {
+          console.error("[GoodsReceiptStorage.deleteGoodsReceiptHeader] Error", err, { id });
+          throw err;
+        }
+      }
     };
   }
 });
 
 // server/storage/supplier-lpo-storage.ts
-import { and as and14, desc as desc13, eq as eq18, sql as sql11 } from "drizzle-orm";
+import { and as and14, desc as desc14, eq as eq18, sql as sql11 } from "drizzle-orm";
 var SupplierLpoStorage;
 var init_supplier_lpo_storage = __esm({
   "server/storage/supplier-lpo-storage.ts"() {
@@ -6879,7 +7118,7 @@ var init_supplier_lpo_storage = __esm({
           if (filters.search) conditions.push(sql11`(${supplierLpos.lpoNumber} ILIKE ${`%${filters.search}%`} OR ${suppliers.name} ILIKE ${`%${filters.search}%`})`);
           if (conditions.length) base = base.where(and14(...conditions));
         }
-        return base.orderBy(desc13(supplierLpos.createdAt)).limit(limit).offset(offset);
+        return base.orderBy(desc14(supplierLpos.createdAt)).limit(limit).offset(offset);
       }
       async getSupplierLpo(id) {
         const r = await db.select().from(supplierLpos).where(eq18(supplierLpos.id, id)).limit(1);
@@ -6945,6 +7184,22 @@ var init_supplier_lpo_storage = __esm({
         const res = await db.update(supplierLpos).set(updated).where(eq18(supplierLpos.id, id)).returning();
         return res[0];
       }
+      async updateSupplierLpoStatus(id, status, userId) {
+        const allowedStatuses = ["Draft", "Pending", "Sent", "Confirmed", "Received", "Cancelled"];
+        if (!allowedStatuses.includes(status)) {
+          console.error(`[updateSupplierLpoStatus] Invalid status value: ${status}`);
+          throw new Error(`Invalid status value: ${status}`);
+        }
+        console.log(`[updateSupplierLpoStatus] Attempting update: id=${id}, status=${status}, userId=${userId}`);
+        const updated = {
+          status,
+          updatedAt: /* @__PURE__ */ new Date(),
+          updatedBy: userId || null
+        };
+        const res = await db.update(supplierLpos).set(updated).where(eq18(supplierLpos.id, id)).returning();
+        console.log(`[updateSupplierLpoStatus] Update result:`, res);
+        return res[0];
+      }
       async deleteSupplierLpo(id) {
         await db.delete(supplierLpos).where(eq18(supplierLpos.id, id));
       }
@@ -6978,6 +7233,118 @@ var init_supplier_lpo_storage = __esm({
             deliveryStatus: "Pending"
           }));
           if (lpoItems.length) await db.insert(supplierLpoItems).values(lpoItems);
+          out.push(lpo);
+        }
+        return out;
+      }
+      async createSupplierLposFromSupplierQuotes(quoteIds, groupBy, userId) {
+        const out = [];
+        if (!quoteIds.length) return out;
+        const quotes = [];
+        for (const quoteId of quoteIds) {
+          const quote = await db.select({
+            id: supplierQuotes.id,
+            quoteNumber: supplierQuotes.quoteNumber,
+            supplierId: supplierQuotes.supplierId,
+            status: supplierQuotes.status,
+            subtotal: supplierQuotes.subtotal,
+            taxAmount: supplierQuotes.taxAmount,
+            totalAmount: supplierQuotes.totalAmount,
+            currency: supplierQuotes.currency,
+            terms: supplierQuotes.terms,
+            notes: supplierQuotes.notes,
+            paymentTerms: supplierQuotes.paymentTerms,
+            deliveryTerms: supplierQuotes.deliveryTerms,
+            validUntil: supplierQuotes.validUntil
+          }).from(supplierQuotes).where(eq18(supplierQuotes.id, quoteId)).limit(1);
+          if (quote[0]) {
+            quotes.push(quote[0]);
+          }
+        }
+        if (!quotes.length) return out;
+        const groupedQuotes = groupBy === "supplier" ? quotes.reduce((acc, quote) => {
+          const supplierId = quote.supplierId;
+          if (!acc[supplierId]) acc[supplierId] = [];
+          acc[supplierId].push(quote);
+          return acc;
+        }, {}) : { "single": quotes };
+        for (const [supplierId, supplierQuotes3] of Object.entries(groupedQuotes)) {
+          if (!supplierQuotes3.length) continue;
+          const quoteItems = [];
+          for (const quote of supplierQuotes3) {
+            const items4 = await db.select({
+              id: supplierQuoteItems.id,
+              supplierQuoteId: supplierQuoteItems.supplierQuoteId,
+              itemDescription: supplierQuoteItems.itemDescription,
+              quantity: supplierQuoteItems.quantity,
+              unitPrice: supplierQuoteItems.unitPrice,
+              lineTotal: supplierQuoteItems.lineTotal,
+              unitOfMeasure: supplierQuoteItems.unitOfMeasure,
+              specification: supplierQuoteItems.specification,
+              brand: supplierQuoteItems.brand,
+              model: supplierQuoteItems.model,
+              warranty: supplierQuoteItems.warranty,
+              leadTime: supplierQuoteItems.leadTime,
+              notes: supplierQuoteItems.notes
+            }).from(supplierQuoteItems).where(eq18(supplierQuoteItems.supplierQuoteId, quote.id));
+            quoteItems.push(...items4);
+          }
+          const subtotal = supplierQuotes3.reduce((sum4, quote) => sum4 + Number(quote.subtotal || 0), 0);
+          const taxAmount = supplierQuotes3.reduce((sum4, quote) => sum4 + Number(quote.taxAmount || 0), 0);
+          const totalAmount = supplierQuotes3.reduce((sum4, quote) => sum4 + Number(quote.totalAmount || 0), 0);
+          const lpo = await this.createSupplierLpo({
+            supplierId: supplierId === "single" ? supplierQuotes3[0].supplierId : supplierId,
+            status: "Draft",
+            sourceType: "SupplierQuote",
+            groupingCriteria: groupBy,
+            subtotal,
+            taxAmount,
+            totalAmount,
+            currency: supplierQuotes3[0].currency || "BHD",
+            createdBy: userId,
+            requiresApproval: false,
+            approvalStatus: "Not Required",
+            sourceQuotationIds: supplierQuotes3.map((q) => q.id),
+            lpoDate: /* @__PURE__ */ new Date(),
+            expectedDeliveryDate: supplierQuotes3[0].validUntil ? new Date(supplierQuotes3[0].validUntil) : void 0,
+            paymentTerms: supplierQuotes3[0].paymentTerms,
+            deliveryTerms: supplierQuotes3[0].deliveryTerms,
+            termsAndConditions: supplierQuotes3[0].terms,
+            specialInstructions: supplierQuotes3[0].notes
+          });
+          const lpoItems = quoteItems.map((item, idx) => ({
+            supplierLpoId: lpo.id,
+            quotationItemId: item.id,
+            // Link to the original quote item
+            itemId: null,
+            // Will be filled when item is identified
+            supplierCode: "GEN-SUP",
+            // Default supplier code
+            barcode: `QUOTE-${item.id}`,
+            // Generate barcode from quote item ID
+            itemDescription: item.itemDescription,
+            quantity: item.quantity,
+            receivedQuantity: 0,
+            pendingQuantity: item.quantity,
+            unitCost: item.unitPrice,
+            totalCost: item.lineTotal,
+            // Use lineTotal instead of totalPrice
+            lineNumber: idx + 1,
+            deliveryStatus: "Pending",
+            urgency: "Normal",
+            specialInstructions: [
+              item.specification,
+              item.brand ? `Brand: ${item.brand}` : "",
+              item.model ? `Model: ${item.model}` : "",
+              item.warranty ? `Warranty: ${item.warranty}` : "",
+              item.leadTime ? `Lead Time: ${item.leadTime}` : "",
+              item.notes || ""
+            ].filter(Boolean).join(" | ")
+            // Combine all item details into special instructions
+          }));
+          if (lpoItems.length) {
+            await db.insert(supplierLpoItems).values(lpoItems);
+          }
           out.push(lpo);
         }
         return out;
@@ -7054,7 +7421,7 @@ var init_supplier_lpo_storage = __esm({
 });
 
 // server/storage/invoice-storage.ts
-import { and as and15, desc as desc14, eq as eq19, sql as sql12 } from "drizzle-orm";
+import { and as and15, desc as desc15, eq as eq19, sql as sql12 } from "drizzle-orm";
 function num(val) {
   if (val === null || val === void 0) return 0;
   const n = typeof val === "number" ? val : parseFloat(val);
@@ -7085,7 +7452,7 @@ var init_invoice_storage = __esm({
           if (filters.search) conds.push(sql12`${invoices.invoiceNumber} ILIKE ${`%${filters.search}%`}`);
           if (conds.length) q = q.where(and15(...conds));
         }
-        return q.orderBy(desc14(invoices.createdAt)).limit(limit).offset(offset);
+        return q.orderBy(desc15(invoices.createdAt)).limit(limit).offset(offset);
       }
       async getInvoice(id) {
         const r = await db.select().from(invoices).where(eq19(invoices.id, id)).limit(1);
@@ -7543,7 +7910,7 @@ var init_invoice_storage = __esm({
 });
 
 // server/storage/physical-stock-storage.ts
-import { eq as eq20, and as and16, desc as desc15, asc as asc4, sql as sql13 } from "drizzle-orm";
+import { eq as eq20, and as and16, desc as desc16, asc as asc4, sql as sql13 } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { nanoid as nanoid5 } from "nanoid";
 var PhysicalStockStorage;
@@ -7658,7 +8025,7 @@ var init_physical_stock_storage = __esm({
             firstName: createdByUser.firstName,
             lastName: createdByUser.lastName
           }
-        }).from(physicalStockCounts).leftJoin(startedByUser, eq20(physicalStockCounts.startedBy, startedByUser.id)).leftJoin(completedByUser, eq20(physicalStockCounts.completedBy, completedByUser.id)).leftJoin(createdByUser, eq20(physicalStockCounts.createdBy, createdByUser.id)).orderBy(desc15(physicalStockCounts.createdAt));
+        }).from(physicalStockCounts).leftJoin(startedByUser, eq20(physicalStockCounts.startedBy, startedByUser.id)).leftJoin(completedByUser, eq20(physicalStockCounts.completedBy, completedByUser.id)).leftJoin(createdByUser, eq20(physicalStockCounts.createdBy, createdByUser.id)).orderBy(desc16(physicalStockCounts.createdAt));
         if (typeof limit === "number" && typeof offset === "number") {
           return await query.limit(limit).offset(offset);
         } else if (typeof limit === "number") {
@@ -7805,7 +8172,7 @@ var init_physical_stock_storage = __esm({
         return session2;
       }
       async getScanningSessionsByCountId(physicalStockCountId) {
-        return await db.select().from(physicalStockScanningSessions).where(eq20(physicalStockScanningSessions.physicalStockCountId, physicalStockCountId)).orderBy(desc15(physicalStockScanningSessions.createdAt));
+        return await db.select().from(physicalStockScanningSessions).where(eq20(physicalStockScanningSessions.physicalStockCountId, physicalStockCountId)).orderBy(desc16(physicalStockScanningSessions.createdAt));
       }
       async updateScanningSession(id, data) {
         const [updated] = await db.update(physicalStockScanningSessions).set({ ...data, updatedAt: /* @__PURE__ */ new Date() }).where(eq20(physicalStockScanningSessions.id, id)).returning();
@@ -7843,7 +8210,7 @@ var init_physical_stock_storage = __esm({
             description: inventoryItems.description,
             supplierCode: inventoryItems.supplierCode
           }
-        }).from(physicalStockScannedItems).leftJoin(inventoryItems, eq20(physicalStockScannedItems.inventoryItemId, inventoryItems.id)).where(eq20(physicalStockScannedItems.scanningSessionId, scanningSessionId)).orderBy(desc15(physicalStockScannedItems.scannedAt));
+        }).from(physicalStockScannedItems).leftJoin(inventoryItems, eq20(physicalStockScannedItems.inventoryItemId, inventoryItems.id)).where(eq20(physicalStockScannedItems.scanningSessionId, scanningSessionId)).orderBy(desc16(physicalStockScannedItems.scannedAt));
       }
       async processBarcodeScan(scanningSessionId, barcode, scannedBy, quantity = 1, storageLocation) {
         const [inventoryItem2] = await db.select().from(inventoryItems).where(eq20(inventoryItems.barcode, barcode)).limit(1);
@@ -8009,6 +8376,205 @@ var init_physical_stock_storage = __esm({
   }
 });
 
+// server/storage/purchase-invoice-storage.ts
+import { eq as eq21, desc as desc17 } from "drizzle-orm";
+var PurchaseInvoiceStorage, purchaseInvoiceStorage;
+var init_purchase_invoice_storage = __esm({
+  "server/storage/purchase-invoice-storage.ts"() {
+    "use strict";
+    init_db();
+    init_schema();
+    PurchaseInvoiceStorage = class {
+      async createPurchaseInvoice(data, items4) {
+        try {
+          console.log("[PurchaseInvoiceStorage.createPurchaseInvoice][START]", data, items4);
+          const assignedId = crypto.randomUUID();
+          const toInsert = {
+            ...data,
+            id: assignedId
+          };
+          const projected = {
+            id: toInsert.id,
+            invoiceNumber: toInsert.invoiceNumber,
+            supplierInvoiceNumber: toInsert.supplierInvoiceNumber,
+            supplierId: toInsert.supplierId,
+            goodsReceiptId: toInsert.goodsReceiptId,
+            lpoId: toInsert.lpoId,
+            status: toInsert.status,
+            paymentStatus: toInsert.paymentStatus,
+            invoiceDate: toInsert.invoiceDate,
+            dueDate: toInsert.dueDate,
+            receivedDate: toInsert.receivedDate,
+            paymentDate: toInsert.paymentDate,
+            subtotal: toInsert.subtotal,
+            taxAmount: toInsert.taxAmount,
+            discountAmount: toInsert.discountAmount,
+            totalAmount: toInsert.totalAmount,
+            paidAmount: toInsert.paidAmount,
+            remainingAmount: toInsert.remainingAmount,
+            currency: toInsert.currency,
+            paymentTerms: toInsert.paymentTerms,
+            notes: toInsert.notes,
+            attachments: toInsert.attachments,
+            isRecurring: toInsert.isRecurring
+          };
+          const inserted = await db.insert(purchaseInvoices).values(projected).returning();
+          const createdInvoice = inserted[0];
+          if (items4 && items4.length > 0) {
+            const itemsWithInvoiceId = items4.map((item) => ({
+              ...item,
+              purchaseInvoiceId: createdInvoice.id
+            }));
+            await db.insert(purchaseInvoiceItems).values(itemsWithInvoiceId);
+          }
+          console.log("[PurchaseInvoiceStorage.createPurchaseInvoice][SUCCESS]", createdInvoice);
+          return createdInvoice;
+        } catch (err) {
+          console.error("[PurchaseInvoiceStorage.createPurchaseInvoice] Error", err, data);
+          throw err;
+        }
+      }
+      async getPurchaseInvoices(filters = {}) {
+        try {
+          console.log("[PurchaseInvoiceStorage.getPurchaseInvoices][START]", filters);
+          const query = db.select({
+            id: purchaseInvoices.id,
+            invoiceNumber: purchaseInvoices.invoiceNumber,
+            supplierInvoiceNumber: purchaseInvoices.supplierInvoiceNumber,
+            supplierId: purchaseInvoices.supplierId,
+            goodsReceiptId: purchaseInvoices.goodsReceiptId,
+            lpoId: purchaseInvoices.lpoId,
+            status: purchaseInvoices.status,
+            paymentStatus: purchaseInvoices.paymentStatus,
+            invoiceDate: purchaseInvoices.invoiceDate,
+            dueDate: purchaseInvoices.dueDate,
+            receivedDate: purchaseInvoices.receivedDate,
+            paymentDate: purchaseInvoices.paymentDate,
+            subtotal: purchaseInvoices.subtotal,
+            taxAmount: purchaseInvoices.taxAmount,
+            discountAmount: purchaseInvoices.discountAmount,
+            totalAmount: purchaseInvoices.totalAmount,
+            paidAmount: purchaseInvoices.paidAmount,
+            remainingAmount: purchaseInvoices.remainingAmount,
+            currency: purchaseInvoices.currency,
+            paymentTerms: purchaseInvoices.paymentTerms,
+            notes: purchaseInvoices.notes,
+            attachments: purchaseInvoices.attachments,
+            isRecurring: purchaseInvoices.isRecurring,
+            createdAt: purchaseInvoices.createdAt,
+            updatedAt: purchaseInvoices.updatedAt,
+            // Supplier information
+            supplierName: suppliers.name,
+            supplierEmail: suppliers.email,
+            supplierPhone: suppliers.phone,
+            supplierAddress: suppliers.address,
+            // Goods receipt information
+            goodsReceiptNumber: goodsReceiptHeaders.receiptNumber,
+            // LPO information
+            lpoNumber: supplierLpos.lpoNumber,
+            lpoDate: supplierLpos.lpoDate,
+            lpoStatus: supplierLpos.status,
+            lpoTotalAmount: supplierLpos.totalAmount,
+            lpoCurrency: supplierLpos.currency
+          }).from(purchaseInvoices).leftJoin(suppliers, eq21(purchaseInvoices.supplierId, suppliers.id)).leftJoin(goodsReceiptHeaders, eq21(purchaseInvoices.goodsReceiptId, goodsReceiptHeaders.id)).leftJoin(supplierLpos, eq21(purchaseInvoices.lpoId, supplierLpos.id)).orderBy(desc17(purchaseInvoices.createdAt));
+          const results = await query;
+          console.log("[PurchaseInvoiceStorage.getPurchaseInvoices][SUCCESS]", results.length, "records");
+          return results;
+        } catch (err) {
+          console.error("[PurchaseInvoiceStorage.getPurchaseInvoices] Error", err, filters);
+          throw err;
+        }
+      }
+      async getPurchaseInvoice(id) {
+        try {
+          console.log("[PurchaseInvoiceStorage.getPurchaseInvoice][START]", { id });
+          const r = await db.select({
+            id: purchaseInvoices.id,
+            invoiceNumber: purchaseInvoices.invoiceNumber,
+            supplierInvoiceNumber: purchaseInvoices.supplierInvoiceNumber,
+            supplierId: purchaseInvoices.supplierId,
+            goodsReceiptId: purchaseInvoices.goodsReceiptId,
+            lpoId: purchaseInvoices.lpoId,
+            status: purchaseInvoices.status,
+            paymentStatus: purchaseInvoices.paymentStatus,
+            invoiceDate: purchaseInvoices.invoiceDate,
+            dueDate: purchaseInvoices.dueDate,
+            receivedDate: purchaseInvoices.receivedDate,
+            paymentDate: purchaseInvoices.paymentDate,
+            subtotal: purchaseInvoices.subtotal,
+            taxAmount: purchaseInvoices.taxAmount,
+            discountAmount: purchaseInvoices.discountAmount,
+            totalAmount: purchaseInvoices.totalAmount,
+            paidAmount: purchaseInvoices.paidAmount,
+            remainingAmount: purchaseInvoices.remainingAmount,
+            currency: purchaseInvoices.currency,
+            paymentTerms: purchaseInvoices.paymentTerms,
+            notes: purchaseInvoices.notes,
+            attachments: purchaseInvoices.attachments,
+            isRecurring: purchaseInvoices.isRecurring,
+            createdAt: purchaseInvoices.createdAt,
+            updatedAt: purchaseInvoices.updatedAt
+          }).from(purchaseInvoices).where(eq21(purchaseInvoices.id, id)).limit(1);
+          if (!r.length) {
+            console.log("[PurchaseInvoiceStorage.getPurchaseInvoice][NOT_FOUND]", { id });
+            return null;
+          }
+          console.log("[PurchaseInvoiceStorage.getPurchaseInvoice][SUCCESS]", { id });
+          return r[0];
+        } catch (err) {
+          console.error("[PurchaseInvoiceStorage.getPurchaseInvoice] Error", err, { id });
+          throw err;
+        }
+      }
+      async updatePurchaseInvoice(id, data) {
+        try {
+          console.log("[PurchaseInvoiceStorage.updatePurchaseInvoice][START]", { id, data });
+          const { id: _, createdAt, updatedAt, ...cleanData } = data;
+          const updated = await db.update(purchaseInvoices).set({
+            ...cleanData,
+            updatedAt: /* @__PURE__ */ new Date()
+          }).where(eq21(purchaseInvoices.id, id)).returning();
+          if (!updated.length) {
+            console.log("[PurchaseInvoiceStorage.updatePurchaseInvoice][NOT_FOUND]", { id });
+            return null;
+          }
+          console.log("[PurchaseInvoiceStorage.updatePurchaseInvoice][SUCCESS]", updated[0]);
+          return updated[0];
+        } catch (err) {
+          console.error("[PurchaseInvoiceStorage.updatePurchaseInvoice] Error", err, { id, data });
+          throw err;
+        }
+      }
+      async deletePurchaseInvoice(id) {
+        try {
+          console.log("[PurchaseInvoiceStorage.deletePurchaseInvoice][START]", { id });
+          const deleted = await db.delete(purchaseInvoices).where(eq21(purchaseInvoices.id, id)).returning();
+          if (!deleted.length) {
+            return false;
+          }
+          console.log("[PurchaseInvoiceStorage.deletePurchaseInvoice][SUCCESS]", { id });
+          return true;
+        } catch (err) {
+          console.error("[PurchaseInvoiceStorage.deletePurchaseInvoice] Error", err, { id });
+          throw err;
+        }
+      }
+      async getPurchaseInvoiceItems(purchaseInvoiceId) {
+        try {
+          console.log("[PurchaseInvoiceStorage.getPurchaseInvoiceItems][START]", { purchaseInvoiceId });
+          const items4 = await db.select().from(purchaseInvoiceItems).where(eq21(purchaseInvoiceItems.purchaseInvoiceId, purchaseInvoiceId)).orderBy(purchaseInvoiceItems.itemDescription);
+          console.log("[PurchaseInvoiceStorage.getPurchaseInvoiceItems][SUCCESS]", { count: items4.length });
+          return items4;
+        } catch (err) {
+          console.error("[PurchaseInvoiceStorage.getPurchaseInvoiceItems] Error", err, { purchaseInvoiceId });
+          throw err;
+        }
+      }
+    };
+    purchaseInvoiceStorage = new PurchaseInvoiceStorage();
+  }
+});
+
 // server/storage/modular-storage-clean.ts
 var ModularStorage;
 var init_modular_storage_clean = __esm({
@@ -8032,6 +8598,7 @@ var init_modular_storage_clean = __esm({
     init_supplier_lpo_storage();
     init_invoice_storage();
     init_physical_stock_storage();
+    init_purchase_invoice_storage();
     init_base();
     ModularStorage = class extends BaseStorage {
       // ...existing code...
@@ -8274,8 +8841,8 @@ var init_modular_storage_clean = __esm({
       async createAcceptanceConfirmation(confirmation) {
         return this.acceptanceStorage.createAcceptanceConfirmation(confirmation);
       }
-      async bulkCreateEnquiryItems(enquiryItems3) {
-        return this.enquiryStorage.bulkCreateEnquiryItems(enquiryItems3);
+      async bulkCreateEnquiryItems(enquiryItems4) {
+        return this.enquiryStorage.bulkCreateEnquiryItems(enquiryItems4);
       }
       // Quotation operations - delegate to QuotationStorage
       async getQuotations(limit, offset, filters) {
@@ -8391,6 +8958,9 @@ var init_modular_storage_clean = __esm({
         return null;
       }
       // Supplier LPO operations
+      async updateSupplierLpoStatus(id, status, userId) {
+        return this.supplierLpoStorage.updateSupplierLpoStatus(id, status, userId);
+      }
       async getSupplierLpos(limit, offset, filters) {
         return this.supplierLpoStorage.getSupplierLpos(limit, offset, filters);
       }
@@ -8411,6 +8981,9 @@ var init_modular_storage_clean = __esm({
       }
       async createSupplierLposFromSalesOrders(salesOrderIds, groupBy, userId, supplierIdOverride) {
         return this.supplierLpoStorage.createSupplierLposFromSalesOrders(salesOrderIds, groupBy, userId, supplierIdOverride);
+      }
+      async createSupplierLposFromSupplierQuotes(quoteIds, groupBy, userId) {
+        return this.supplierLpoStorage.createSupplierLposFromSupplierQuotes(quoteIds, groupBy, userId);
       }
       async createAmendedSupplierLpo(parentLpoId, reason, amendmentType, userId) {
         return this.supplierLpoStorage.createAmendedSupplierLpo(parentLpoId, reason, amendmentType, userId);
@@ -8921,13 +9494,13 @@ var init_modular_storage_clean = __esm({
       }
       async getCustomerStats() {
         try {
-          const customers3 = await this.customerStorage.getCustomers(1e3, 0);
+          const customers4 = await this.customerStorage.getCustomers(1e3, 0);
           const stats = {
-            totalCustomers: customers3.length,
-            activeCustomers: customers3.filter((c) => c.isActive).length,
-            retailCustomers: customers3.filter((c) => c.customerType === "Retail").length,
-            wholesaleCustomers: customers3.filter((c) => c.customerType === "Wholesale").length,
-            totalCreditLimit: customers3.reduce((sum4, c) => sum4 + (Number(c.creditLimit) || 0), 0),
+            totalCustomers: customers4.length,
+            activeCustomers: customers4.filter((c) => c.isActive).length,
+            retailCustomers: customers4.filter((c) => c.customerType === "Retail").length,
+            wholesaleCustomers: customers4.filter((c) => c.customerType === "Wholesale").length,
+            totalCreditLimit: customers4.reduce((sum4, c) => sum4 + (Number(c.creditLimit) || 0), 0),
             averageCreditLimit: 0
           };
           stats.averageCreditLimit = stats.totalCustomers > 0 ? stats.totalCreditLimit / stats.totalCustomers : 0;
@@ -9039,6 +9612,25 @@ var init_modular_storage_clean = __esm({
         console.warn("updateGoodsReceiptHeader: Using stub implementation");
         return { id, ...data };
       }
+      async deleteGoodsReceiptHeader(id) {
+        return this.goodsReceiptStorage.deleteGoodsReceiptHeader(id);
+      }
+      // Purchase Invoice methods
+      async createPurchaseInvoice(data) {
+        return purchaseInvoiceStorage.createPurchaseInvoice(data);
+      }
+      async getPurchaseInvoices(filters = {}) {
+        return purchaseInvoiceStorage.getPurchaseInvoices(filters);
+      }
+      async getPurchaseInvoice(id) {
+        return purchaseInvoiceStorage.getPurchaseInvoice(id);
+      }
+      async updatePurchaseInvoice(id, data) {
+        return purchaseInvoiceStorage.updatePurchaseInvoice(id, data);
+      }
+      async deletePurchaseInvoice(id) {
+        return purchaseInvoiceStorage.deletePurchaseInvoice(id);
+      }
       async updateGoodsReceiptItem(id, data) {
         console.warn("updateGoodsReceiptItem: Using stub implementation");
         return { id, ...data };
@@ -9130,7 +9722,7 @@ var init_base_storage = __esm({
 });
 
 // server/storage/inventory-items-storage.ts
-import { eq as eq27 } from "drizzle-orm";
+import { eq as eq29 } from "drizzle-orm";
 var InventoryItemsStorage;
 var init_inventory_items_storage = __esm({
   "server/storage/inventory-items-storage.ts"() {
@@ -9147,7 +9739,7 @@ var init_inventory_items_storage = __esm({
         return newItem;
       }
       async updateItem(id, data) {
-        const [updated] = await db.update(inventoryItems).set(data).where(eq27(inventoryItems.id, id)).returning();
+        const [updated] = await db.update(inventoryItems).set(data).where(eq29(inventoryItems.id, id)).returning();
         return updated || null;
       }
     };
@@ -9207,7 +9799,7 @@ var init_inventory_items_index = __esm({
 });
 
 // server/storage/stock-issues-storage.ts
-import { eq as eq28 } from "drizzle-orm";
+import { eq as eq30 } from "drizzle-orm";
 var StockIssuesStorage;
 var init_stock_issues_storage = __esm({
   "server/storage/stock-issues-storage.ts"() {
@@ -9228,11 +9820,11 @@ var init_stock_issues_storage = __esm({
           notes: stockIssue.notes,
           itemName: inventoryItems.description,
           itemCode: inventoryItems.barcode
-        }).from(stockIssue).leftJoin(inventoryItems, eq28(stockIssue.itemId, inventoryItems.id));
+        }).from(stockIssue).leftJoin(inventoryItems, eq30(stockIssue.itemId, inventoryItems.id));
         return results;
       }
       async getStockIssueById(id) {
-        const result = await db.select().from(stockIssue).where(eq28(stockIssue.id, id));
+        const result = await db.select().from(stockIssue).where(eq30(stockIssue.id, id));
         return result[0] || null;
       }
       async createStockIssue(data) {
@@ -9276,11 +9868,11 @@ var init_stock_issues_storage = __esm({
           ...data,
           issueDate: data.issueDate instanceof Date ? data.issueDate.toISOString() : data.issueDate
         });
-        const [updated] = await db.update(stockIssue).set(data).where(eq28(stockIssue.id, id)).returning();
+        const [updated] = await db.update(stockIssue).set(data).where(eq30(stockIssue.id, id)).returning();
         return updated || null;
       }
       async deleteStockIssue(id) {
-        await db.delete(stockIssue).where(eq28(stockIssue.id, id));
+        await db.delete(stockIssue).where(eq30(stockIssue.id, id));
       }
     };
   }
@@ -9451,7 +10043,7 @@ var init_stock_issues_index = __esm({
 });
 
 // server/storage/receipt-returns-storage.ts
-import { eq as eq29 } from "drizzle-orm";
+import { eq as eq31 } from "drizzle-orm";
 var ReceiptReturnsStorage;
 var init_receipt_returns_storage = __esm({
   "server/storage/receipt-returns-storage.ts"() {
@@ -9464,7 +10056,7 @@ var init_receipt_returns_storage = __esm({
         return await db.select().from(supplierReturns);
       }
       async getReturnById(id) {
-        const [ret] = await db.select().from(supplierReturns).where(eq29(supplierReturns.id, id));
+        const [ret] = await db.select().from(supplierReturns).where(eq31(supplierReturns.id, id));
         return ret || null;
       }
       async createReturn(data) {
@@ -9472,22 +10064,22 @@ var init_receipt_returns_storage = __esm({
         return newReturn;
       }
       async updateReturn(id, data) {
-        const [updated] = await db.update(supplierReturns).set(data).where(eq29(supplierReturns.id, id)).returning();
+        const [updated] = await db.update(supplierReturns).set(data).where(eq31(supplierReturns.id, id)).returning();
         return updated || null;
       }
       async getReturnItems(returnId) {
-        return await db.select().from(supplierReturnItems).where(eq29(supplierReturnItems.supplierReturnId, returnId));
+        return await db.select().from(supplierReturnItems).where(eq31(supplierReturnItems.supplierReturnId, returnId));
       }
       async createReturnItem(data) {
         const [newItem] = await db.insert(supplierReturnItems).values(data).returning();
         return newItem;
       }
       async updateReturnItem(id, data) {
-        const [updated] = await db.update(supplierReturnItems).set(data).where(eq29(supplierReturnItems.id, id)).returning();
+        const [updated] = await db.update(supplierReturnItems).set(data).where(eq31(supplierReturnItems.id, id)).returning();
         return updated || null;
       }
       async deleteReturn(id) {
-        await db.delete(supplierReturns).where(eq29(supplierReturns.id, id));
+        await db.delete(supplierReturns).where(eq31(supplierReturns.id, id));
       }
     };
   }
@@ -9619,8 +10211,8 @@ var init_receipt_returns_index = __esm({
 });
 
 // server/storage/receipts-storage.ts
-import { eq as eq30, sql as sql21 } from "drizzle-orm";
-import { randomUUID as randomUUID3 } from "crypto";
+import { eq as eq32, sql as sql23 } from "drizzle-orm";
+import { randomUUID as randomUUID4 } from "crypto";
 var ReceiptsStorage;
 var init_receipts_storage = __esm({
   "server/storage/receipts-storage.ts"() {
@@ -9633,10 +10225,10 @@ var init_receipts_storage = __esm({
         const results = await db.select({
           receipt: goodsReceiptHeaders,
           customer: customers
-        }).from(goodsReceiptHeaders).leftJoin(supplierLpos, eq30(goodsReceiptHeaders.supplierLpoId, supplierLpos.id)).leftJoin(
+        }).from(goodsReceiptHeaders).leftJoin(supplierLpos, eq32(goodsReceiptHeaders.supplierLpoId, supplierLpos.id)).leftJoin(
           salesOrders,
-          sql21`${supplierLpos.sourceSalesOrderIds} @> jsonb_build_array(${salesOrders.id}::text)`
-        ).leftJoin(customers, eq30(salesOrders.customerId, customers.id));
+          sql23`${supplierLpos.sourceSalesOrderIds} @> jsonb_build_array(${salesOrders.id}::text)`
+        ).leftJoin(customers, eq32(salesOrders.customerId, customers.id));
         const receiptMap = /* @__PURE__ */ new Map();
         results.forEach((row) => {
           const receiptId = row.receipt.id;
@@ -9661,7 +10253,7 @@ var init_receipts_storage = __esm({
       async createReceipt(data) {
         const base = { ...data };
         if (!base.receiptNumber) base.receiptNumber = `RCPT-${(/* @__PURE__ */ new Date()).getFullYear()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
-        if (!base.id) base.id = randomUUID3();
+        if (!base.id) base.id = randomUUID4();
         if (!base.status) base.status = "Pending";
         if (!base.receiptDate) base.receiptDate = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
         const parseInput = { ...base };
@@ -9692,7 +10284,7 @@ var init_receipts_storage = __esm({
         return inserted;
       }
       async getReceiptById(id) {
-        const [receipt] = await db.select().from(goodsReceiptHeaders).where(eq30(goodsReceiptHeaders.id, id));
+        const [receipt] = await db.select().from(goodsReceiptHeaders).where(eq32(goodsReceiptHeaders.id, id));
         return receipt || null;
       }
       async updateReceipt(id, data) {
@@ -9704,11 +10296,11 @@ var init_receipts_storage = __esm({
         } catch (zerr) {
           throw zerr;
         }
-        const [updated] = await db.update(goodsReceiptHeaders).set(toUpdate).where(eq30(goodsReceiptHeaders.id, id)).returning();
+        const [updated] = await db.update(goodsReceiptHeaders).set(toUpdate).where(eq32(goodsReceiptHeaders.id, id)).returning();
         return updated || null;
       }
       async deleteReceipt(id) {
-        await db.delete(goodsReceiptHeaders).where(eq30(goodsReceiptHeaders.id, id));
+        await db.delete(goodsReceiptHeaders).where(eq32(goodsReceiptHeaders.id, id));
         return { success: true };
       }
     };
@@ -9781,8 +10373,9 @@ var init_receipts_index = __esm({
 });
 
 // server/index.ts
-import dotenv from "dotenv";
+import dotenv2 from "dotenv";
 import express3 from "express";
+import cors from "cors";
 
 // server/middleware/user-resolution.ts
 init_uuid();
@@ -9840,14 +10433,14 @@ function registerCustomerRoutes(app2) {
           delete filters[key];
         }
       });
-      let customers3;
+      let customers4;
       let totalCount;
       if (filters.name || filters.email) {
-        customers3 = await storage.searchCustomers({ name: filters.name, email: filters.email }, limit, offset);
+        customers4 = await storage.searchCustomers({ name: filters.name, email: filters.email }, limit, offset);
         const stats = await storage.getCustomerStats();
         totalCount = stats.totalCustomers;
       } else {
-        customers3 = await storage.getCustomers(limit, offset, filters);
+        customers4 = await storage.getCustomers(limit, offset, filters);
         totalCount = await storage.getCustomersCount(filters);
       }
       const pagination = {
@@ -9857,7 +10450,7 @@ function registerCustomerRoutes(app2) {
         pages: Math.ceil(totalCount / limit)
       };
       res.json({
-        customers: customers3,
+        customers: customers4,
         pagination
       });
     } catch (error) {
@@ -9900,21 +10493,44 @@ function registerCustomerRoutes(app2) {
   });
   app2.post("/api/customers", async (req, res) => {
     try {
+      console.log("Creating customer with data:", JSON.stringify(req.body, null, 2));
       const customerData = insertCustomerSchema.parse(req.body);
+      console.log("Parsed customer data:", JSON.stringify(customerData, null, 2));
       const customer = await storage.createCustomer(customerData);
+      console.log("Customer created successfully:", customer.id);
       res.status(201).json(customer);
     } catch (error) {
+      console.error("Error creating customer:", error);
       if (error instanceof z3.ZodError) {
-        return res.status(400).json({ message: "Invalid customer data", errors: error.errors });
-      }
-      if (error instanceof Error && error.message.includes("already exists")) {
-        return res.status(409).json({
-          message: "Duplicate customer",
-          error: error.message
+        console.error("Zod validation errors:", error.errors);
+        return res.status(400).json({
+          message: "Invalid customer data",
+          errors: error.errors,
+          details: "Validation failed for the following fields"
         });
       }
-      console.error("Error creating customer:", error);
-      res.status(500).json({ message: "Failed to create customer" });
+      if (error instanceof Error && error.message.includes("already exists")) {
+        console.error("Duplicate customer error:", error.message);
+        return res.status(409).json({
+          message: "Duplicate customer",
+          error: error.message,
+          details: "A customer with this name or email already exists"
+        });
+      }
+      if (error instanceof Error && error.message.includes("duplicate key")) {
+        console.error("Database constraint violation:", error.message);
+        return res.status(409).json({
+          message: "Duplicate customer",
+          error: "A customer with this name or email already exists",
+          details: error.message
+        });
+      }
+      console.error("Unexpected error creating customer:", error);
+      res.status(500).json({
+        message: "Failed to create customer",
+        error: error instanceof Error ? error.message : "Unknown error",
+        details: "Check server logs for more information"
+      });
     }
   });
   app2.put("/api/customers/:id", async (req, res) => {
@@ -9945,8 +10561,8 @@ import { z as z4 } from "zod";
 function registerSupplierRoutes(app2) {
   app2.get("/api/suppliers", async (req, res) => {
     try {
-      const suppliers6 = await storage.getSuppliers();
-      res.json(suppliers6);
+      const suppliers5 = await storage.getSuppliers();
+      res.json(suppliers5);
     } catch (error) {
       console.error("Error fetching suppliers:", error);
       res.status(500).json({ message: "Failed to fetch suppliers" });
@@ -10320,144 +10936,7 @@ init_modular_storage_clean();
 // server/storage/supplier-quote-storage.ts
 init_db();
 init_schema();
-import { eq as eq21, and as and17, gte as gte6, lte as lte5 } from "drizzle-orm";
-import { alias as alias2 } from "drizzle-orm/pg-core";
-var SupplierQuoteStorage = class {
-  static async list(params) {
-    const whereClauses = [];
-    if (params.supplier && params.supplier !== "" && params.supplier !== "all") {
-      whereClauses.push(eq21(quotations.customerId, params.supplier));
-    }
-    if (params.status && params.status !== "" && params.status !== "all") {
-      whereClauses.push(eq21(quotations.status, params.status));
-    }
-    if (params.dateFrom) {
-      whereClauses.push(gte6(quotations.validUntil, params.dateFrom));
-    }
-    if (params.dateTo) {
-      whereClauses.push(lte5(quotations.validUntil, params.dateTo));
-    }
-    if (params.search && params.search.trim() !== "") {
-    }
-    if (params.search && params.search.trim() !== "") {
-    }
-    const suppliers6 = alias2(customers, "suppliers");
-    const actualCustomers = alias2(customers, "customers");
-    const query = db.select({
-      quotation: quotations,
-      supplier: suppliers6,
-      customer: actualCustomers
-    }).from(quotations).leftJoin(suppliers6, eq21(quotations.customerId, suppliers6.id)).leftJoin(salesOrders, eq21(quotations.id, salesOrders.quotationId)).leftJoin(actualCustomers, eq21(salesOrders.customerId, actualCustomers.id));
-    let results;
-    if (whereClauses.length > 0) {
-      results = await query.where(and17(...whereClauses));
-    } else {
-      results = await query;
-    }
-    const processedResults = results.map((row) => {
-      const supplier = row.supplier ? {
-        id: row.supplier.id,
-        name: row.supplier.name || row.supplier.customerName || row.supplier.companyName || row.supplier.fullName,
-        email: row.supplier.email,
-        phone: row.supplier.phone,
-        address: row.supplier.address || row.supplier.billingAddress,
-        customerType: row.supplier.customerType
-      } : null;
-      const customer = row.customer ? {
-        id: row.customer.id,
-        name: row.customer.name || row.customer.customerName || row.customer.companyName || row.customer.fullName,
-        email: row.customer.email,
-        phone: row.customer.phone,
-        address: row.customer.address || row.customer.billingAddress,
-        customerType: row.customer.customerType
-      } : null;
-      return {
-        ...row.quotation,
-        supplier,
-        supplierName: supplier?.name || "Unknown Supplier",
-        customer,
-        __customerEmbedded: true
-      };
-    });
-    return processedResults;
-  }
-  static async getById(id) {
-    const result = await db.select({
-      id: quotations.id,
-      quoteNumber: quotations.quoteNumber,
-      revision: quotations.revision,
-      parentQuotationId: quotations.parentQuotationId,
-      revisionReason: quotations.revisionReason,
-      supersededAt: quotations.supersededAt,
-      supersededBy: quotations.supersededBy,
-      isSuperseded: quotations.isSuperseded,
-      enquiryId: quotations.enquiryId,
-      customerId: quotations.customerId,
-      customerType: quotations.customerType,
-      status: quotations.status,
-      quoteDate: quotations.quoteDate,
-      validUntil: quotations.validUntil,
-      subtotal: quotations.subtotal,
-      discountPercentage: quotations.discountPercentage,
-      discountAmount: quotations.discountAmount,
-      taxAmount: quotations.taxAmount,
-      totalAmount: quotations.totalAmount,
-      terms: quotations.terms,
-      notes: quotations.notes,
-      approvalStatus: quotations.approvalStatus,
-      requiredApprovalLevel: quotations.requiredApprovalLevel,
-      approvedBy: quotations.approvedBy,
-      approvedAt: quotations.approvedAt,
-      rejectionReason: quotations.rejectionReason,
-      createdBy: quotations.createdBy,
-      createdAt: quotations.createdAt,
-      updatedAt: quotations.updatedAt,
-      // Add supplier name from customers table
-      supplierName: customers.name
-    }).from(quotations).leftJoin(customers, eq21(quotations.customerId, customers.id)).where(eq21(quotations.id, id)).limit(1);
-    return result[0];
-  }
-  static async getItems(quoteId) {
-    return await db.select().from(quotationItems).where(eq21(quotationItems.quotationId, quoteId));
-  }
-  static async create(data) {
-    const [quote] = await db.insert(quotations).values(data).returning();
-    if (data.items && Array.isArray(data.items)) {
-      for (const item of data.items) {
-        await db.insert(quotationItems).values({ ...item, quotationId: quote.id });
-      }
-    }
-    return await this.getById(quote.id);
-  }
-  static async update(id, updates) {
-    try {
-      const updateData = {
-        ...updates,
-        updatedAt: /* @__PURE__ */ new Date()
-      };
-      await db.update(quotations).set(updateData).where(eq21(quotations.id, id));
-      return await this.getById(id);
-    } catch (error) {
-      console.error("Database error in SupplierQuoteStorage.update:", error);
-      throw new Error(`Failed to update supplier quote: ${error instanceof Error ? error.message : "Unknown database error"}`);
-    }
-  }
-  static async hasReferences(id) {
-    const [salesOrderRefs, customerAcceptanceRefs, purchaseOrderRefs] = await Promise.all([
-      db.select({ id: salesOrders.id }).from(salesOrders).where(eq21(salesOrders.quotationId, id)).limit(1),
-      db.select({ id: customerAcceptances.id }).from(customerAcceptances).where(eq21(customerAcceptances.quotationId, id)).limit(1),
-      db.select({ id: purchaseOrders.id }).from(purchaseOrders).where(eq21(purchaseOrders.quotationId, id)).limit(1)
-    ]);
-    return salesOrderRefs.length > 0 || customerAcceptanceRefs.length > 0 || purchaseOrderRefs.length > 0;
-  }
-  static async delete(id) {
-    await db.transaction(async (tx) => {
-      await tx.delete(quotationItems).where(eq21(quotationItems.quotationId, id));
-      await tx.delete(quotations).where(eq21(quotations.id, id));
-    });
-    return { message: "Supplier quote deleted successfully" };
-  }
-};
+import { eq as eq22 } from "drizzle-orm";
 
 // server/storage/index.ts
 init_modular_storage_clean();
@@ -11207,7 +11686,7 @@ function generateQuotationPdf(ctx) {
     customer.email || "",
     customer.phone || customer.phone || ""
   ].filter(Boolean);
-  const addressText = addressLines.length ? addressLines.join("\n") : "N/A";
+  const addressText = addressLines.length ? addressLines.join("\n") : "No Address";
   const contactPerson = quotation.contactPerson || customer.contactPerson || "---";
   const contactLines = [contactPerson, customer.contactEmail || customer.email || "", customer.contactPhone || customer.phone || ""].filter(Boolean).join("\n");
   autoTable(doc, {
@@ -11331,6 +11810,248 @@ Specs: ${it.specifications}`;
   doc.text("Customer Signature Date & Stamp", pageWidth / 2 + 20, sigY + 5);
   const buffer = Buffer.from(doc.output("arraybuffer"));
   return { buffer, byteLength: buffer.length, fileName: `quotation-${quotation.quotationNumber || quotation.quoteNumber}.pdf`, contentType: "application/pdf" };
+}
+function buildEnhancedPurchaseInvoicePdf(ctx) {
+  const { invoice, items: items4, supplier } = ctx;
+  const doc = baseDoc();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  doc.setFontSize(16).setFont("helvetica", "bold");
+  doc.setTextColor(0, 0, 0);
+  doc.text("PURCHASE INVOICE", pageWidth / 2, 20, { align: "center" });
+  const invoiceDetailsY = 30;
+  doc.setFontSize(9).setFont("helvetica", "normal");
+  doc.text("Invoice No :", pageWidth - 80, invoiceDetailsY);
+  doc.text(invoice.invoiceNumber || "N/A", pageWidth - 50, invoiceDetailsY);
+  doc.text("Date :", pageWidth - 80, invoiceDetailsY + 5);
+  doc.text(fmtDate(invoice.invoiceDate || invoice.createdAt), pageWidth - 50, invoiceDetailsY + 5);
+  doc.text("Due Date :", pageWidth - 80, invoiceDetailsY + 10);
+  doc.text(fmtDate(invoice.dueDate), pageWidth - 50, invoiceDetailsY + 10);
+  doc.setFontSize(9).setFont("helvetica", "bold");
+  doc.text("Company: GOLDEN STYLE W.L.L", 20, invoiceDetailsY);
+  doc.setFont("helvetica", "normal");
+  doc.text("VAT Reg No: 100004744700962", 20, invoiceDetailsY + 5);
+  doc.text("Building 728, Road 2012, Town 2564, Bahrain", 20, invoiceDetailsY + 10);
+  const companyTableY = 50;
+  const coreHead = [["Invoice Type", "Status", "Purchase Order", "Goods Receipt", "Payment Terms", "Currency", "Payment Method"]];
+  const coreBody = [[
+    "Purchase Invoice",
+    invoice.status || "Draft",
+    invoice.purchaseOrderNumber || "N/A",
+    invoice.goodsReceiptNumber || "N/A",
+    invoice.paymentTerms || "30 Days",
+    invoice.currency || "BHD",
+    invoice.paymentMethod || "Bank Transfer"
+  ]];
+  autoTable(doc, {
+    startY: companyTableY,
+    head: coreHead,
+    body: coreBody,
+    styles: { fontSize: 7, cellPadding: 2 },
+    headStyles: { fillColor: [255, 255, 255], textColor: 0, fontStyle: "bold" },
+    margin: { left: 20, right: 20 },
+    didParseCell: (data) => {
+      if (data.section === "head") data.cell.styles.halign = "center";
+    }
+  });
+  const afterCompanyTable = doc.lastAutoTable?.finalY + 10 || companyTableY + 25;
+  doc.setFontSize(9).setFont("helvetica", "bold");
+  doc.text("Supplier Name :", 20, afterCompanyTable);
+  doc.text("Bill To :", pageWidth / 2 + 20, afterCompanyTable);
+  doc.setFont("helvetica", "normal");
+  const supplierName = supplier?.name || supplier?.supplierName || invoice.supplierName || "Supplier";
+  doc.text(supplierName.toUpperCase(), 20, afterCompanyTable + 8);
+  const supplierDetailsY = afterCompanyTable + 15;
+  const supplierLines = [
+    supplier?.address || "Supplier Address",
+    supplier?.email || invoice.supplierEmail || "supplier@email.com",
+    supplier?.phone || invoice.supplierPhone || "Phone: N/A",
+    supplier?.taxId ? `Tax ID: ${supplier.taxId}` : "Tax ID: N/A"
+  ];
+  supplierLines.forEach((line, idx) => {
+    doc.text(line, 20, supplierDetailsY + idx * 5);
+  });
+  const billToLines = [
+    "GOLDEN STYLE W.L.L",
+    "Building 728, Road 2012, Town 2564",
+    "Bahrain",
+    "VAT Reg: 100004744700962"
+  ];
+  billToLines.forEach((line, idx) => {
+    doc.text(line, pageWidth / 2 + 20, supplierDetailsY + idx * 5);
+  });
+  const tableStartY = supplierDetailsY + 35;
+  const currency = invoice.currency || "BHD";
+  const rows = items4.map((it, i) => {
+    const qty = Number(it.quantity) || 0;
+    const rate = Number(it.unitPrice) || 0;
+    const discountRate = Number(it.discountRate) || 0;
+    const discountAmount2 = Number(it.discountAmount) || rate * qty * discountRate / 100;
+    const netAmount = rate * qty - discountAmount2;
+    const vatRate = Number(it.taxRate) || 0;
+    const vatAmount = Number(it.taxAmount) || netAmount * vatRate / 100;
+    const lineTotal = Number(it.totalPrice) || netAmount + vatAmount;
+    let enhancedDesc = it.itemDescription || it.description || "Item Description";
+    if (it.supplierCode) enhancedDesc += `
+Supplier Code: ${it.supplierCode}`;
+    if (it.barcode) enhancedDesc += `
+Barcode: ${it.barcode}`;
+    if (it.notes) enhancedDesc += `
+Notes: ${it.notes}`;
+    return [
+      (i + 1).toString(),
+      enhancedDesc,
+      `${qty} ${it.unitOfMeasure || "PCS"}`,
+      `${currency} ${rate.toFixed(3)}`,
+      discountRate > 0 ? `${discountRate.toFixed(1)}%` : "0%",
+      `${currency} ${discountAmount2.toFixed(2)}`,
+      `${currency} ${netAmount.toFixed(2)}`,
+      `${vatRate}%`,
+      `${currency} ${vatAmount.toFixed(2)}`,
+      `${currency} ${lineTotal.toFixed(2)}`
+    ];
+  });
+  autoTable(doc, {
+    startY: tableStartY,
+    head: [["Sl.", "Description & Item Details", "Qty", "Unit Rate", "Disc. %", "Disc. Amt", "Net Amount", "VAT %", "VAT Amt", "Line Total"]],
+    body: rows,
+    styles: {
+      fontSize: 7,
+      cellPadding: 2,
+      lineColor: [0, 0, 0],
+      lineWidth: 0.1,
+      valign: "middle"
+    },
+    headStyles: {
+      fillColor: [255, 255, 255],
+      textColor: [0, 0, 0],
+      fontStyle: "bold",
+      halign: "center"
+    },
+    columnStyles: {
+      0: { cellWidth: 12, halign: "center" },
+      1: { cellWidth: 60, halign: "left" },
+      2: { cellWidth: 15, halign: "center" },
+      3: { cellWidth: 20, halign: "right" },
+      4: { cellWidth: 15, halign: "center" },
+      5: { cellWidth: 18, halign: "right" },
+      6: { cellWidth: 20, halign: "right" },
+      7: { cellWidth: 12, halign: "center" },
+      8: { cellWidth: 18, halign: "right" },
+      9: { cellWidth: 20, halign: "right", fontStyle: "bold" }
+    },
+    alternateRowStyles: {
+      fillColor: [255, 255, 255]
+    },
+    margin: { left: 15, right: 15 }
+  });
+  const afterItemsTable = doc.lastAutoTable?.finalY || tableStartY + 40;
+  const subtotal = Number(invoice.subtotal) || 0;
+  const discountAmount = Number(invoice.discountAmount) || 0;
+  const taxAmount = Number(invoice.taxAmount) || 0;
+  const total = Number(invoice.totalAmount) || 0;
+  const paidAmount = Number(invoice.paidAmount) || 0;
+  const remainingAmount = Number(invoice.remainingAmount) || total - paidAmount;
+  const finStartY = afterItemsTable + 5;
+  autoTable(doc, {
+    startY: finStartY,
+    head: [[`${currency} Summary`, "Amount"]],
+    body: [
+      ["Subtotal", subtotal.toFixed(2)],
+      ["Discount", discountAmount.toFixed(2)],
+      ["Tax Amount", taxAmount.toFixed(2)],
+      ["Total", total.toFixed(2)],
+      ["Paid", paidAmount.toFixed(2)],
+      ["Remaining", remainingAmount.toFixed(2)]
+    ],
+    styles: { fontSize: 8, cellPadding: 2 },
+    headStyles: { fillColor: [220, 220, 220], textColor: 0, fontStyle: "bold" },
+    columnStyles: { 0: { cellWidth: 60 }, 1: { cellWidth: 30, halign: "right" } },
+    margin: { left: 20 }
+  });
+  const summaryY = doc.lastAutoTable?.finalY + 8;
+  doc.setDrawColor(0);
+  doc.setLineWidth(0.5);
+  const summaryItems = [
+    ["Amount Chargeable (in words):", ""],
+    [amountInWords(total, currency), ""],
+    ["Subtotal:", subtotal.toFixed(2)],
+    ["Discount:", discountAmount.toFixed(2)],
+    ["Tax:", taxAmount.toFixed(2)],
+    ["Total*:", total.toFixed(2)],
+    ["Paid:", paidAmount.toFixed(2)],
+    ["Remaining:", remainingAmount.toFixed(2)]
+  ];
+  let currentY = summaryY;
+  summaryItems.forEach(([label, amount], idx) => {
+    if (idx < 2) {
+      doc.setFont("helvetica", "bold").setFontSize(8);
+      doc.text(label, 20, currentY);
+      if (amount) {
+        doc.setFont("helvetica", "normal");
+        doc.text(amount, 20, currentY + 5);
+      }
+      currentY += idx === 0 ? 5 : 10;
+    } else {
+      doc.setFont("helvetica", "normal").setFontSize(9);
+      doc.text(label, pageWidth - 80, currentY);
+      doc.setFont("helvetica", "bold");
+      doc.text(`${currency} ${amount}`, pageWidth - 25, currentY, { align: "right" });
+      if (label.includes("Total*")) {
+        doc.line(pageWidth - 80, currentY + 1, pageWidth - 20, currentY + 1);
+      }
+      currentY += 6;
+    }
+  });
+  const notesY = currentY + 6;
+  doc.setFont("helvetica", "bold").setFontSize(8).text("Notes:", 20, notesY);
+  doc.setFont("helvetica", "normal");
+  const notes = invoice.notes || "---";
+  const splitNotes = doc.splitTextToSize(notes, pageWidth - 40);
+  doc.text(splitNotes, 20, notesY + 4);
+  const termsY = notesY + 4 + splitNotes.length * 4 + 6;
+  doc.setFont("helvetica", "bold").setFontSize(8).text("Declaration:", 20, termsY);
+  doc.setFont("helvetica", "normal").text("We declare that this purchase invoice shows the actual price of the goods described and that all particulars are true and correct.", 20, termsY + 4, { maxWidth: pageWidth - 40 });
+  const bottomY = termsY + 18;
+  doc.setFontSize(7).text("CK 6491-1, Reg.Address: Building 728, Road 2012, Town 2564, Country:Bahrain", 20, bottomY);
+  const metaLeftY = bottomY + 6;
+  doc.setFont("helvetica", "bold").setFontSize(7).text("Created:", 20, metaLeftY);
+  doc.setFont("helvetica", "normal").text(fmtDate(invoice.createdAt), 40, metaLeftY);
+  doc.setFont("helvetica", "bold").text("Updated:", 20, metaLeftY + 4);
+  doc.setFont("helvetica", "normal").text(fmtDate(invoice.updatedAt), 40, metaLeftY + 4);
+  if (invoice.paymentMethod) {
+    doc.setFont("helvetica", "bold").text("Payment Method:", 20, metaLeftY + 8);
+    doc.setFont("helvetica", "normal").text(String(invoice.paymentMethod), 50, metaLeftY + 8);
+  }
+  if (invoice.bankReference) {
+    doc.setFont("helvetica", "bold").text("Bank Ref:", 20, metaLeftY + 12);
+    doc.setFont("helvetica", "normal").text(String(invoice.bankReference), 50, metaLeftY + 12);
+  }
+  doc.setFont("helvetica", "bold").text("for GOLDEN STYLE W.L.L", pageWidth - 80, bottomY + 8);
+  doc.setFont("helvetica", "normal").text("Authorised Signatory", pageWidth - 80, bottomY + 16);
+  const footerY = pageHeight - 20;
+  doc.setFontSize(7).setTextColor(0);
+  doc.text("Generated by GT ERP", 20, footerY);
+  doc.text((/* @__PURE__ */ new Date()).toLocaleDateString(), pageWidth - 20, footerY, { align: "right" });
+  return Buffer.from(doc.output("arraybuffer"));
+}
+function buildSimplePurchaseInvoicePdf(ctx) {
+  const { invoice } = ctx;
+  const doc = baseDoc();
+  doc.setFontSize(16).setFont("helvetica", "bold").text("PURCHASE INVOICE", 20, 20);
+  doc.setFontSize(10).setFont("helvetica", "normal").text(`Invoice #: ${invoice.invoiceNumber}`, 20, 30);
+  doc.text(`Supplier: ${invoice.supplierName}`, 20, 36);
+  doc.text(`Total: ${invoice.currency} ${Number(invoice.totalAmount || 0).toFixed(2)}`, 20, 42);
+  return Buffer.from(doc.output("arraybuffer"));
+}
+function generatePurchaseInvoicePdf(ctx) {
+  const buffer = ctx.mode === "simple" ? buildSimplePurchaseInvoicePdf(ctx) : buildEnhancedPurchaseInvoicePdf(ctx);
+  return {
+    buffer,
+    byteLength: buffer.length,
+    fileName: `purchase-invoice-${ctx.invoice.invoiceNumber}.pdf`,
+    contentType: "application/pdf"
+  };
 }
 
 // server/utils/pdf-response.ts
@@ -12384,7 +13105,7 @@ function registerSupplierLpoRoutes(app2) {
       if (!salesOrderId) {
         return res.status(400).json({ message: "salesOrderId required" });
       }
-      const lpos = await storage.createSupplierLposFromSalesOrders([salesOrderId], "supplier", getAttributingUserId(req), supplierId);
+      const lpos = await storage.createSupplierLposFromSalesOrders([salesOrderId], "supplier", getAttributingUserId(req));
       if (!lpos || lpos.length === 0) {
         return res.status(500).json({ message: "No Supplier LPO created" });
       }
@@ -12399,13 +13120,52 @@ function registerSupplierLpoRoutes(app2) {
       }
     }
   });
+  app2.post("/api/supplier-lpos/from-supplier-quotes", async (req, res) => {
+    try {
+      const { quoteIds, groupBy = "supplier" } = req.body;
+      if (!quoteIds || !Array.isArray(quoteIds) || quoteIds.length === 0) {
+        return res.status(400).json({ message: "quoteIds array is required" });
+      }
+      const lpos = await storage.createSupplierLposFromSupplierQuotes(quoteIds, groupBy, getAttributingUserId(req));
+      if (!lpos || lpos.length === 0) {
+        return res.status(500).json({ message: "No Supplier LPO created" });
+      }
+      res.status(201).json(lpos);
+    } catch (error) {
+      console.error("[SUPPLIER-LPO:FROM-QUOTES] Error creating supplier LPO from quotes. Payload=", req.body);
+      console.error(error);
+      if (error instanceof Error) {
+        res.status(500).json({ message: error.message, stack: error.stack });
+      } else {
+        res.status(500).json({ message: "Failed to create supplier LPO from quotes" });
+      }
+    }
+  });
   app2.post("/api/supplier-lpos/from-sales-orders", async (req, res) => {
     try {
       const { salesOrderIds, groupBy = "supplier", supplierId } = req.body;
+      app2.patch("/api/supplier-lpos/:id/status", async (req2, res2) => {
+        try {
+          const { status } = req2.body;
+          console.log(`[PATCH] /api/supplier-lpos/${req2.params.id}/status - Received status:`, status);
+          if (!status) {
+            return res2.status(400).json({ message: "Status is required" });
+          }
+          const updatedLpo = await storage.updateSupplierLpoStatus(req2.params.id, status, getAttributingUserId(req2));
+          console.log(`[PATCH] /api/supplier-lpos/${req2.params.id}/status - Update result:`, updatedLpo);
+          if (!updatedLpo) {
+            return res2.status(404).json({ message: "Supplier LPO not found" });
+          }
+          res2.json(updatedLpo);
+        } catch (error) {
+          console.error("Error updating supplier LPO status:", error);
+          res2.status(500).json({ message: "Failed to update supplier LPO status" });
+        }
+      });
       if (!Array.isArray(salesOrderIds) || salesOrderIds.length === 0) {
         return res.status(400).json({ message: "salesOrderIds array required" });
       }
-      const lpos = await storage.createSupplierLposFromSalesOrders(salesOrderIds, groupBy, getAttributingUserId(req), supplierId);
+      const lpos = await storage.createSupplierLposFromSalesOrders(salesOrderIds, groupBy, getAttributingUserId(req));
       res.status(201).json(lpos);
     } catch (error) {
       console.error("[SUPPLIER-LPO:BATCH] Error creating supplier LPOs from sales orders. Payload=", req.body);
@@ -12427,6 +13187,53 @@ function registerSupplierLpoRoutes(app2) {
     } catch (error) {
       console.error("Error fetching supplier LPO:", error);
       res.status(500).json({ message: "Failed to fetch supplier LPO" });
+    }
+  });
+  app2.patch("/api/supplier-lpos/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updateData = req.body;
+      console.log(`[PATCH] /api/supplier-lpos/${id} - Received data:`, updateData);
+      const updateSchema = z14.object({
+        status: z14.string().optional(),
+        expectedDeliveryDate: z14.string().nullable().optional(),
+        requestedDeliveryDate: z14.string().nullable().optional(),
+        specialInstructions: z14.string().nullable().optional(),
+        deliveryTerms: z14.string().nullable().optional(),
+        paymentTerms: z14.string().nullable().optional(),
+        termsAndConditions: z14.string().nullable().optional(),
+        currency: z14.string().optional(),
+        totalAmount: z14.union([z14.number(), z14.string()]).optional().transform((val) => val ? Number(val) : void 0),
+        subtotal: z14.union([z14.number(), z14.string()]).optional().transform((val) => val ? Number(val) : void 0),
+        taxAmount: z14.union([z14.number(), z14.string(), z14.null()]).optional().transform((val) => val ? Number(val) : void 0),
+        supplierContactPerson: z14.string().nullable().optional(),
+        supplierEmail: z14.string().nullable().optional(),
+        supplierPhone: z14.string().nullable().optional(),
+        supplierConfirmationReference: z14.string().nullable().optional()
+      });
+      const validatedData = updateSchema.parse(updateData);
+      const filteredData = Object.fromEntries(
+        Object.entries(validatedData).filter(([_, value]) => value !== void 0)
+      );
+      if (filteredData.expectedDeliveryDate) {
+        filteredData.expectedDeliveryDate = new Date(filteredData.expectedDeliveryDate);
+      }
+      if (filteredData.requestedDeliveryDate) {
+        filteredData.requestedDeliveryDate = new Date(filteredData.requestedDeliveryDate);
+      }
+      console.log(`[PATCH] /api/supplier-lpos/${id} - Filtered data for update:`, filteredData);
+      const updatedLpo = await storage.updateSupplierLpo(id, filteredData);
+      if (!updatedLpo) {
+        return res.status(404).json({ message: "Supplier LPO not found" });
+      }
+      console.log(`[PATCH] /api/supplier-lpos/${id} - Update successful:`, updatedLpo);
+      res.json(updatedLpo);
+    } catch (error) {
+      console.error("Error updating supplier LPO:", error);
+      if (error instanceof z14.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update supplier LPO" });
     }
   });
   app2.post("/api/supplier-lpos/:id/amend", async (req, res) => {
@@ -12599,13 +13406,525 @@ function registerSupplierLpoRoutes(app2) {
   });
 }
 
-// server/routes/supplier-quotes.ts
+// server/routes/supplier-quotes-new.ts
 import { z as z15 } from "zod";
+
+// server/storage/supplier-quote-storage-new.ts
+init_db();
+init_schema();
+import { eq as eq23 } from "drizzle-orm";
+var SupplierQuoteStorage = class {
+  static async list(params) {
+    try {
+      console.log("SupplierQuoteStorage.list called with params:", params);
+      const whereConditions = [];
+      const queryParams = [];
+      let paramIndex = 1;
+      if (params.enquiryId) {
+        whereConditions.push(`sq.enquiry_id = $${paramIndex}`);
+        queryParams.push(params.enquiryId);
+        paramIndex++;
+      }
+      if (params.status) {
+        whereConditions.push(`sq.status = $${paramIndex}`);
+        queryParams.push(params.status);
+        paramIndex++;
+      }
+      if (params.priority) {
+        whereConditions.push(`sq.priority = $${paramIndex}`);
+        queryParams.push(params.priority);
+        paramIndex++;
+      }
+      if (params.supplier) {
+        whereConditions.push(`sq.supplier_id = $${paramIndex}`);
+        queryParams.push(params.supplier);
+        paramIndex++;
+      }
+      if (params.search) {
+        whereConditions.push(`(sq.quote_number ILIKE $${paramIndex} OR sq.rfq_number ILIKE $${paramIndex} OR sq.notes ILIKE $${paramIndex})`);
+        queryParams.push(`%${params.search}%`);
+        paramIndex++;
+      }
+      const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(" AND ")}` : "";
+      const query = `
+        SELECT 
+          sq.id,
+          sq.quote_number as "quoteNumber",
+          sq.supplier_id as "supplierId",
+          sq.status,
+          sq.priority,
+          sq.quote_date as "quoteDate",
+          sq.valid_until as "validUntil",
+          sq.request_date as "requestDate",
+          sq.response_date as "responseDate",
+          sq.subtotal,
+          sq.discount_percentage as "discountPercentage",
+          sq.discount_amount as "discountAmount",
+          sq.tax_amount as "taxAmount",
+          sq.total_amount as "totalAmount",
+          sq.currency,
+          sq.terms,
+          sq.notes,
+          sq.requisition_id as "requisitionId",
+          sq.payment_terms as "paymentTerms",
+          sq.delivery_terms as "deliveryTerms",
+          sq.rfq_number as "rfqNumber",
+          sq.evaluation_score as "evaluationScore",
+          sq.competitive_rank as "competitiveRank",
+          sq.is_preferred_supplier as "isPreferredSupplier",
+          sq.created_by as "createdBy",
+          sq.created_at as "createdAt",
+          sq.updated_at as "updatedAt",
+          s.id as "supplierId",
+          s.name as "supplierName",
+          s.email as "supplierEmail",
+          s.phone as "supplierPhone",
+          s.address as "supplierAddress",
+          s.contact_person as "supplierContactPerson"
+        FROM supplier_quotes sq
+        LEFT JOIN suppliers s ON sq.supplier_id = s.id
+        ${whereClause}
+        ORDER BY sq.created_at DESC
+        LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+      `;
+      queryParams.push(params.limit, (params.page - 1) * params.limit);
+      console.log("Executing query:", query);
+      console.log("Query params:", queryParams);
+      const result = await pool.query(query, queryParams);
+      console.log("Query result rows:", result.rows.length);
+      const processedResults = result.rows.map((row) => {
+        const supplier = row.supplierId ? {
+          id: row.supplierId,
+          name: row.supplierName,
+          email: row.supplierEmail,
+          phone: row.supplierPhone,
+          address: row.supplierAddress,
+          contactPerson: row.supplierContactPerson
+        } : null;
+        return {
+          id: row.id,
+          quoteNumber: row.quoteNumber,
+          supplierId: row.supplierId,
+          status: row.status,
+          priority: row.priority,
+          quoteDate: row.quoteDate,
+          requestDate: row.requestDate,
+          validUntil: row.validUntil,
+          responseDate: row.responseDate,
+          subtotal: row.subtotal,
+          discountPercentage: row.discountPercentage,
+          discountAmount: row.discountAmount,
+          taxAmount: row.taxAmount,
+          totalAmount: row.totalAmount,
+          currency: row.currency,
+          terms: row.terms,
+          notes: row.notes,
+          requisitionId: row.requisitionId,
+          paymentTerms: row.paymentTerms,
+          deliveryTerms: row.deliveryTerms,
+          rfqNumber: row.rfqNumber,
+          evaluationScore: row.evaluationScore,
+          competitiveRank: row.competitiveRank,
+          isPreferredSupplier: row.isPreferredSupplier,
+          createdBy: row.createdBy,
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt,
+          supplier,
+          supplierName: supplier?.name || "No Supplier"
+        };
+      });
+      return processedResults;
+    } catch (error) {
+      console.error("Error in SupplierQuoteStorage.list:", error);
+      throw error;
+    }
+  }
+  static async getById(id) {
+    try {
+      const query = `
+        SELECT 
+          sq.id,
+          sq.quote_number as "quoteNumber",
+          sq.supplier_id as "supplierId",
+          sq.status,
+          sq.priority,
+          sq.quote_date as "quoteDate",
+          sq.valid_until as "validUntil",
+          sq.request_date as "requestDate",
+          sq.response_date as "responseDate",
+          sq.subtotal,
+          sq.discount_percentage as "discountPercentage",
+          sq.discount_amount as "discountAmount",
+          sq.tax_amount as "taxAmount",
+          sq.total_amount as "totalAmount",
+          sq.currency,
+          sq.terms,
+          sq.notes,
+          sq.requisition_id as "requisitionId",
+          sq.payment_terms as "paymentTerms",
+          sq.delivery_terms as "deliveryTerms",
+          sq.rfq_number as "rfqNumber",
+          sq.evaluation_score as "evaluationScore",
+          sq.competitive_rank as "competitiveRank",
+          sq.is_preferred_supplier as "isPreferredSupplier",
+          sq.created_by as "createdBy",
+          sq.created_at as "createdAt",
+          sq.updated_at as "updatedAt",
+          s.id as "supplierId",
+          s.name as "supplierName",
+          s.email as "supplierEmail",
+          s.phone as "supplierPhone",
+          s.address as "supplierAddress",
+          s.contact_person as "supplierContactPerson"
+        FROM supplier_quotes sq
+        LEFT JOIN suppliers s ON sq.supplier_id = s.id
+        WHERE sq.id = $1
+        LIMIT 1
+      `;
+      const result = await pool.query(query, [id]);
+      if (result.rows.length === 0) {
+        return null;
+      }
+      const row = result.rows[0];
+      const supplier = row.supplierId ? {
+        id: row.supplierId,
+        name: row.supplierName,
+        email: row.supplierEmail,
+        phone: row.supplierPhone,
+        address: row.supplierAddress,
+        contactPerson: row.supplierContactPerson
+      } : null;
+      return {
+        id: row.id,
+        quoteNumber: row.quoteNumber,
+        supplierId: row.supplierId,
+        status: row.status,
+        priority: row.priority,
+        quoteDate: row.quoteDate,
+        requestDate: row.requestDate,
+        validUntil: row.validUntil,
+        responseDate: row.responseDate,
+        subtotal: row.subtotal,
+        discountPercentage: row.discountPercentage,
+        discountAmount: row.discountAmount,
+        taxAmount: row.taxAmount,
+        totalAmount: row.totalAmount,
+        currency: row.currency,
+        terms: row.terms,
+        notes: row.notes,
+        requisitionId: row.requisitionId,
+        paymentTerms: row.paymentTerms,
+        deliveryTerms: row.deliveryTerms,
+        rfqNumber: row.rfqNumber,
+        evaluationScore: row.evaluationScore,
+        competitiveRank: row.competitiveRank,
+        isPreferredSupplier: row.isPreferredSupplier,
+        createdBy: row.createdBy,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+        supplier,
+        supplierName: supplier?.name || "Unknown Supplier"
+      };
+    } catch (error) {
+      console.error("Error in SupplierQuoteStorage.getById:", error);
+      throw error;
+    }
+  }
+  static async getItems(quoteId) {
+    try {
+      console.log("\u{1F50D} Fetching items for quote ID:", quoteId);
+      const quoteExists = await db.select({ id: supplierQuotes.id }).from(supplierQuotes).where(eq23(supplierQuotes.id, quoteId)).limit(1);
+      console.log("\u{1F4CB} Quote exists check:", quoteExists.length > 0);
+      if (quoteExists.length === 0) {
+        console.log("\u274C Quote not found:", quoteId);
+        return [];
+      }
+      const items4 = await db.select().from(supplierQuoteItems).where(eq23(supplierQuoteItems.supplierQuoteId, quoteId)).orderBy(supplierQuoteItems.createdAt);
+      console.log("\u{1F4E6} Raw items from database:", items4);
+      console.log("\u{1F4CA} Items count:", items4.length);
+      const mappedItems = items4.map((item) => ({
+        id: item.id,
+        quotationId: item.supplierQuoteId,
+        description: item.itemDescription,
+        quantity: item.quantity,
+        // Already an integer
+        unitPrice: item.unitPrice,
+        lineTotal: item.lineTotal,
+        // Changed from totalPrice to lineTotal
+        unitOfMeasure: item.unitOfMeasure,
+        specifications: item.specification,
+        leadTime: item.leadTime,
+        warranty: item.warranty,
+        notes: item.brand || item.model ? `${item.brand || ""} ${item.model || ""}`.trim() : void 0
+      }));
+      console.log("\u{1F504} Mapped items:", mappedItems);
+      return mappedItems;
+    } catch (error) {
+      console.error("Error in SupplierQuoteStorage.getItems:", error);
+      if (error.message && error.message.includes('relation "supplier_quote_items" does not exist')) {
+        console.log("Table supplier_quote_items does not exist, attempting to create it...");
+        try {
+          const migrationSQL = `
+            CREATE TABLE IF NOT EXISTS supplier_quote_items (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                supplier_quote_id UUID REFERENCES supplier_quotes(id) ON DELETE CASCADE NOT NULL,
+                line_number INTEGER NOT NULL,
+                item_description TEXT NOT NULL,
+                quantity DECIMAL(10, 2) NOT NULL,
+                unit_of_measure VARCHAR(50),
+                unit_price DECIMAL(10, 2) NOT NULL,
+                total_price DECIMAL(12, 2) NOT NULL,
+                specification TEXT,
+                brand VARCHAR(100),
+                model VARCHAR(100),
+                warranty VARCHAR(100),
+                lead_time VARCHAR(100),
+                created_at TIMESTAMP DEFAULT NOW(),
+                updated_at TIMESTAMP DEFAULT NOW()
+            );
+            
+            CREATE INDEX IF NOT EXISTS idx_supplier_quote_items_quote_id ON supplier_quote_items(supplier_quote_id);
+            CREATE INDEX IF NOT EXISTS idx_supplier_quote_items_line_number ON supplier_quote_items(supplier_quote_id, line_number);
+          `;
+          await pool.query(migrationSQL);
+          console.log("Table supplier_quote_items created successfully");
+          const items4 = await db.select().from(supplierQuoteItems).where(eq23(supplierQuoteItems.supplierQuoteId, quoteId)).orderBy(supplierQuoteItems.lineNumber);
+          console.log("Items fetched after table creation:", items4.length, "items");
+          const mappedItems = items4.map((item) => ({
+            id: item.id,
+            quotationId: item.supplierQuoteId,
+            description: item.itemDescription,
+            quantity: parseFloat(item.quantity),
+            unitPrice: item.unitPrice,
+            lineTotal: item.totalPrice,
+            unitOfMeasure: item.unitOfMeasure,
+            specifications: item.specification,
+            leadTime: item.leadTime,
+            warranty: item.warranty,
+            notes: item.brand || item.model ? `${item.brand || ""} ${item.model || ""}`.trim() : void 0
+          }));
+          return mappedItems;
+        } catch (createError) {
+          console.error("Error creating supplier_quote_items table:", createError);
+          return [];
+        }
+      }
+      return [];
+    }
+  }
+  static async create(data) {
+    try {
+      if (!data.quoteNumber) {
+        data.quoteNumber = `SQ-${(/* @__PURE__ */ new Date()).getFullYear()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+      }
+      const fieldMapping = {
+        supplierId: "supplier_id",
+        customerId: "customer_id",
+        status: "status",
+        priority: "priority",
+        validUntil: "valid_until",
+        paymentTerms: "payment_terms",
+        deliveryTerms: "delivery_terms",
+        notes: "notes",
+        rfqNumber: "rfq_number",
+        totalAmount: "total_amount",
+        currency: "currency",
+        enquiryId: "enquiry_id",
+        quoteNumber: "quote_number"
+      };
+      const insertFields = [];
+      const values = [];
+      const placeholders = [];
+      let paramIndex = 1;
+      insertFields.push("id", "quote_number", "supplier_id", "status", "priority", "created_at", "updated_at");
+      placeholders.push(`gen_random_uuid()`, `$${paramIndex}`, `$${paramIndex + 1}`, `$${paramIndex + 2}`, `$${paramIndex + 3}`, `NOW()`, `NOW()`);
+      values.push(data.quoteNumber, data.supplierId, data.status || "Draft", data.priority || "Medium");
+      paramIndex += 4;
+      for (const [key, value] of Object.entries(data)) {
+        if (value !== void 0 && value !== null && fieldMapping[key] && !insertFields.includes(fieldMapping[key])) {
+          insertFields.push(fieldMapping[key]);
+          placeholders.push(`$${paramIndex}`);
+          values.push(value);
+          paramIndex++;
+        }
+      }
+      const query = `
+        INSERT INTO supplier_quotes (${insertFields.join(", ")})
+        VALUES (${placeholders.join(", ")})
+        RETURNING id
+      `;
+      console.log("Create query:", query);
+      console.log("Create values:", values);
+      const result = await pool.query(query, values);
+      const quoteId = result.rows[0].id;
+      if (data.items && Array.isArray(data.items)) {
+        for (let i = 0; i < data.items.length; i++) {
+          const item = data.items[i];
+          const totalPrice = parseFloat(item.quantity) * parseFloat(item.unitPrice);
+          const itemQuery = `
+            INSERT INTO supplier_quote_items (
+              id, supplier_quote_id, line_number, item_description, 
+              quantity, unit_of_measure, unit_price, total_price, specification, 
+              brand, model, warranty, lead_time
+            ) VALUES (
+              gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
+            )
+          `;
+          await pool.query(itemQuery, [
+            quoteId,
+            i + 1,
+            item.itemDescription,
+            item.quantity,
+            item.unitOfMeasure,
+            item.unitPrice,
+            totalPrice,
+            item.specification || null,
+            item.brand || null,
+            item.model || null,
+            item.warranty || null,
+            item.leadTime || null
+          ]);
+        }
+      }
+      return await this.getById(quoteId);
+    } catch (error) {
+      console.error("Error in SupplierQuoteStorage.create:", error);
+      throw error;
+    }
+  }
+  static async update(id, updates) {
+    try {
+      const updateFields = [];
+      const values = [];
+      let paramIndex = 1;
+      const fieldMapping = {
+        supplierId: "supplier_id",
+        customerId: "customer_id",
+        status: "status",
+        priority: "priority",
+        validUntil: "valid_until",
+        paymentTerms: "payment_terms",
+        deliveryTerms: "delivery_terms",
+        notes: "notes",
+        rfqNumber: "rfq_number",
+        totalAmount: "total_amount",
+        currency: "currency",
+        responseDate: "response_date"
+      };
+      for (const [key, value] of Object.entries(updates)) {
+        if (value !== void 0 && value !== null && fieldMapping[key]) {
+          updateFields.push(`${fieldMapping[key]} = $${paramIndex}`);
+          values.push(value);
+          paramIndex++;
+        }
+      }
+      updateFields.push(`updated_at = $${paramIndex}`);
+      values.push(/* @__PURE__ */ new Date());
+      paramIndex++;
+      if (updateFields.length === 0) {
+        throw new Error("No valid fields to update");
+      }
+      values.push(id);
+      const query = `
+        UPDATE supplier_quotes 
+        SET ${updateFields.join(", ")}
+        WHERE id = $${paramIndex}
+      `;
+      console.log("Update query:", query);
+      console.log("Update values:", values);
+      const result = await pool.query(query, values);
+      if (result.rowCount === 0) {
+        throw new Error("Supplier quote not found");
+      }
+      return await this.getById(id);
+    } catch (error) {
+      console.error("Database error in SupplierQuoteStorage.update:", error);
+      throw new Error(`Failed to update supplier quote: ${error instanceof Error ? error.message : "Unknown database error"}`);
+    }
+  }
+  static async hasReferences(id) {
+    return false;
+  }
+  static async delete(id) {
+    try {
+      await pool.query("BEGIN");
+      await pool.query("DELETE FROM supplier_quote_items WHERE supplier_quote_id = $1", [id]);
+      const result = await pool.query("DELETE FROM supplier_quotes WHERE id = $1", [id]);
+      if (result.rowCount === 0) {
+        await pool.query("ROLLBACK");
+        throw new Error("Supplier quote not found");
+      }
+      await pool.query("COMMIT");
+      return { message: "Supplier quote deleted successfully" };
+    } catch (error) {
+      await pool.query("ROLLBACK");
+      console.error("Error in SupplierQuoteStorage.delete:", error);
+      throw error;
+    }
+  }
+  static async getCount(filters) {
+    try {
+      const whereConditions = [];
+      const queryParams = [];
+      let paramIndex = 1;
+      if (filters?.enquiryId) {
+        whereConditions.push(`enquiry_id = $${paramIndex}`);
+        queryParams.push(filters.enquiryId);
+        paramIndex++;
+      }
+      if (filters?.supplier && filters.supplier !== "" && filters.supplier !== "all") {
+        whereConditions.push(`supplier_id = $${paramIndex}`);
+        queryParams.push(filters.supplier);
+        paramIndex++;
+      }
+      if (filters?.status && filters.status !== "" && filters.status !== "all") {
+        whereConditions.push(`status = $${paramIndex}`);
+        queryParams.push(filters.status);
+        paramIndex++;
+      }
+      if (filters?.priority && filters.priority !== "" && filters.priority !== "all") {
+        whereConditions.push(`priority = $${paramIndex}`);
+        queryParams.push(filters.priority);
+        paramIndex++;
+      }
+      if (filters?.currency && filters.currency !== "" && filters.currency !== "all") {
+        whereConditions.push(`currency = $${paramIndex}`);
+        queryParams.push(filters.currency);
+        paramIndex++;
+      }
+      if (filters?.dateFrom) {
+        whereConditions.push(`valid_until >= $${paramIndex}`);
+        queryParams.push(filters.dateFrom);
+        paramIndex++;
+      }
+      if (filters?.dateTo) {
+        whereConditions.push(`valid_until <= $${paramIndex}`);
+        queryParams.push(filters.dateTo);
+        paramIndex++;
+      }
+      if (filters?.search && filters.search.trim() !== "") {
+        whereConditions.push(`(quote_number ILIKE $${paramIndex} OR rfq_number ILIKE $${paramIndex} OR notes ILIKE $${paramIndex})`);
+        queryParams.push(`%${filters.search}%`);
+        paramIndex++;
+      }
+      const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(" AND ")}` : "";
+      const query = `SELECT COUNT(*) FROM supplier_quotes ${whereClause}`;
+      const result = await pool.query(query, queryParams);
+      return parseInt(result.rows[0].count) || 0;
+    } catch (error) {
+      console.error("Error in SupplierQuoteStorage.getCount:", error);
+      throw error;
+    }
+  }
+};
+
+// server/routes/supplier-quotes-new.ts
 init_db();
 init_schema();
 init_base();
 init_uuid();
-import { eq as eq22 } from "drizzle-orm";
+import { eq as eq24 } from "drizzle-orm";
+import { randomUUID as randomUUID2 } from "crypto";
 var supplierQuoteSearchSchema = z15.object({
   page: z15.coerce.number().min(1).default(1),
   limit: z15.coerce.number().min(1).max(100).default(20),
@@ -12619,49 +13938,61 @@ var supplierQuoteSearchSchema = z15.object({
 });
 var supplierQuoteCreateSchema = z15.object({
   supplierId: z15.string().uuid(),
-  requisitionId: z15.string().uuid().optional(),
-  priority: z15.enum(["Low", "Medium", "High", "Urgent"]),
-  requestDate: z15.string(),
+  customerId: z15.string().uuid().optional(),
+  enquiryId: z15.string().uuid().optional(),
+  priority: z15.enum(["Low", "Medium", "High", "Urgent"]).default("Medium"),
   validUntil: z15.string(),
   paymentTerms: z15.string(),
   deliveryTerms: z15.string(),
   notes: z15.string().optional(),
+  rfqNumber: z15.string().optional(),
+  currency: z15.enum(["BHD", "AED", "USD", "EUR", "GBP"]).default("BHD"),
   items: z15.array(z15.object({
     itemDescription: z15.string(),
     quantity: z15.number().positive(),
     unitOfMeasure: z15.string(),
-    specification: z15.string().optional()
-  }))
+    unitPrice: z15.number().positive(),
+    specification: z15.string().optional(),
+    brand: z15.string().optional(),
+    model: z15.string().optional(),
+    warranty: z15.string().optional(),
+    leadTime: z15.string().optional()
+  })).optional()
 });
 var supplierQuoteUpdateSchema = z15.object({
   supplierId: z15.string().uuid().optional(),
-  rfqNumber: z15.string().optional(),
-  // Not stored in DB but accepted for frontend compatibility
+  customerId: z15.string().uuid().optional().or(z15.literal("")),
   status: z15.enum(["Draft", "Sent", "Accepted", "Rejected", "Expired"]).optional(),
   priority: z15.enum(["Low", "Medium", "High", "Urgent"]).optional(),
-  // Not stored in DB but accepted for frontend compatibility
-  responseDate: z15.string().optional(),
-  // Not stored in DB but accepted for frontend compatibility
   validUntil: z15.string().optional(),
+  responseDate: z15.string().optional(),
   totalAmount: z15.string().optional(),
-  currency: z15.enum(["AED", "USD", "EUR", "GBP", "BHD"]).optional(),
-  // Not stored in DB but accepted for frontend compatibility
+  currency: z15.enum(["BHD", "AED", "USD", "EUR", "GBP"]).optional(),
   paymentTerms: z15.string().optional(),
   deliveryTerms: z15.string().optional(),
   notes: z15.string().optional(),
+  rfqNumber: z15.string().optional(),
   evaluationScore: z15.number().min(0).max(10).optional(),
-  // Not stored in DB but accepted for frontend compatibility
   competitiveRank: z15.number().positive().optional()
-  // Not stored in DB but accepted for frontend compatibility
 });
 function registerSupplierQuoteRoutes(app2) {
   app2.get("/api/supplier-quotes", async (req, res) => {
     try {
       const params = supplierQuoteSearchSchema.parse(req.query);
       const quotes = await SupplierQuoteStorage.list(params);
-      res.json({ data: quotes });
+      const totalCount = await SupplierQuoteStorage.getCount(params);
+      res.json({
+        data: quotes,
+        total: totalCount,
+        page: params.page,
+        limit: params.limit,
+        totalPages: Math.ceil(totalCount / params.limit)
+      });
     } catch (error) {
       console.error("Error fetching supplier quotes:", error);
+      if (error instanceof z15.ZodError) {
+        return res.status(400).json({ message: "Validation error", errors: error.errors });
+      }
       res.status(500).json({ message: "Failed to fetch supplier quotes" });
     }
   });
@@ -12678,20 +14009,61 @@ function registerSupplierQuoteRoutes(app2) {
       res.status(500).json({ message: "Failed to fetch supplier quote" });
     }
   });
+  app2.get("/api/test-db", async (req, res) => {
+    try {
+      console.log("Pool object:", pool);
+      console.log("Pool type:", typeof pool);
+      if (!pool) {
+        return res.status(500).json({ error: "Pool is undefined" });
+      }
+      const result = await pool.query(`
+        SELECT table_name 
+        FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name LIKE '%supplier%'
+        ORDER BY table_name
+      `);
+      res.json({ tables: result.rows });
+    } catch (error) {
+      console.error("Database test error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
   app2.get("/api/supplier-quotes/:id/items", async (req, res) => {
     try {
       const { id } = req.params;
+      console.log("Fetching items for quote ID:", id);
       const items4 = await SupplierQuoteStorage.getItems(id);
+      console.log("Items fetched:", items4);
       res.json(items4);
     } catch (error) {
       console.error("Error fetching supplier quote items:", error);
-      res.status(500).json({ message: "Failed to fetch supplier quote items" });
+      res.status(500).json({ message: "Failed to fetch supplier quote items", error: error.message });
     }
   });
   app2.post("/api/supplier-quotes", async (req, res) => {
     try {
       const data = supplierQuoteCreateSchema.parse(req.body);
-      const newQuote = await SupplierQuoteStorage.create(data);
+      const supplier = await db.select().from(suppliers).where(eq24(suppliers.id, data.supplierId)).limit(1);
+      if (supplier.length === 0) {
+        return res.status(400).json({ message: "Supplier not found" });
+      }
+      let subtotal = 0;
+      let totalAmount = 0;
+      if (data.items && data.items.length > 0) {
+        for (const item of data.items) {
+          const itemTotal = item.quantity * item.unitPrice;
+          subtotal += itemTotal;
+        }
+        totalAmount = subtotal;
+      }
+      const quoteData = {
+        ...data,
+        subtotal: subtotal.toString(),
+        totalAmount: totalAmount.toString(),
+        quoteDate: (/* @__PURE__ */ new Date()).toISOString()
+      };
+      const newQuote = await SupplierQuoteStorage.create(quoteData);
       res.status(201).json(newQuote);
     } catch (error) {
       console.error("Error creating supplier quote:", error);
@@ -12704,16 +14076,35 @@ function registerSupplierQuoteRoutes(app2) {
   app2.patch("/api/supplier-quotes/:id", async (req, res) => {
     try {
       const { id } = req.params;
+      console.log("Updating supplier quote:", id, "with data:", req.body);
       const data = supplierQuoteUpdateSchema.parse(req.body);
+      console.log("Parsed data:", data);
       const existingQuote = await SupplierQuoteStorage.getById(id);
       if (!existingQuote) {
+        console.log("Quote not found:", id);
         return res.status(404).json({ message: "Supplier quote not found" });
       }
-      const processedData = {};
+      console.log("Existing quote found:", existingQuote.id);
       if (data.supplierId) {
-        processedData.customerId = data.supplierId;
+        console.log("Validating supplier ID:", data.supplierId);
+        const supplier = await db.select().from(suppliers).where(eq24(suppliers.id, data.supplierId)).limit(1);
+        console.log("Supplier query result:", supplier);
+        if (supplier.length === 0) {
+          console.log("Supplier not found:", data.supplierId);
+          return res.status(400).json({ message: "Supplier not found" });
+        }
+        console.log("Supplier validated:", data.supplierId);
       }
+      const processedData = {};
+      if (data.supplierId) processedData.supplierId = data.supplierId;
+      if (data.customerId && data.customerId !== "") processedData.customerId = data.customerId;
       if (data.status) processedData.status = data.status;
+      if (data.priority) processedData.priority = data.priority;
+      if (data.currency) processedData.currency = data.currency;
+      if (data.notes) processedData.notes = data.notes;
+      if (data.rfqNumber) processedData.rfqNumber = data.rfqNumber;
+      if (data.evaluationScore) processedData.evaluationScore = data.evaluationScore.toString();
+      if (data.competitiveRank) processedData.competitiveRank = data.competitiveRank;
       if (data.validUntil) {
         try {
           processedData.validUntil = new Date(data.validUntil);
@@ -12722,7 +14113,14 @@ function registerSupplierQuoteRoutes(app2) {
           return res.status(400).json({ message: "Invalid date format for validUntil" });
         }
       }
-      if (data.notes) processedData.notes = data.notes;
+      if (data.responseDate) {
+        try {
+          processedData.responseDate = new Date(data.responseDate);
+        } catch (error) {
+          console.error("Invalid date format for responseDate:", data.responseDate);
+          return res.status(400).json({ message: "Invalid date format for responseDate" });
+        }
+      }
       if (data.totalAmount) {
         try {
           processedData.totalAmount = parseFloat(data.totalAmount).toString();
@@ -12732,16 +14130,21 @@ function registerSupplierQuoteRoutes(app2) {
         }
       }
       if (data.paymentTerms || data.deliveryTerms) {
-        const existingTerms = existingQuote.terms || "";
-        const newTerms = [];
-        if (data.paymentTerms) newTerms.push(`Payment Terms: ${data.paymentTerms}`);
-        if (data.deliveryTerms) newTerms.push(`Delivery Terms: ${data.deliveryTerms}`);
-        processedData.terms = existingTerms + (existingTerms ? "\n" : "") + newTerms.join("\n");
+        const terms = [];
+        if (data.paymentTerms) terms.push(`Payment Terms: ${data.paymentTerms}`);
+        if (data.deliveryTerms) terms.push(`Delivery Terms: ${data.deliveryTerms}`);
+        processedData.terms = terms.join("\n");
       }
       if (Object.keys(processedData).length === 0) {
+        console.log("No valid fields to update");
         return res.status(400).json({ message: "No valid fields to update" });
       }
+      console.log("Processed data for update:", processedData);
       const updatedQuote = await SupplierQuoteStorage.update(id, processedData);
+      if (!updatedQuote) {
+        return res.status(404).json({ message: "Supplier quote not found after update" });
+      }
+      console.log("Update successful:", updatedQuote.id);
       res.json(updatedQuote);
     } catch (error) {
       console.error("Error updating supplier quote:", error);
@@ -12758,56 +14161,34 @@ function registerSupplierQuoteRoutes(app2) {
   app2.delete("/api/supplier-quotes/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      const hasReferences = await SupplierQuoteStorage.hasReferences(id);
-      if (hasReferences) {
-        return res.status(400).json({
-          message: "Cannot delete supplier quote. It is referenced by sales orders, customer acceptances, or purchase orders. Please delete the related records first."
-        });
+      const existingQuote = await SupplierQuoteStorage.getById(id);
+      if (!existingQuote) {
+        return res.status(404).json({ message: "Supplier quote not found" });
       }
-      const result = await SupplierQuoteStorage.delete(id);
-      res.json(result);
+      const hasRefs = await SupplierQuoteStorage.hasReferences(id);
+      if (hasRefs) {
+        return res.status(400).json({ message: "Cannot delete supplier quote with existing references" });
+      }
+      await SupplierQuoteStorage.delete(id);
+      res.status(204).send();
     } catch (error) {
       console.error("Error deleting supplier quote:", error);
-      if (error.code === "23503") {
-        return res.status(400).json({
-          message: "Cannot delete supplier quote. It is referenced by other records. Please delete the related records first."
-        });
-      }
       res.status(500).json({ message: "Failed to delete supplier quote" });
     }
   });
-  app2.post("/api/supplier-quotes/:id/approve", async (req, res) => {
+  app2.get("/api/supplier-quotes/generate-rfq", async (req, res) => {
     try {
-      const { id } = req.params;
-      const updatedQuote = {
-        id,
-        status: "Approved",
-        updatedAt: (/* @__PURE__ */ new Date()).toISOString()
-      };
-      res.json(updatedQuote);
+      const rfqNumber = `RFQ-${(/* @__PURE__ */ new Date()).getFullYear()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+      res.json({ rfqNumber });
     } catch (error) {
-      console.error("Error approving supplier quote:", error);
-      res.status(500).json({ message: "Failed to approve supplier quote" });
-    }
-  });
-  app2.post("/api/supplier-quotes/:id/reject", async (req, res) => {
-    try {
-      const { id } = req.params;
-      const updatedQuote = {
-        id,
-        status: "Rejected",
-        updatedAt: (/* @__PURE__ */ new Date()).toISOString()
-      };
-      res.json(updatedQuote);
-    } catch (error) {
-      console.error("Error rejecting supplier quote:", error);
-      res.status(500).json({ message: "Failed to reject supplier quote" });
+      console.error("Error generating RFQ number:", error);
+      res.status(500).json({ message: "Failed to generate RFQ number" });
     }
   });
   app2.post("/api/customer-quotes", async (req, res) => {
     try {
-      const { enquiryId, customerId, suppliers: suppliers6 } = req.body;
-      if (!enquiryId || !customerId || !suppliers6 || !Array.isArray(suppliers6) || suppliers6.length === 0) {
+      const { enquiryId, customerId, suppliers: suppliers5, items: items4, paymentTerms, deliveryTerms, priority, currency } = req.body;
+      if (!enquiryId || !customerId || !suppliers5 || !Array.isArray(suppliers5) || suppliers5.length === 0) {
         return res.status(400).json({
           message: "Missing required fields: enquiryId, customerId, and suppliers array are required"
         });
@@ -12828,72 +14209,134 @@ function registerSupplierQuoteRoutes(app2) {
           address: customers.address,
           customerType: customers.customerType
         }
-      }).from(enquiries).leftJoin(customers, eq22(enquiries.customerId, customers.id)).where(eq22(enquiries.id, enquiryId)).limit(1);
+      }).from(enquiries).leftJoin(customers, eq24(enquiries.customerId, customers.id)).where(eq24(enquiries.id, enquiryId)).limit(1);
       if (!enquiry.length) {
         return res.status(404).json({ message: "Enquiry not found" });
       }
       const enquiryData = enquiry[0];
-      const enquiryItemsList = await db.select().from(enquiryItems).where(eq22(enquiryItems.enquiryId, enquiryId));
-      const supplierIds = suppliers6.map((s) => s.supplierId);
+      const enquiryItemsResult = await pool.query(
+        "SELECT * FROM enquiry_items WHERE enquiry_id = $1",
+        [enquiryId]
+      );
+      const enquiryItemsList = enquiryItemsResult.rows;
+      let itemsToUse = items4;
+      if (!itemsToUse || itemsToUse.length === 0) {
+        itemsToUse = enquiryItemsList.map((item) => ({
+          itemDescription: item.description || "",
+          quantity: item.quantity || 1,
+          unitOfMeasure: "pcs",
+          // Default since enquiry_items doesn't have unitOfMeasure
+          unitPrice: parseFloat(item.unit_price) || 0,
+          specification: item.notes || "",
+          brand: "",
+          model: "",
+          warranty: "",
+          leadTime: ""
+        }));
+      }
+      const supplierIds = suppliers5.map((s) => s.supplierId);
       console.log("Validating suppliers:", supplierIds);
       if (supplierIds.length === 0) {
         return res.status(400).json({ message: "No suppliers provided" });
       }
-      const supplierNames = suppliers6.map((s) => s.supplierName).join(", ");
+      const supplierNames = suppliers5.map((s) => s.supplierName).join(", ");
       const baseStorage = new BaseStorage();
       let quoteNumber;
       let attempts = 0;
       const maxAttempts = 10;
       do {
         quoteNumber = baseStorage.generateNumber("QT");
-        const existing = await db.select({ id: quotations.id }).from(quotations).where(eq22(quotations.quoteNumber, quoteNumber)).limit(1);
+        const existing = await db.select({ id: quotations.id }).from(quotations).where(eq24(quotations.quoteNumber, quoteNumber)).limit(1);
         if (existing.length === 0) break;
         attempts++;
       } while (attempts < maxAttempts);
       if (attempts >= maxAttempts) {
         throw new Error("Failed to generate unique quotation number");
       }
-      const quoteData = {
-        quoteNumber,
-        customerId: enquiryData.customerId,
-        // Use the actual customer ID from enquiry
-        customerType: enquiryData.customer.customerType,
-        // Use customer's actual type
-        enquiryId,
-        status: "Draft",
-        validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1e3),
-        // 30 days from now
-        subtotal: "0",
-        discountPercentage: "0",
-        discountAmount: "0",
-        taxAmount: "0",
-        totalAmount: "0",
-        notes: `Quote request for enquiry ${enquiryData.enquiryNumber} from customer ${enquiryData.customer.name} to suppliers: ${supplierNames}`,
-        createdBy: SYSTEM_USER_ID
-        // Use system user ID
-      };
-      const [quotation] = await db.insert(quotations).values(quoteData).returning();
-      if (enquiryItemsList.length > 0) {
-        const quotationItemsData = enquiryItemsList.map((item) => ({
-          quotationId: quotation.id,
-          description: item.description,
-          // Use correct field name
-          quantity: item.quantity,
-          unitPrice: item.unitPrice ? item.unitPrice.toString() : "0.00",
-          lineTotal: item.unitPrice ? (Number(item.unitPrice) * item.quantity).toString() : "0.00",
-          notes: item.notes || `Requested for enquiry ${enquiryData.enquiryNumber}`
-        }));
-        await db.insert(quotationItems).values(quotationItemsData);
+      const createdSupplierQuotes = [];
+      for (const supplier of suppliers5) {
+        const supplierQuoteId = randomUUID2();
+        const supplierQuoteNumber = `${quoteNumber}-${supplier.supplierId.slice(-4)}`;
+        let subtotal = 0;
+        let totalAmount = 0;
+        if (itemsToUse && itemsToUse.length > 0) {
+          subtotal = itemsToUse.reduce((sum4, item) => {
+            const itemTotal = (item.quantity || 0) * (item.unitPrice || 0);
+            return sum4 + itemTotal;
+          }, 0);
+          totalAmount = subtotal;
+        }
+        await pool.query(`
+          INSERT INTO supplier_quotes (
+            id, quote_number, supplier_id, status, priority, 
+            valid_until, subtotal, discount_percentage, discount_amount, 
+            tax_amount, total_amount, currency, terms, notes, 
+            payment_terms, delivery_terms, created_by, created_at, updated_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW(), NOW())
+        `, [
+          supplierQuoteId,
+          supplierQuoteNumber,
+          supplier.supplierId,
+          "Draft",
+          priority || "Medium",
+          new Date(Date.now() + 30 * 24 * 60 * 60 * 1e3),
+          // 30 days from now
+          subtotal.toString(),
+          "0",
+          "0",
+          "0",
+          totalAmount.toString(),
+          currency || "USD",
+          `Quote request for enquiry ${enquiryData.enquiryNumber}`,
+          `Quote request for enquiry ${enquiryData.enquiryNumber} from customer ${enquiryData.customer?.name || "Unknown"}`,
+          paymentTerms || "Net 30",
+          deliveryTerms || "FOB Destination",
+          SYSTEM_USER_ID
+        ]);
+        if (itemsToUse && itemsToUse.length > 0) {
+          for (let i = 0; i < itemsToUse.length; i++) {
+            const item = itemsToUse[i];
+            const itemTotal = (item.quantity || 0) * (item.unitPrice || 0);
+            await pool.query(`
+              INSERT INTO supplier_quote_items (
+                id, supplier_quote_id, item_description, quantity, 
+                unit_of_measure, unit_price, line_total, specification, 
+                brand, model, warranty, lead_time, created_at
+              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())
+            `, [
+              randomUUID2(),
+              supplierQuoteId,
+              item.itemDescription || "",
+              item.quantity || 0,
+              item.unitOfMeasure || "pcs",
+              (item.unitPrice || 0).toString(),
+              itemTotal.toString(),
+              item.specification || "",
+              item.brand || "",
+              item.model || "",
+              item.warranty || "",
+              item.leadTime || ""
+            ]);
+          }
+        }
+        createdSupplierQuotes.push({
+          id: supplierQuoteId,
+          quoteNumber: supplierQuoteNumber,
+          supplierId: supplier.supplierId
+        });
       }
       res.status(201).json({
         message: "Quote request sent successfully",
-        quoteId: quotation.id,
-        quoteNumber: quotation.quoteNumber,
+        supplierQuotes: createdSupplierQuotes.map((sq) => ({
+          id: sq.id,
+          quoteNumber: sq.quoteNumber,
+          supplierId: sq.supplierId
+        })),
         enquiryId,
-        suppliers: suppliers6.map((s) => ({ id: s.supplierId, name: s.supplierName })),
-        customerName: enquiryData.customer.name,
+        suppliers: suppliers5.map((s) => ({ id: s.supplierId, name: s.supplierName })),
+        customerName: enquiryData.customer?.name || "Unknown",
         enquiryNumber: enquiryData.enquiryNumber,
-        itemsCount: enquiryItemsList.length
+        itemsCount: itemsToUse ? itemsToUse.length : enquiryItemsList.length
       });
     } catch (error) {
       console.error("Error creating customer quote request:", error);
@@ -13791,7 +15234,7 @@ import { z as z17 } from "zod";
 
 // server/services/stock-service.ts
 init_storage();
-import { randomUUID as randomUUID2 } from "crypto";
+import { randomUUID as randomUUID3 } from "crypto";
 async function recordMovement(input) {
   const {
     itemId,
@@ -13827,7 +15270,7 @@ async function recordMovement(input) {
     level = await storage.updateInventoryLevel(level.id, { quantityAvailable: afterQty });
   }
   const movement = await storage.createStockMovement({
-    id: randomUUID2(),
+    id: randomUUID3(),
     itemId,
     movementType,
     quantityMoved: qtyAbs,
@@ -14880,10 +16323,10 @@ router3.get("/dynamic-pricing-config", async (req, res) => {
 router3.post("/dynamic-pricing-config", async (req, res) => {
   try {
     const data = dynamicPricingConfigSchema.parse(req.body);
-    const config = await enhancedPricingStorage.createDynamicPricingConfig(data);
+    const config2 = await enhancedPricingStorage.createDynamicPricingConfig(data);
     res.status(201).json({
       success: true,
-      data: config
+      data: config2
     });
   } catch (error) {
     console.error("Error creating dynamic pricing config:", error);
@@ -15287,7 +16730,7 @@ Would you like to check specific items or update inventory levels?`,
 }
 async function handleCustomerQuestions(message, pageContext) {
   try {
-    const customers3 = await storage.getCustomers(5, 0);
+    const customers4 = await storage.getCustomers(5, 0);
     if (containsKeywords(message, ["add", "new", "create"])) {
       return {
         response: "To add a new customer, I'll need:\n\n\u2022 Customer name and contact information\n\u2022 Customer type (Retail/Wholesale)\n\u2022 Classification (Internal/Corporate/Individual/Family/Ministry)\n\u2022 Address and tax ID\n\u2022 Credit limit and payment terms\n\nShall I guide you through creating a new customer profile?",
@@ -15301,9 +16744,9 @@ async function handleCustomerQuestions(message, pageContext) {
     }
     if (containsKeywords(message, ["list", "show", "all", "view"])) {
       return {
-        response: `You have ${customers3.length} recent customers in the system:
+        response: `You have ${customers4.length} recent customers in the system:
 
-${customers3.map(
+${customers4.map(
           (c, i) => `${i + 1}. ${c.name} - ${c.customerType} (${c.classification})`
         ).join("\n")}
 
@@ -15939,7 +17382,18 @@ function registerShipmentTrackingRoutes(app2) {
         estimatedDelivery: zod.date().optional().nullable(),
         actualDelivery: zod.date().optional().nullable(),
         lastUpdate: zod.date().optional().nullable(),
-        carrierName: zod.string().optional()
+        carrierName: zod.string().optional(),
+        // Additional LPO-related fields
+        customerName: zod.string().optional(),
+        items: zod.any().optional(),
+        // JSONB field
+        subtotal: zod.string().optional(),
+        taxAmount: zod.string().optional(),
+        paymentTerms: zod.string().optional(),
+        deliveryTerms: zod.string().optional(),
+        // LPO reference fields
+        lpoId: zod.string().uuid().optional().nullable(),
+        lpoNumber: zod.string().optional()
       });
       ["estimatedDelivery", "actualDelivery", "lastUpdate"].forEach((f) => {
         if (typeof data[f] === "string") {
@@ -16091,8 +17545,8 @@ function registerShipmentTrackingRoutes(app2) {
   });
   app2.get("/api/carriers", async (req, res) => {
     try {
-      const suppliers6 = await storage.getSuppliers();
-      const carriers = suppliers6.map((supplier) => ({
+      const suppliers5 = await storage.getSuppliers();
+      const carriers = suppliers5.map((supplier) => ({
         id: supplier.id,
         name: supplier.name,
         email: supplier.email,
@@ -16626,12 +18080,21 @@ import { z as z23 } from "zod";
 function registerGoodsReceiptRoutes(app2) {
   app2.post("/api/goods-receipts", async (req, res) => {
     try {
+      console.log("[GOODS RECEIPT BATCH][RAW BODY]", JSON.stringify(req.body, null, 2));
       const { header, items: items4 } = req.body;
+      console.log("[GOODS RECEIPT BATCH][HEADER]", header);
+      console.log("[GOODS RECEIPT BATCH][ITEMS]", items4);
       const headerData = insertGoodsReceiptHeaderSchema.parse(header);
-      const itemsData = z23.array(insertGoodsReceiptItemSchema).parse(items4);
+      console.log("[GOODS RECEIPT BATCH][HEADER PARSED]", headerData);
+      console.log("[GOODS RECEIPT BATCH][ITEMS RAW]", items4);
       const createdHeader = await storage.createGoodsReceiptHeader(headerData);
-      const itemsWithHeaderId = itemsData.map((item) => ({ ...item, goodsReceiptId: createdHeader.id }));
-      const createdItems = await storage.bulkCreateGoodsReceiptItems(itemsWithHeaderId);
+      console.log("[GOODS RECEIPT BATCH][HEADER CREATED]", createdHeader);
+      const itemsWithHeaderId = items4.map((item) => ({ ...item, receiptHeaderId: createdHeader.id }));
+      console.log("[GOODS RECEIPT BATCH][ITEMS WITH HEADER ID]", itemsWithHeaderId);
+      const itemsData = z23.array(insertGoodsReceiptItemSchema).parse(itemsWithHeaderId);
+      console.log("[GOODS RECEIPT BATCH][ITEMS PARSED]", itemsData);
+      const createdItems = await storage.bulkCreateGoodsReceiptItems(itemsData);
+      console.log("[GOODS RECEIPT BATCH][ITEMS CREATED]", createdItems);
       for (const item of createdItems) {
         const qtyMoved = item.quantityReceived || item.quantityExpected || 0;
         if (qtyMoved > 0 && item.itemId) {
@@ -16716,6 +18179,22 @@ function registerGoodsReceiptRoutes(app2) {
     } catch (error) {
       console.error("Error updating goods receipt:", error);
       res.status(500).json({ message: "Failed to update goods receipt" });
+    }
+  });
+  app2.delete("/api/goods-receipt-headers/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      console.log(`[DELETE] Attempting to delete goods receipt: ${id}`);
+      const deleted = await storage.deleteGoodsReceiptHeader(id);
+      if (!deleted) {
+        console.log(`[DELETE] Goods receipt not found: ${id}`);
+        return res.status(404).json({ message: "Goods receipt header not found" });
+      }
+      console.log(`[DELETE] Successfully deleted goods receipt: ${id}`);
+      res.json({ message: "Goods receipt deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting goods receipt:", error);
+      res.status(500).json({ message: "Failed to delete goods receipt", error: error.message });
     }
   });
   app2.post("/api/goods-receipt-headers", async (req, res) => {
@@ -17037,67 +18516,126 @@ function registerGoodsReceiptRoutes(app2) {
 
 // server/routes/purchase-invoices.ts
 init_storage();
+init_schema();
+import { z as z24 } from "zod";
 function registerPurchaseInvoiceRoutes(app2) {
+  app2.post("/api/purchase-invoices", async (req, res) => {
+    try {
+      console.log("[PURCHASE INVOICE][RAW BODY]", JSON.stringify(req.body, null, 2));
+      if (req.body.invoice && req.body.items) {
+        console.log("[PURCHASE INVOICE][INVOICE]", req.body.invoice);
+        console.log("[PURCHASE INVOICE][ITEMS]", req.body.items);
+        const validatedInvoice = insertPurchaseInvoiceSchema.parse(req.body.invoice);
+        console.log("[PURCHASE INVOICE][INVOICE PARSED]", validatedInvoice);
+        const validatedItems = z24.array(insertPurchaseInvoiceItemSchema).parse(req.body.items);
+        console.log("[PURCHASE INVOICE][ITEMS PARSED]", validatedItems);
+        const purchaseInvoice = await storage.createPurchaseInvoice(validatedInvoice, validatedItems);
+        res.status(201).json(purchaseInvoice);
+      } else {
+        const validatedData = insertPurchaseInvoiceSchema.parse(req.body);
+        const purchaseInvoice = await storage.createPurchaseInvoice(validatedData);
+        res.status(201).json(purchaseInvoice);
+      }
+    } catch (error) {
+      console.error("Error creating purchase invoice:", error);
+      res.status(400).json({ message: "Failed to create purchase invoice", error: error.message });
+    }
+  });
   app2.get("/api/purchase-invoices", async (req, res) => {
     try {
-      const { status, supplier, currency, search, dateFrom, dateTo } = req.query;
-      const grHeaders = await storage.getGoodsReceiptHeaders({});
-      const results = await Promise.all((grHeaders || []).map(async (gr) => {
-        const lpo = gr.supplierLpoId ? await storage.getSupplierLpo(gr.supplierLpoId) : null;
-        const currencyCode = lpo?.currency || "BHD";
-        const supplierName = lpo?.supplierId ? (await storage.getSupplier(lpo.supplierId))?.name : void 0;
-        const subtotal = String(lpo?.subtotal ?? "0.00");
-        const taxAmount = String(lpo?.taxAmount ?? "0.00");
-        const totalAmount = String(lpo?.totalAmount ?? subtotal);
-        return {
-          id: gr.id,
-          invoiceNumber: gr.receiptNumber,
-          supplierInvoiceNumber: void 0,
-          supplierId: lpo?.supplierId || gr.supplierId,
-          supplierName: supplierName || "Supplier",
-          purchaseOrderId: lpo?.id,
-          purchaseOrderNumber: lpo?.lpoNumber,
-          goodsReceiptId: gr.id,
-          goodsReceiptNumber: gr.receiptNumber,
-          status: (gr.status === "Complete" ? "Approved" : gr.status === "Pending" ? "Draft" : gr.status) || "Draft",
-          paymentStatus: "Unpaid",
-          invoiceDate: gr.receiptDate,
-          dueDate: gr.expectedDeliveryDate || gr.receiptDate,
-          receivedDate: gr.actualDeliveryDate,
-          paymentDate: void 0,
-          subtotal,
-          taxAmount,
-          discountAmount: "0.00",
-          totalAmount,
-          paidAmount: "0.00",
-          remainingAmount: totalAmount,
-          currency: currencyCode,
-          paymentTerms: lpo?.paymentTerms || "",
-          attachments: [],
-          itemCount: 0,
-          isRecurring: false,
-          createdAt: gr.createdAt,
-          updatedAt: gr.updatedAt,
-          notes: gr.notes || ""
-        };
-      }));
-      const filtered = (results || []).filter((row) => {
-        if (status && status !== "all" && row.status !== status) return false;
-        if (supplier && row.supplierName && !row.supplierName.toLowerCase().includes(supplier.toLowerCase())) return false;
-        if (currency && row.currency !== currency) return false;
-        if (search) {
-          const s = search.toLowerCase();
-          const hay = `${row.invoiceNumber} ${row.supplierInvoiceNumber || ""} ${row.supplierName}`.toLowerCase();
-          if (!hay.includes(s)) return false;
-        }
-        if (dateFrom && row.invoiceDate && String(row.invoiceDate) < dateFrom) return false;
-        if (dateTo && row.invoiceDate && String(row.invoiceDate) > dateTo) return false;
-        return true;
-      });
-      res.json(filtered);
+      const purchaseInvoices2 = await storage.getPurchaseInvoices();
+      res.json(purchaseInvoices2);
     } catch (error) {
       console.error("Error fetching purchase invoices:", error);
       res.status(500).json({ message: "Failed to fetch purchase invoices" });
+    }
+  });
+  app2.get("/api/purchase-invoices/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const purchaseInvoice = await storage.getPurchaseInvoice(id);
+      if (!purchaseInvoice) {
+        return res.status(404).json({ message: "Purchase invoice not found" });
+      }
+      res.json(purchaseInvoice);
+    } catch (error) {
+      console.error("Error fetching purchase invoice:", error);
+      res.status(500).json({ message: "Failed to fetch purchase invoice" });
+    }
+  });
+  app2.get("/api/purchase-invoices/:id/items", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const items4 = await storage.getPurchaseInvoiceItems(id);
+      res.json(items4);
+    } catch (error) {
+      console.error("Error fetching purchase invoice items:", error);
+      res.status(500).json({ message: "Failed to fetch purchase invoice items" });
+    }
+  });
+  app2.patch("/api/purchase-invoices/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const purchaseInvoice = await storage.updatePurchaseInvoice(id, req.body);
+      if (!purchaseInvoice) {
+        return res.status(404).json({ message: "Purchase invoice not found" });
+      }
+      res.json(purchaseInvoice);
+    } catch (error) {
+      console.error("Error updating purchase invoice:", error);
+      res.status(400).json({ message: "Failed to update purchase invoice", error: error.message });
+    }
+  });
+  app2.delete("/api/purchase-invoices/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deleted = await storage.deletePurchaseInvoice(id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Purchase invoice not found" });
+      }
+      res.json({ message: "Purchase invoice deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting purchase invoice:", error);
+      res.status(500).json({ message: "Failed to delete purchase invoice", error: error.message });
+    }
+  });
+  app2.get("/api/purchase-invoices/:id/pdf", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { mode = "enhanced" } = req.query;
+      const purchaseInvoice = await storage.getPurchaseInvoice(id);
+      if (!purchaseInvoice) {
+        return res.status(404).json({ message: "Purchase invoice not found" });
+      }
+      let invoiceItems3 = [];
+      if (purchaseInvoice.goodsReceiptId) {
+        try {
+          invoiceItems3 = await storage.getGoodsReceiptItems(purchaseInvoice.goodsReceiptId);
+        } catch (error) {
+          console.warn("Could not fetch goods receipt items:", error);
+        }
+      }
+      let supplier = {};
+      if (purchaseInvoice.supplierId) {
+        try {
+          supplier = await storage.getSupplier(purchaseInvoice.supplierId) || {};
+        } catch (error) {
+          console.warn("Could not fetch supplier information:", error);
+        }
+      }
+      const pdfResult = generatePurchaseInvoicePdf({
+        invoice: purchaseInvoice,
+        items: invoiceItems3,
+        supplier,
+        mode
+      });
+      res.setHeader("Content-Type", pdfResult.contentType);
+      res.setHeader("Content-Length", pdfResult.byteLength);
+      res.setHeader("Content-Disposition", `attachment; filename="${pdfResult.fileName}"`);
+      res.send(pdfResult.buffer);
+    } catch (error) {
+      console.error("Error generating purchase invoice PDF:", error);
+      res.status(500).json({ message: "Failed to generate PDF", error: error.message });
     }
   });
 }
@@ -17195,7 +18733,7 @@ init_common();
 // shared/schemas/users-customers.ts
 init_common();
 init_enums();
-var users2 = pgTable2("users", {
+var users3 = pgTable2("users", {
   id: uuid2("id").primaryKey().default(sql6`gen_random_uuid()`),
   username: varchar2("username", { length: 100 }).notNull().unique(),
   email: varchar2("email", { length: 255 }).unique(),
@@ -17209,7 +18747,7 @@ var users2 = pgTable2("users", {
   createdAt: timestamp2("created_at").defaultNow(),
   updatedAt: timestamp2("updated_at").defaultNow()
 });
-var customers2 = pgTable2("customers", {
+var customers3 = pgTable2("customers", {
   id: uuid2("id").primaryKey().default(sql6`gen_random_uuid()`),
   name: varchar2("name", { length: 255 }).notNull(),
   email: varchar2("email", { length: 255 }),
@@ -17224,7 +18762,7 @@ var customers2 = pgTable2("customers", {
   createdAt: timestamp2("created_at").defaultNow(),
   updatedAt: timestamp2("updated_at").defaultNow()
 });
-var suppliers5 = pgTable2("suppliers", {
+var suppliers4 = pgTable2("suppliers", {
   id: uuid2("id").primaryKey().default(sql6`gen_random_uuid()`),
   name: varchar2("name", { length: 255 }).notNull(),
   email: varchar2("email", { length: 255 }),
@@ -17236,8 +18774,8 @@ var suppliers5 = pgTable2("suppliers", {
   createdAt: timestamp2("created_at").defaultNow(),
   updatedAt: timestamp2("updated_at").defaultNow()
 });
-var insertCustomerSchema2 = createInsertSchema2(customers2).omit({ id: true, createdAt: true, updatedAt: true });
-var insertSupplierSchema2 = createInsertSchema2(suppliers5).omit({ id: true, createdAt: true, updatedAt: true });
+var insertCustomerSchema2 = createInsertSchema2(customers3).omit({ id: true, createdAt: true, updatedAt: true });
+var insertSupplierSchema2 = createInsertSchema2(suppliers4).omit({ id: true, createdAt: true, updatedAt: true });
 
 // shared/schemas/audit.ts
 var auditLog = pgTable2("audit_log", {
@@ -17247,12 +18785,12 @@ var auditLog = pgTable2("audit_log", {
   action: varchar2("action", { length: 50 }).notNull(),
   oldData: jsonb2("old_data"),
   newData: jsonb2("new_data"),
-  userId: uuid2("user_id").references(() => users2.id),
+  userId: uuid2("user_id").references(() => users3.id),
   timestamp: timestamp2("timestamp").defaultNow()
 });
 
 // server/routes/audit.ts
-import { eq as eq23, desc as desc16, and as and18, gte as gte7, lte as lte6, sql as sql15 } from "drizzle-orm";
+import { eq as eq25, desc as desc19, and as and20, gte as gte8, lte as lte7, sql as sql17 } from "drizzle-orm";
 var router4 = Router4();
 router4.get("/", async (req, res) => {
   try {
@@ -17269,22 +18807,22 @@ router4.get("/", async (req, res) => {
     const offset = (Number(page) - 1) * Number(limit);
     let whereConditions = [];
     if (entityType) {
-      whereConditions.push(eq23(auditLog.entityType, entityType));
+      whereConditions.push(eq25(auditLog.entityType, entityType));
     }
     if (action) {
-      whereConditions.push(eq23(auditLog.action, action));
+      whereConditions.push(eq25(auditLog.action, action));
     }
     if (userId) {
-      whereConditions.push(eq23(auditLog.userId, userId));
+      whereConditions.push(eq25(auditLog.userId, userId));
     }
     if (startDate) {
-      whereConditions.push(gte7(auditLog.timestamp, new Date(startDate)));
+      whereConditions.push(gte8(auditLog.timestamp, new Date(startDate)));
     }
     if (endDate) {
-      whereConditions.push(lte6(auditLog.timestamp, new Date(endDate)));
+      whereConditions.push(lte7(auditLog.timestamp, new Date(endDate)));
     }
-    const logs = await db.select().from(auditLog).where(whereConditions.length > 0 ? and18(...whereConditions) : void 0).orderBy(desc16(auditLog.timestamp)).limit(Number(limit)).offset(offset);
-    const totalCount = await db.select({ count: sql15`count(*)` }).from(auditLog).where(whereConditions.length > 0 ? and18(...whereConditions) : void 0);
+    const logs = await db.select().from(auditLog).where(whereConditions.length > 0 ? and20(...whereConditions) : void 0).orderBy(desc19(auditLog.timestamp)).limit(Number(limit)).offset(offset);
+    const totalCount = await db.select({ count: sql17`count(*)` }).from(auditLog).where(whereConditions.length > 0 ? and20(...whereConditions) : void 0);
     res.json({
       logs,
       pagination: {
@@ -17302,7 +18840,7 @@ router4.get("/", async (req, res) => {
 router4.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const log2 = await db.select().from(auditLog).where(eq23(auditLog.id, id)).limit(1);
+    const log2 = await db.select().from(auditLog).where(eq25(auditLog.id, id)).limit(1);
     if (log2.length === 0) {
       return res.status(404).json({ error: "Audit log not found" });
     }
@@ -17316,11 +18854,11 @@ router4.get("/entity/:entityType/:entityId", async (req, res) => {
   try {
     const { entityType, entityId } = req.params;
     const logs = await db.select().from(auditLog).where(
-      and18(
-        eq23(auditLog.entityType, entityType),
-        eq23(auditLog.entityId, entityId)
+      and20(
+        eq25(auditLog.entityType, entityType),
+        eq25(auditLog.entityId, entityId)
       )
-    ).orderBy(desc16(auditLog.timestamp));
+    ).orderBy(desc19(auditLog.timestamp));
     res.json(logs);
   } catch (error) {
     console.error("Error fetching entity audit logs:", error);
@@ -17332,20 +18870,20 @@ router4.get("/stats/summary", async (req, res) => {
     const { startDate, endDate } = req.query;
     let whereConditions = [];
     if (startDate) {
-      whereConditions.push(gte7(auditLog.timestamp, new Date(startDate)));
+      whereConditions.push(gte8(auditLog.timestamp, new Date(startDate)));
     }
     if (endDate) {
-      whereConditions.push(lte6(auditLog.timestamp, new Date(endDate)));
+      whereConditions.push(lte7(auditLog.timestamp, new Date(endDate)));
     }
     const stats = await db.select({
-      totalActions: sql15`count(*)`,
-      uniqueUsers: sql15`count(distinct ${auditLog.userId})`,
-      uniqueEntities: sql15`count(distinct ${auditLog.entityType})`
-    }).from(auditLog).where(whereConditions.length > 0 ? and18(...whereConditions) : void 0);
+      totalActions: sql17`count(*)`,
+      uniqueUsers: sql17`count(distinct ${auditLog.userId})`,
+      uniqueEntities: sql17`count(distinct ${auditLog.entityType})`
+    }).from(auditLog).where(whereConditions.length > 0 ? and20(...whereConditions) : void 0);
     const actionBreakdown = await db.select({
       action: auditLog.action,
-      count: sql15`count(*)`
-    }).from(auditLog).where(whereConditions.length > 0 ? and18(...whereConditions) : void 0).groupBy(auditLog.action);
+      count: sql17`count(*)`
+    }).from(auditLog).where(whereConditions.length > 0 ? and20(...whereConditions) : void 0).groupBy(auditLog.action);
     res.json({
       summary: stats[0],
       actionBreakdown
@@ -17360,7 +18898,7 @@ var audit_default = router4;
 // server/routes/users.ts
 init_db();
 import { Router as Router5 } from "express";
-import { eq as eq24, desc as desc17, and as and19, sql as sql16 } from "drizzle-orm";
+import { eq as eq26, desc as desc20, and as and21, sql as sql18 } from "drizzle-orm";
 var router5 = Router5();
 router5.get("/", async (req, res) => {
   try {
@@ -17373,15 +18911,15 @@ router5.get("/", async (req, res) => {
     const offset = (Number(page) - 1) * Number(limit);
     let whereConditions = [];
     if (role) {
-      whereConditions.push(eq24(users2.role, role));
+      whereConditions.push(eq26(users3.role, role));
     }
     if (search) {
       whereConditions.push(
-        sql16`(${users2.firstName} ILIKE ${`%${search}%`} OR ${users2.lastName} ILIKE ${`%${search}%`} OR ${users2.email} ILIKE ${`%${search}%`} OR ${users2.username} ILIKE ${`%${search}%`})`
+        sql18`(${users3.firstName} ILIKE ${`%${search}%`} OR ${users3.lastName} ILIKE ${`%${search}%`} OR ${users3.email} ILIKE ${`%${search}%`} OR ${users3.username} ILIKE ${`%${search}%`})`
       );
     }
-    const userList = await db.select().from(users2).where(whereConditions.length > 0 ? and19(...whereConditions) : void 0).orderBy(desc17(users2.createdAt)).limit(Number(limit)).offset(offset);
-    const totalCount = await db.select({ count: sql16`count(*)` }).from(users2).where(whereConditions.length > 0 ? and19(...whereConditions) : void 0);
+    const userList = await db.select().from(users3).where(whereConditions.length > 0 ? and21(...whereConditions) : void 0).orderBy(desc20(users3.createdAt)).limit(Number(limit)).offset(offset);
+    const totalCount = await db.select({ count: sql18`count(*)` }).from(users3).where(whereConditions.length > 0 ? and21(...whereConditions) : void 0);
     res.json({
       users: userList,
       pagination: {
@@ -17399,7 +18937,7 @@ router5.get("/", async (req, res) => {
 router5.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const user = await db.select().from(users2).where(eq24(users2.id, id)).limit(1);
+    const user = await db.select().from(users3).where(eq26(users3.id, id)).limit(1);
     if (user.length === 0) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -17415,7 +18953,7 @@ router5.post("/", async (req, res) => {
     if (!username || !role) {
       return res.status(400).json({ error: "Username and role are required" });
     }
-    const newUser = await db.insert(users2).values({
+    const newUser = await db.insert(users3).values({
       username,
       email,
       firstName,
@@ -17436,7 +18974,7 @@ router5.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { username, email, firstName, lastName, role, profileImageUrl } = req.body;
-    const updatedUser = await db.update(users2).set({
+    const updatedUser = await db.update(users3).set({
       username,
       email,
       firstName,
@@ -17444,7 +18982,7 @@ router5.put("/:id", async (req, res) => {
       role,
       profileImageUrl,
       updatedAt: /* @__PURE__ */ new Date()
-    }).where(eq24(users2.id, id)).returning();
+    }).where(eq26(users3.id, id)).returning();
     if (updatedUser.length === 0) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -17461,7 +18999,7 @@ router5.put("/:id", async (req, res) => {
 router5.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const deletedUser = await db.delete(users2).where(eq24(users2.id, id)).returning();
+    const deletedUser = await db.delete(users3).where(eq26(users3.id, id)).returning();
     if (deletedUser.length === 0) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -17474,10 +19012,10 @@ router5.delete("/:id", async (req, res) => {
 router5.get("/stats/roles", async (req, res) => {
   try {
     const roleStats = await db.select({
-      role: users2.role,
-      count: sql16`count(*)`
-    }).from(users2).groupBy(users2.role);
-    const totalUsers = await db.select({ count: sql16`count(*)` }).from(users2);
+      role: users3.role,
+      count: sql18`count(*)`
+    }).from(users3).groupBy(users3.role);
+    const totalUsers = await db.select({ count: sql18`count(*)` }).from(users3);
     res.json({
       roleStats,
       totalUsers: Number(totalUsers[0]?.count || 0)
@@ -17609,9 +19147,9 @@ router6.put("/bulk", async (req, res) => {
 });
 router6.get("/config/system", async (req, res) => {
   try {
-    const config = await db.select().from(systemSettings).where(eq(systemSettings.category, "system"));
+    const config2 = await db.select().from(systemSettings).where(eq(systemSettings.category, "system"));
     const configObject = {};
-    config.forEach((setting) => {
+    config2.forEach((setting) => {
       configObject[setting.key] = setting.jsonValue || setting.value;
     });
     res.json(configObject);
@@ -17625,7 +19163,7 @@ var settings_default = router6;
 // server/routes/analytics.ts
 init_db();
 import { Router as Router7 } from "express";
-import { sql as sql18, count as count6, eq as eq25 } from "drizzle-orm";
+import { sql as sql20, count as count6, eq as eq27 } from "drizzle-orm";
 
 // shared/schemas/enquiries.ts
 init_common();
@@ -17643,7 +19181,7 @@ var items3 = pgTable2("items", {
   costPrice: decimal2("cost_price", { precision: 10, scale: 2 }),
   retailMarkup: decimal2("retail_markup", { precision: 5, scale: 2 }).default("70"),
   wholesaleMarkup: decimal2("wholesale_markup", { precision: 5, scale: 2 }).default("40"),
-  supplierId: uuid2("supplier_id").references(() => suppliers5.id),
+  supplierId: uuid2("supplier_id").references(() => suppliers4.id),
   variants: jsonb2("variants"),
   // For color, size, etc.
   isActive: boolean2("is_active").default(true),
@@ -17665,7 +19203,7 @@ init_common();
 var enquiries2 = pgTable2("enquiries", {
   id: uuid2("id").primaryKey().default(sql6`gen_random_uuid()`),
   enquiryNumber: varchar2("enquiry_number", { length: 50 }).unique().notNull(),
-  customerId: uuid2("customer_id").references(() => customers2.id).notNull(),
+  customerId: uuid2("customer_id").references(() => customers3.id).notNull(),
   enquiryDate: timestamp2("enquiry_date").defaultNow(),
   status: enquiryStatusEnum2("status").default("New"),
   source: enquirySourceEnum2("source").notNull(),
@@ -17673,11 +19211,11 @@ var enquiries2 = pgTable2("enquiries", {
   notes: text2("notes"),
   attachments: jsonb2("attachments"),
   // File paths/URLs
-  createdBy: uuid2("created_by").references(() => users2.id),
+  createdBy: uuid2("created_by").references(() => users3.id),
   createdAt: timestamp2("created_at").defaultNow(),
   updatedAt: timestamp2("updated_at").defaultNow()
 });
-var enquiryItems2 = pgTable2("enquiry_items", {
+var enquiryItems3 = pgTable2("enquiry_items", {
   id: uuid2("id").primaryKey().default(sql6`gen_random_uuid()`),
   enquiryId: uuid2("enquiry_id").references(() => enquiries2.id).notNull(),
   itemId: uuid2("item_id").references(() => items3.id),
@@ -17691,7 +19229,7 @@ var insertEnquirySchema2 = createInsertSchema2(enquiries2, {
 }).omit({ id: true, enquiryNumber: true, createdAt: true, updatedAt: true }).extend({
   createdBy: z2.string().optional()
 });
-var insertEnquiryItemSchema2 = createInsertSchema2(enquiryItems2).omit({ id: true }).extend({
+var insertEnquiryItemSchema2 = createInsertSchema2(enquiryItems3).omit({ id: true }).extend({
   description: z2.string().min(1, "Description is required"),
   quantity: z2.number().min(1, "Quantity must be at least 1"),
   unitPrice: z2.number().optional()
@@ -17708,10 +19246,10 @@ var quotations2 = pgTable2("quotations", {
   parentQuotationId: uuid2("parent_quotation_id"),
   revisionReason: text2("revision_reason"),
   supersededAt: timestamp2("superseded_at"),
-  supersededBy: uuid2("superseded_by").references(() => users2.id),
+  supersededBy: uuid2("superseded_by").references(() => users3.id),
   isSuperseded: boolean2("is_superseded").default(false),
   enquiryId: uuid2("enquiry_id").references(() => enquiries2.id),
-  customerId: uuid2("customer_id").references(() => customers2.id).notNull(),
+  customerId: uuid2("customer_id").references(() => customers3.id).notNull(),
   customerType: customerTypeEnum2("customer_type").notNull(),
   status: quotationStatusEnum2("status").default("Draft"),
   quoteDate: timestamp2("quote_date").defaultNow(),
@@ -17725,14 +19263,14 @@ var quotations2 = pgTable2("quotations", {
   notes: text2("notes"),
   approvalStatus: varchar2("approval_status", { length: 50 }).default("Pending"),
   requiredApprovalLevel: approvalLevelEnum2("required_approval_level"),
-  approvedBy: uuid2("approved_by").references(() => users2.id),
+  approvedBy: uuid2("approved_by").references(() => users3.id),
   approvedAt: timestamp2("approved_at"),
   rejectionReason: text2("rejection_reason"),
-  createdBy: uuid2("created_by").references(() => users2.id),
+  createdBy: uuid2("created_by").references(() => users3.id),
   createdAt: timestamp2("created_at").defaultNow(),
   updatedAt: timestamp2("updated_at").defaultNow()
 });
-var quotationItems2 = pgTable2("quotation_items", {
+var quotationItems3 = pgTable2("quotation_items", {
   id: uuid2("id").primaryKey().default(sql6`gen_random_uuid()`),
   quotationId: uuid2("quotation_id").references(() => quotations2.id, { onDelete: "cascade" }).notNull(),
   description: text2("description").notNull(),
@@ -17762,7 +19300,7 @@ var quotationApprovals2 = pgTable2("quotation_approvals", {
   id: uuid2("id").primaryKey().default(sql6`gen_random_uuid()`),
   quotationId: uuid2("quotation_id").references(() => quotations2.id, { onDelete: "cascade" }).notNull(),
   approverLevel: approvalLevelEnum2("approver_level").notNull(),
-  approverId: uuid2("approver_id").references(() => users2.id),
+  approverId: uuid2("approver_id").references(() => users3.id),
   status: varchar2("status", { length: 50 }).notNull(),
   // "Pending", "Approved", "Rejected"
   comments: text2("comments"),
@@ -17796,7 +19334,7 @@ var createQuotationRevisionSchema2 = z2.object({
     notes: z2.string().optional()
   })).optional()
 });
-var insertQuotationItemSchema2 = createInsertSchema2(quotationItems2).omit({ id: true, createdAt: true });
+var insertQuotationItemSchema2 = createInsertSchema2(quotationItems3).omit({ id: true, createdAt: true });
 var insertApprovalRuleSchema2 = createInsertSchema2(approvalRules2).omit({ id: true, createdAt: true, updatedAt: true });
 var insertQuotationApprovalSchema2 = createInsertSchema2(quotationApprovals2).omit({ id: true, createdAt: true });
 
@@ -17809,7 +19347,7 @@ var salesOrders2 = pgTable2("sales_orders", {
   orderNumber: varchar2("order_number", { length: 50 }).unique().notNull(),
   quotationId: uuid2("quotation_id"),
   // Will reference quotations.id
-  customerId: uuid2("customer_id").references(() => customers2.id).notNull(),
+  customerId: uuid2("customer_id").references(() => customers3.id).notNull(),
   orderDate: timestamp2("order_date").defaultNow(),
   status: salesOrderStatusEnum2("status").default("Draft"),
   customerPoNumber: varchar2("customer_po_number", { length: 100 }),
@@ -17824,18 +19362,21 @@ var salesOrders2 = pgTable2("sales_orders", {
   parentOrderId: uuid2("parent_order_id"),
   // Self-reference will be added as foreign key constraint
   amendmentReason: text2("amendment_reason"),
+  amendedBy: uuid2("amended_by").references(() => users3.id),
+  amendedAt: timestamp2("amended_at"),
+  isAmended: boolean2("is_amended").default(false),
   // Customer LPO validation
   customerLpoRequired: boolean2("customer_lpo_required").default(true),
   customerLpoDocumentName: varchar2("customer_lpo_document_name", { length: 255 }),
   customerLpoDocumentSize: integer2("customer_lpo_document_size"),
   customerLpoValidationStatus: varchar2("customer_lpo_validation_status", { length: 50 }).default("Pending"),
-  customerLpoValidatedBy: uuid2("customer_lpo_validated_by").references(() => users2.id),
+  customerLpoValidatedBy: uuid2("customer_lpo_validated_by").references(() => users3.id),
   customerLpoValidatedAt: timestamp2("customer_lpo_validated_at"),
   // Order type tracking
   isPartialOrder: boolean2("is_partial_order").default(false),
   sourceType: varchar2("source_type", { length: 50 }).default("Manual"),
   // "Auto", "Manual"
-  createdBy: uuid2("created_by").references(() => users2.id),
+  createdBy: uuid2("created_by").references(() => users3.id),
   createdAt: timestamp2("created_at").defaultNow(),
   updatedAt: timestamp2("updated_at").defaultNow()
 });
@@ -17873,7 +19414,7 @@ var invoices3 = pgTable2("invoices", {
   // References sales_orders.id
   deliveryId: uuid2("delivery_id"),
   // References deliveries.id
-  customerId: uuid2("customer_id").references(() => customers2.id).notNull(),
+  customerId: uuid2("customer_id").references(() => customers3.id).notNull(),
   invoiceDate: timestamp2("invoice_date").defaultNow(),
   dueDate: timestamp2("due_date"),
   status: invoiceStatusEnum2("status").default("Draft"),
@@ -17914,7 +19455,7 @@ var invoices3 = pgTable2("invoices", {
   invoiceDocumentSize: integer2("invoice_document_size"),
   notes: text2("notes"),
   internalNotes: text2("internal_notes"),
-  createdBy: uuid2("created_by").references(() => users2.id),
+  createdBy: uuid2("created_by").references(() => users3.id),
   createdAt: timestamp2("created_at").defaultNow(),
   updatedAt: timestamp2("updated_at").defaultNow()
 });
@@ -17958,42 +19499,42 @@ router7.get("/dashboard", async (req, res) => {
     const { startDate, endDate } = req.query;
     const enquiryStats = await db.select({
       total_enquiries: count6(),
-      new_enquiries: sql18`COUNT(CASE WHEN status = 'New' THEN 1 END)`,
-      in_progress_enquiries: sql18`COUNT(CASE WHEN status = 'In Progress' THEN 1 END)`,
-      quoted_enquiries: sql18`COUNT(CASE WHEN status = 'Quoted' THEN 1 END)`,
-      closed_enquiries: sql18`COUNT(CASE WHEN status = 'Closed' THEN 1 END)`
+      new_enquiries: sql20`COUNT(CASE WHEN status = 'New' THEN 1 END)`,
+      in_progress_enquiries: sql20`COUNT(CASE WHEN status = 'In Progress' THEN 1 END)`,
+      quoted_enquiries: sql20`COUNT(CASE WHEN status = 'Quoted' THEN 1 END)`,
+      closed_enquiries: sql20`COUNT(CASE WHEN status = 'Closed' THEN 1 END)`
     }).from(enquiries2);
     const quotationStats = await db.select({
       total_quotations: count6(),
-      draft_quotations: sql18`COUNT(CASE WHEN status = 'Draft' THEN 1 END)`,
-      sent_quotations: sql18`COUNT(CASE WHEN status = 'Sent' THEN 1 END)`,
-      accepted_quotations: sql18`COUNT(CASE WHEN status = 'Accepted' THEN 1 END)`,
-      rejected_quotations: sql18`COUNT(CASE WHEN status = 'Rejected' THEN 1 END)`,
-      total_quotation_value: sql18`COALESCE(SUM(total_amount), 0)`
+      draft_quotations: sql20`COUNT(CASE WHEN status = 'Draft' THEN 1 END)`,
+      sent_quotations: sql20`COUNT(CASE WHEN status = 'Sent' THEN 1 END)`,
+      accepted_quotations: sql20`COUNT(CASE WHEN status = 'Accepted' THEN 1 END)`,
+      rejected_quotations: sql20`COUNT(CASE WHEN status = 'Rejected' THEN 1 END)`,
+      total_quotation_value: sql20`COALESCE(SUM(total_amount), 0)`
     }).from(quotations2);
     const salesOrderStats = await db.select({
       total_orders: count6(),
-      pending_orders: sql18`COUNT(CASE WHEN status = 'Draft' THEN 1 END)`,
-      confirmed_orders: sql18`COUNT(CASE WHEN status = 'Confirmed' THEN 1 END)`,
-      shipped_orders: sql18`COUNT(CASE WHEN status = 'Shipped' THEN 1 END)`,
-      delivered_orders: sql18`COUNT(CASE WHEN status = 'Delivered' THEN 1 END)`,
-      total_order_value: sql18`COALESCE(SUM(total_amount), 0)`
+      pending_orders: sql20`COUNT(CASE WHEN status = 'Draft' THEN 1 END)`,
+      confirmed_orders: sql20`COUNT(CASE WHEN status = 'Confirmed' THEN 1 END)`,
+      shipped_orders: sql20`COUNT(CASE WHEN status = 'Shipped' THEN 1 END)`,
+      delivered_orders: sql20`COUNT(CASE WHEN status = 'Delivered' THEN 1 END)`,
+      total_order_value: sql20`COALESCE(SUM(total_amount), 0)`
     }).from(salesOrders2);
     const invoiceStats = await db.select({
       total_invoices: count6(),
-      draft_invoices: sql18`COUNT(CASE WHEN status = 'Draft' THEN 1 END)`,
-      sent_invoices: sql18`COUNT(CASE WHEN status = 'Sent' THEN 1 END)`,
-      paid_invoices: sql18`COUNT(CASE WHEN status = 'Paid' THEN 1 END)`,
-      overdue_invoices: sql18`COUNT(CASE WHEN status = 'Overdue' THEN 1 END)`,
-      total_invoice_value: sql18`COALESCE(SUM(total_amount), 0)`,
-      total_paid_amount: sql18`COALESCE(SUM(paid_amount), 0)`
+      draft_invoices: sql20`COUNT(CASE WHEN status = 'Draft' THEN 1 END)`,
+      sent_invoices: sql20`COUNT(CASE WHEN status = 'Sent' THEN 1 END)`,
+      paid_invoices: sql20`COUNT(CASE WHEN status = 'Paid' THEN 1 END)`,
+      overdue_invoices: sql20`COUNT(CASE WHEN status = 'Overdue' THEN 1 END)`,
+      total_invoice_value: sql20`COALESCE(SUM(total_amount), 0)`,
+      total_paid_amount: sql20`COALESCE(SUM(paid_amount), 0)`
     }).from(invoices3);
     const customerStats = await db.select({
       total_customers: count6(),
-      active_customers: sql18`COUNT(CASE WHEN is_active = true THEN 1 END)`,
-      retail_customers: sql18`COUNT(CASE WHEN customer_type = 'Retail' THEN 1 END)`,
-      wholesale_customers: sql18`COUNT(CASE WHEN customer_type = 'Wholesale' THEN 1 END)`
-    }).from(customers2);
+      active_customers: sql20`COUNT(CASE WHEN is_active = true THEN 1 END)`,
+      retail_customers: sql20`COUNT(CASE WHEN customer_type = 'Retail' THEN 1 END)`,
+      wholesale_customers: sql20`COUNT(CASE WHEN customer_type = 'Wholesale' THEN 1 END)`
+    }).from(customers3);
     res.json({
       enquiries: enquiryStats[0] || {
         total_enquiries: 0,
@@ -18061,16 +19602,16 @@ router7.get("/sales/trends", async (req, res) => {
         dateFormat = "month";
         interval = "12 months";
     }
-    const salesTrends = await db.execute(sql18`
+    const salesTrends = await db.execute(sql20`
       WITH date_series AS (
         SELECT 
-          DATE_TRUNC(${sql18.raw(`'${dateFormat}'`)}, created_at) as period,
+          DATE_TRUNC(${sql20.raw(`'${dateFormat}'`)}, created_at) as period,
           COUNT(*)::text as count,
           COALESCE(SUM(total_amount), 0)::text as total_value,
           ROUND(AVG(total_amount), 2)::text as avg_order_value
         FROM sales_orders 
-        WHERE created_at >= NOW() - INTERVAL ${sql18.raw(`'${interval}'`)}
-        GROUP BY DATE_TRUNC(${sql18.raw(`'${dateFormat}'`)}, created_at)
+        WHERE created_at >= NOW() - INTERVAL ${sql20.raw(`'${interval}'`)}
+        GROUP BY DATE_TRUNC(${sql20.raw(`'${dateFormat}'`)}, created_at)
         ORDER BY period DESC
       )
       SELECT 
@@ -18088,7 +19629,7 @@ router7.get("/sales/trends", async (req, res) => {
 });
 router7.get("/customers/top", async (req, res) => {
   try {
-    const topCustomers = await db.execute(sql18`
+    const topCustomers = await db.execute(sql20`
       SELECT 
         c.id,
         c.name,
@@ -18114,7 +19655,7 @@ router7.get("/customers/top", async (req, res) => {
 });
 router7.get("/products/top", async (req, res) => {
   try {
-    const topProducts = await db.execute(sql18`
+    const topProducts = await db.execute(sql20`
       WITH product_sales AS (
         SELECT 
           qi.description,
@@ -18159,7 +19700,7 @@ router7.get("/products/top", async (req, res) => {
     `);
     res.json(topProducts.rows?.map((row) => ({
       id: row.id?.toString() || "0",
-      supplier_code: row.supplier_code || "N/A",
+      supplier_code: row.supplier_code || "No Code",
       description: row.description || "Unknown Product",
       category: row.category || "General",
       total_quantity: parseInt(row.total_quantity || "0"),
@@ -18170,7 +19711,7 @@ router7.get("/products/top", async (req, res) => {
     console.error("Error fetching top products:", error);
     res.json([{
       id: "1",
-      supplier_code: "N/A",
+      supplier_code: "No Code",
       description: "Product data analysis in progress",
       category: "System",
       total_quantity: 0,
@@ -18209,7 +19750,7 @@ router7.get("/conversion/funnel", async (req, res) => {
 });
 router7.get("/inventory", async (req, res) => {
   try {
-    const inventoryStats = await db.execute(sql18`
+    const inventoryStats = await db.execute(sql20`
       SELECT 
         COUNT(DISTINCT i.id)::text as total_items,
         COALESCE(SUM(CASE WHEN ii.quantity < 10 THEN 1 ELSE 0 END), 0)::text as low_stock_items,
@@ -18218,7 +19759,7 @@ router7.get("/inventory", async (req, res) => {
       FROM items i
       LEFT JOIN inventory_items ii ON i.id = ii.item_id
     `);
-    const categoryBreakdown = await db.execute(sql18`
+    const categoryBreakdown = await db.execute(sql20`
       SELECT 
         COALESCE(i.category, 'Uncategorized') as category,
         COUNT(i.id)::text as count,
@@ -18228,7 +19769,7 @@ router7.get("/inventory", async (req, res) => {
       GROUP BY i.category
       ORDER BY value DESC
     `);
-    const stockMovements2 = await db.execute(sql18`
+    const stockMovements2 = await db.execute(sql20`
       SELECT 
         DATE(created_at) as date,
         SUM(CASE WHEN movement_type = 'IN' THEN quantity ELSE 0 END)::text as receipts,
@@ -18280,9 +19821,9 @@ router7.get("/suppliers", async (req, res) => {
   try {
     const supplierStats = await db.select({
       total_suppliers: count6(),
-      active_suppliers: sql18`COUNT(CASE WHEN is_active = true THEN 1 END)`
-    }).from(suppliers5);
-    const topSuppliers = await db.execute(sql18`
+      active_suppliers: sql20`COUNT(CASE WHEN is_active = true THEN 1 END)`
+    }).from(suppliers4);
+    const topSuppliers = await db.execute(sql20`
       SELECT 
         s.id,
         s.name,
@@ -18298,7 +19839,7 @@ router7.get("/suppliers", async (req, res) => {
       ORDER BY total_value DESC
       LIMIT 10
     `);
-    const supplierPerformance = await db.execute(sql18`
+    const supplierPerformance = await db.execute(sql20`
       SELECT 
         s.id as supplier_id,
         s.name,
@@ -18352,12 +19893,12 @@ router7.get("/suppliers", async (req, res) => {
 router7.get("/financial", async (req, res) => {
   try {
     const totalRevenueResult = await db.select({
-      revenue: sql18`COALESCE(SUM(total_amount), 0)`
-    }).from(invoices3).where(eq25(invoices3.status, "Paid"));
+      revenue: sql20`COALESCE(SUM(total_amount), 0)`
+    }).from(invoices3).where(eq27(invoices3.status, "Paid"));
     const totalOutstandingResult = await db.select({
-      outstanding: sql18`COALESCE(SUM(outstanding_amount), 0)`
+      outstanding: sql20`COALESCE(SUM(outstanding_amount), 0)`
     }).from(invoices3);
-    const revenueByType = await db.execute(sql18`
+    const revenueByType = await db.execute(sql20`
       SELECT 
         c.customer_type,
         COALESCE(SUM(i.total_amount), 0)::text as revenue
@@ -18367,13 +19908,13 @@ router7.get("/financial", async (req, res) => {
       GROUP BY c.customer_type
     `);
     const invoiceTotals = await db.select({
-      total_invoice_value: sql18`COALESCE(SUM(total_amount), 0)`,
-      total_paid_amount: sql18`COALESCE(SUM(paid_amount), 0)`
+      total_invoice_value: sql20`COALESCE(SUM(total_amount), 0)`,
+      total_paid_amount: sql20`COALESCE(SUM(paid_amount), 0)`
     }).from(invoices3);
     const avgOrderValue = await db.select({
-      avg_value: sql18`COALESCE(AVG(total_amount), 0)`
+      avg_value: sql20`COALESCE(AVG(total_amount), 0)`
     }).from(salesOrders2);
-    const monthlyGrowth = await db.execute(sql18`
+    const monthlyGrowth = await db.execute(sql20`
       WITH monthly_revenue AS (
         SELECT 
           DATE_TRUNC('month', created_at) as month,
@@ -18440,7 +19981,7 @@ router7.get("/financial", async (req, res) => {
 });
 router7.get("/audit-trail", async (req, res) => {
   try {
-    const userActivity = await db.execute(sql18`
+    const userActivity = await db.execute(sql20`
       WITH user_actions AS (
         SELECT 
           created_by as user_id,
@@ -18478,7 +20019,7 @@ router7.get("/audit-trail", async (req, res) => {
       ORDER BY action_count DESC
       LIMIT 10
     `);
-    const criticalActions = await db.execute(sql18`
+    const criticalActions = await db.execute(sql20`
       SELECT 
         'High Value Quotation' as action,
         COUNT(*)::text as count,
@@ -18497,7 +20038,7 @@ router7.get("/audit-trail", async (req, res) => {
       
       ORDER BY count DESC
     `);
-    const totalActions = await db.execute(sql18`
+    const totalActions = await db.execute(sql20`
       SELECT COUNT(*) as total FROM (
         SELECT created_at FROM enquiries WHERE created_at >= NOW() - INTERVAL '30 days'
         UNION ALL
@@ -18506,7 +20047,7 @@ router7.get("/audit-trail", async (req, res) => {
         SELECT created_at FROM sales_orders WHERE created_at >= NOW() - INTERVAL '30 days'
       ) as all_actions
     `);
-    const completedActions = await db.execute(sql18`
+    const completedActions = await db.execute(sql20`
       SELECT COUNT(*) as completed FROM (
         SELECT created_at FROM enquiries WHERE status != 'New' AND created_at >= NOW() - INTERVAL '30 days'
         UNION ALL
@@ -18545,7 +20086,7 @@ router7.get("/audit-trail", async (req, res) => {
 });
 router7.get("/enquiry-sources", async (req, res) => {
   try {
-    const enquirySourcesData = await db.execute(sql18`
+    const enquirySourcesData = await db.execute(sql20`
       SELECT 
         source,
         COUNT(*)::text as count,
@@ -18554,7 +20095,7 @@ router7.get("/enquiry-sources", async (req, res) => {
       GROUP BY source
       ORDER BY count DESC
     `);
-    const sourcePerformance = await db.execute(sql18`
+    const sourcePerformance = await db.execute(sql20`
       SELECT 
         e.source,
         COUNT(DISTINCT e.id)::text as enquiry_count,
@@ -18977,7 +20518,7 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import session from "express-session";
 import ConnectPGSimple from "connect-pg-simple";
-import { eq as eq26 } from "drizzle-orm";
+import { eq as eq28 } from "drizzle-orm";
 var strategyInitialized = false;
 function registerAuthRoutes(app2) {
   const PgStore = ConnectPGSimple(session);
@@ -19004,7 +20545,7 @@ function registerAuthRoutes(app2) {
     if (!strategyInitialized) {
       passport.use(new LocalStrategy(async (username, password, done) => {
         try {
-          const row = await db.select().from(users2).where(eq26(users2.username, username)).limit(1);
+          const row = await db.select().from(users3).where(eq28(users3.username, username)).limit(1);
           const user = row[0];
           if (!user) return done(null, false, { message: "Invalid credentials" });
           if (!user.passwordHash) return done(null, false, { message: "User has no password set" });
@@ -19018,7 +20559,7 @@ function registerAuthRoutes(app2) {
       passport.serializeUser((user, done) => done(null, user.id));
       passport.deserializeUser(async (id, done) => {
         try {
-          const row = await db.select().from(users2).where(eq26(users2.id, id)).limit(1);
+          const row = await db.select().from(users3).where(eq28(users3.id, id)).limit(1);
           const user = row[0];
           if (!user) return done(null, false);
           done(null, { id: user.id, username: user.username, role: user.role });
@@ -19035,10 +20576,10 @@ function registerAuthRoutes(app2) {
     try {
       const { username, password, email, role } = req.body;
       if (!username || !password) return res.status(400).json({ message: "Username & password required" });
-      const existing = await db.select().from(users2).where(eq26(users2.username, username)).limit(1);
+      const existing = await db.select().from(users3).where(eq28(users3.username, username)).limit(1);
       if (existing.length) return res.status(409).json({ message: "Username already exists" });
       const hash = await bcrypt.hash(password, 10);
-      const inserted = await db.insert(users2).values({ username, email, role: role || "user", passwordHash: hash }).returning();
+      const inserted = await db.insert(users3).values({ username, email, role: role || "user", passwordHash: hash }).returning();
       res.status(201).json({ id: inserted[0].id, username, role: inserted[0].role });
     } catch (e) {
       console.error("Register error", e);
@@ -19212,14 +20753,127 @@ function registerFileRoutes(app2) {
   });
 }
 
+// server/routes/email-simple.ts
+init_storage();
+function registerEmailRoutes(app2) {
+  console.log("[EMAIL ROUTES] Registering email routes...");
+  app2.post("/api/email/invoice/:id", async (req, res) => {
+    try {
+      const invoiceId = req.params.id;
+      const { email, customMessage } = req.body;
+      console.log(`Preparing invoice ${invoiceId} for email...`);
+      const invoice = await storage.getInvoice(invoiceId);
+      if (!invoice) {
+        return res.status(404).json({ message: "Invoice not found" });
+      }
+      const customer = await storage.getCustomer(invoice.customerId);
+      if (!customer) {
+        return res.status(404).json({ message: "Customer not found" });
+      }
+      const invoiceItems3 = await storage.getInvoiceItems(invoiceId);
+      const enhancedItems = await Promise.all(
+        invoiceItems3.map(async (invoiceItem) => {
+          let itemDetails = null;
+          if (invoiceItem.itemId) {
+            try {
+              itemDetails = await storage.getItem(invoiceItem.itemId);
+            } catch (error) {
+              console.warn(`Could not fetch item details for ${invoiceItem.itemId}:`, error);
+            }
+          }
+          return {
+            ...invoiceItem,
+            item: itemDetails
+          };
+        })
+      );
+      const pdfResult = generateInvoicePdf({
+        invoice,
+        items: enhancedItems,
+        customer,
+        mode: "enhanced"
+      });
+      const pdfBase64 = pdfResult.buffer.toString("base64");
+      const pdfDataUrl = `data:application/pdf;base64,${pdfBase64}`;
+      await storage.updateInvoice(invoiceId, { status: "Sent" });
+      res.json({
+        success: true,
+        message: "Invoice prepared for email sending",
+        data: {
+          invoiceId,
+          customerEmail: customer.email || email,
+          customerName: customer.name,
+          documentNumber: invoice.invoiceNumber,
+          pdfDataUrl,
+          customMessage: customMessage || null
+        }
+      });
+    } catch (error) {
+      console.error("Error preparing invoice for email:", error);
+      res.status(500).json({
+        message: "Failed to prepare invoice for email",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+  app2.post("/api/email/quotation/:id", async (req, res) => {
+    try {
+      const quotationId = req.params.id;
+      const { email, customMessage } = req.body;
+      console.log(`Preparing quotation ${quotationId} for email...`);
+      const quotation = await storage.getQuotation(quotationId);
+      if (!quotation) {
+        return res.status(404).json({ message: "Quotation not found" });
+      }
+      const customer = await storage.getCustomer(quotation.customerId);
+      if (!customer) {
+        return res.status(404).json({ message: "Customer not found" });
+      }
+      const items4 = await storage.getQuotationItems(quotationId);
+      const pdfResult = generateQuotationPdf({
+        quotation,
+        items: items4,
+        customer
+      });
+      const pdfBase64 = pdfResult.buffer.toString("base64");
+      const pdfDataUrl = `data:application/pdf;base64,${pdfBase64}`;
+      res.json({
+        success: true,
+        message: "Quotation prepared for email sending",
+        data: {
+          quotationId,
+          customerEmail: customer.email || email,
+          customerName: customer.name,
+          documentNumber: quotation.quoteNumber,
+          pdfDataUrl,
+          customMessage: customMessage || null
+        }
+      });
+    } catch (error) {
+      console.error("Error preparing quotation for email:", error);
+      res.status(500).json({
+        message: "Failed to prepare quotation for email",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+  app2.get("/api/email/health", (req, res) => {
+    res.json({
+      status: "ok",
+      message: "Email service is running",
+      timestamp: (/* @__PURE__ */ new Date()).toISOString()
+    });
+  });
+}
+
 // server/routes/table-validation.ts
 init_db();
 import { Router as Router8 } from "express";
-import { sql as sql20 } from "drizzle-orm";
+import { sql as sql22 } from "drizzle-orm";
 
 // server/utils/database-validator.ts
 init_db();
-import { sql as sql19 } from "drizzle-orm";
+import { sql as sql21 } from "drizzle-orm";
 var DatabaseValidator = class _DatabaseValidator {
   static instance;
   static getInstance() {
@@ -19233,7 +20887,7 @@ var DatabaseValidator = class _DatabaseValidator {
    */
   async getAllTables() {
     try {
-      const result = await db.execute(sql19`
+      const result = await db.execute(sql21`
         SELECT table_name 
         FROM information_schema.tables 
         WHERE table_schema = 'public' 
@@ -19261,7 +20915,7 @@ var DatabaseValidator = class _DatabaseValidator {
       isValid: true
     };
     try {
-      const existsResult = await db.execute(sql19`
+      const existsResult = await db.execute(sql21`
         SELECT EXISTS (
           SELECT FROM information_schema.tables 
           WHERE table_schema = 'public' 
@@ -19274,7 +20928,7 @@ var DatabaseValidator = class _DatabaseValidator {
         result.isValid = false;
         return result;
       }
-      const countResult = await db.execute(sql19.raw(`SELECT COUNT(*) as count FROM "${tableName}"`));
+      const countResult = await db.execute(sql21.raw(`SELECT COUNT(*) as count FROM "${tableName}"`));
       result.rowCount = parseInt(String(countResult.rows[0].count));
       result.hasData = result.rowCount > 0;
       await this.checkTableIssues(tableName, result);
@@ -19290,7 +20944,7 @@ var DatabaseValidator = class _DatabaseValidator {
    */
   async checkTableIssues(tableName, result) {
     try {
-      const pkResult = await db.execute(sql19`
+      const pkResult = await db.execute(sql21`
         SELECT COUNT(*) as count
         FROM information_schema.table_constraints tc
         JOIN information_schema.key_column_usage kcu 
@@ -19302,7 +20956,7 @@ var DatabaseValidator = class _DatabaseValidator {
         result.issues.push("Missing primary key");
         result.isValid = false;
       }
-      const timestampResult = await db.execute(sql19`
+      const timestampResult = await db.execute(sql21`
         SELECT column_name
         FROM information_schema.columns
         WHERE table_name = ${tableName}
@@ -19329,7 +20983,7 @@ var DatabaseValidator = class _DatabaseValidator {
    */
   async checkOrphanedForeignKeys(tableName, result) {
     try {
-      const fkResult = await db.execute(sql19`
+      const fkResult = await db.execute(sql21`
         SELECT 
           kcu.column_name,
           ccu.table_name AS foreign_table_name,
@@ -19343,7 +20997,7 @@ var DatabaseValidator = class _DatabaseValidator {
         AND tc.table_name = ${tableName}
       `);
       for (const fk of fkResult.rows) {
-        const orphanedResult = await db.execute(sql19.raw(`
+        const orphanedResult = await db.execute(sql21.raw(`
           SELECT COUNT(*) as count
           FROM "${tableName}" t
           WHERE t."${fk.column_name}" IS NOT NULL
@@ -19367,7 +21021,7 @@ var DatabaseValidator = class _DatabaseValidator {
    */
   async checkDuplicateRows(tableName, result) {
     try {
-      const pkResult = await db.execute(sql19`
+      const pkResult = await db.execute(sql21`
         SELECT kcu.column_name
         FROM information_schema.table_constraints tc
         JOIN information_schema.key_column_usage kcu 
@@ -19378,7 +21032,7 @@ var DatabaseValidator = class _DatabaseValidator {
       `);
       if (pkResult.rows.length > 0) {
         const pkColumns = pkResult.rows.map((row) => `"${row.column_name}"`).join(", ");
-        const duplicateResult = await db.execute(sql19.raw(`
+        const duplicateResult = await db.execute(sql21.raw(`
           SELECT COUNT(*) as count
           FROM (
             SELECT ${pkColumns}, COUNT(*) as cnt
@@ -19402,7 +21056,7 @@ var DatabaseValidator = class _DatabaseValidator {
    */
   async checkNullValues(tableName, result) {
     try {
-      const nullResult = await db.execute(sql19`
+      const nullResult = await db.execute(sql21`
         SELECT column_name
         FROM information_schema.columns
         WHERE table_name = ${tableName}
@@ -19410,7 +21064,7 @@ var DatabaseValidator = class _DatabaseValidator {
         AND column_default IS NULL
       `);
       for (const column of nullResult.rows) {
-        const nullCountResult = await db.execute(sql19.raw(`
+        const nullCountResult = await db.execute(sql21.raw(`
           SELECT COUNT(*) as count
           FROM "${tableName}"
           WHERE "${column.column_name}" IS NULL
@@ -19533,7 +21187,7 @@ var DatabaseValidator = class _DatabaseValidator {
       const hasCreatedAt = await this.columnExists(tableName, "created_at");
       if (!hasCreatedAt) {
         try {
-          await db.execute(sql19.raw(`ALTER TABLE "${tableName}" ADD COLUMN created_at TIMESTAMP DEFAULT NOW()`));
+          await db.execute(sql21.raw(`ALTER TABLE "${tableName}" ADD COLUMN created_at TIMESTAMP DEFAULT NOW()`));
           fixed.push("Added created_at column");
         } catch (error) {
           errors.push(`Failed to add created_at column: ${error instanceof Error ? error.message : "Unknown error"}`);
@@ -19542,7 +21196,7 @@ var DatabaseValidator = class _DatabaseValidator {
       const hasUpdatedAt = await this.columnExists(tableName, "updated_at");
       if (!hasUpdatedAt) {
         try {
-          await db.execute(sql19.raw(`ALTER TABLE "${tableName}" ADD COLUMN updated_at TIMESTAMP DEFAULT NOW()`));
+          await db.execute(sql21.raw(`ALTER TABLE "${tableName}" ADD COLUMN updated_at TIMESTAMP DEFAULT NOW()`));
           fixed.push("Added updated_at column");
         } catch (error) {
           errors.push(`Failed to add updated_at column: ${error instanceof Error ? error.message : "Unknown error"}`);
@@ -19558,7 +21212,7 @@ var DatabaseValidator = class _DatabaseValidator {
    */
   async columnExists(tableName, columnName) {
     try {
-      const result = await db.execute(sql19`
+      const result = await db.execute(sql21`
         SELECT EXISTS (
           SELECT FROM information_schema.columns
           WHERE table_name = ${tableName}
@@ -19577,7 +21231,7 @@ var database_validator_default = DatabaseValidator;
 var router8 = Router8();
 router8.get("/tables", async (req, res) => {
   try {
-    const tables = await db.execute(sql20`
+    const tables = await db.execute(sql22`
       SELECT 
         table_name,
         table_type,
@@ -19604,7 +21258,7 @@ router8.get("/tables", async (req, res) => {
 router8.get("/tables/:tableName/structure", async (req, res) => {
   try {
     const { tableName } = req.params;
-    const columns = await db.execute(sql20`
+    const columns = await db.execute(sql22`
       SELECT 
         column_name,
         data_type,
@@ -19619,7 +21273,7 @@ router8.get("/tables/:tableName/structure", async (req, res) => {
       AND table_schema = 'public'
       ORDER BY ordinal_position
     `);
-    const constraints = await db.execute(sql20`
+    const constraints = await db.execute(sql22`
       SELECT 
         tc.constraint_name,
         tc.constraint_type,
@@ -19636,7 +21290,7 @@ router8.get("/tables/:tableName/structure", async (req, res) => {
       WHERE tc.table_name = ${tableName}
       AND tc.table_schema = 'public'
     `);
-    const indexes = await db.execute(sql20`
+    const indexes = await db.execute(sql22`
       SELECT 
         indexname,
         indexdef
@@ -19667,9 +21321,9 @@ router8.get("/tables/:tableName/data", async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 50;
     const offset = (page - 1) * limit;
-    const countResult = await db.execute(sql20.raw(`SELECT COUNT(*) as total FROM "${tableName}"`));
+    const countResult = await db.execute(sql22.raw(`SELECT COUNT(*) as total FROM "${tableName}"`));
     const total = parseInt(countResult.rows[0].total);
-    const data = await db.execute(sql20.raw(`
+    const data = await db.execute(sql22.raw(`
       SELECT * FROM "${tableName}" 
       ORDER BY created_at DESC NULLS LAST, id DESC NULLS LAST
       LIMIT ${limit} OFFSET ${offset}
@@ -19699,7 +21353,7 @@ router8.get("/tables/:tableName/data", async (req, res) => {
 router8.get("/tables/:tableName/validate", async (req, res) => {
   try {
     const { tableName } = req.params;
-    const tableExists = await db.execute(sql20`
+    const tableExists = await db.execute(sql22`
       SELECT EXISTS (
         SELECT FROM information_schema.tables 
         WHERE table_schema = 'public' 
@@ -19712,7 +21366,7 @@ router8.get("/tables/:tableName/validate", async (req, res) => {
         error: "Table not found"
       });
     }
-    const stats = await db.execute(sql20.raw(`
+    const stats = await db.execute(sql22.raw(`
       SELECT 
         schemaname,
         tablename,
@@ -19724,7 +21378,7 @@ router8.get("/tables/:tableName/validate", async (req, res) => {
       FROM pg_stats 
       WHERE tablename = '${tableName}'
     `));
-    const orphanedChecks = await db.execute(sql20.raw(`
+    const orphanedChecks = await db.execute(sql22.raw(`
       SELECT 
         'orphaned_check' as check_type,
         COUNT(*) as count
@@ -19734,7 +21388,7 @@ router8.get("/tables/:tableName/validate", async (req, res) => {
         WHERE table_name = '${tableName}'
       )
     `));
-    const rowCount = await db.execute(sql20.raw(`SELECT COUNT(*) as count FROM "${tableName}"`));
+    const rowCount = await db.execute(sql22.raw(`SELECT COUNT(*) as count FROM "${tableName}"`));
     res.json({
       success: true,
       tableName,
@@ -19757,7 +21411,7 @@ router8.get("/tables/:tableName/validate", async (req, res) => {
 });
 router8.get("/tables/summary", async (req, res) => {
   try {
-    const tables = await db.execute(sql20`
+    const tables = await db.execute(sql22`
       SELECT 
         t.table_name,
         t.table_type,
@@ -19780,7 +21434,7 @@ router8.get("/tables/summary", async (req, res) => {
     const rowCounts = await Promise.all(
       tableNames.map(async (tableName) => {
         try {
-          const result = await db.execute(sql20.raw(`SELECT COUNT(*) as count FROM "${tableName}"`));
+          const result = await db.execute(sql22.raw(`SELECT COUNT(*) as count FROM "${tableName}"`));
           return {
             tableName,
             rowCount: parseInt(result.rows[0].count)
@@ -19820,17 +21474,17 @@ router8.get("/tables/summary", async (req, res) => {
 });
 router8.get("/health", async (req, res) => {
   try {
-    const connectionTest = await db.execute(sql20`SELECT 1 as test`);
-    const dbSize = await db.execute(sql20`
+    const connectionTest = await db.execute(sql22`SELECT 1 as test`);
+    const dbSize = await db.execute(sql22`
       SELECT pg_size_pretty(pg_database_size(current_database())) as size
     `);
-    const tableCount = await db.execute(sql20`
+    const tableCount = await db.execute(sql22`
       SELECT COUNT(*) as count 
       FROM information_schema.tables 
       WHERE table_schema = 'public' 
       AND table_type = 'BASE TABLE'
     `);
-    const tables = await db.execute(sql20`
+    const tables = await db.execute(sql22`
       SELECT table_name 
       FROM information_schema.tables 
       WHERE table_schema = 'public' 
@@ -19840,7 +21494,7 @@ router8.get("/health", async (req, res) => {
     const tableRowCounts = [];
     for (const table of tables.rows) {
       try {
-        const result = await db.execute(sql20.raw(`SELECT COUNT(*) as count FROM "${table.table_name}"`));
+        const result = await db.execute(sql22.raw(`SELECT COUNT(*) as count FROM "${table.table_name}"`));
         const count7 = parseInt(result.rows[0].count);
         totalRows += count7;
         tableRowCounts.push({
@@ -19933,13 +21587,13 @@ router8.post("/tables/:tableName/fix", async (req, res) => {
 router8.get("/tables/:tableName/stats", async (req, res) => {
   try {
     const { tableName } = req.params;
-    const sizeResult = await db.execute(sql20.raw(`
+    const sizeResult = await db.execute(sql22.raw(`
       SELECT 
         pg_size_pretty(pg_total_relation_size('${tableName}')) as total_size,
         pg_size_pretty(pg_relation_size('${tableName}')) as table_size,
         pg_size_pretty(pg_indexes_size('${tableName}')) as indexes_size
     `));
-    const statsResult = await db.execute(sql20.raw(`
+    const statsResult = await db.execute(sql22.raw(`
       SELECT 
         schemaname,
         tablename,
@@ -19955,7 +21609,7 @@ router8.get("/tables/:tableName/stats", async (req, res) => {
       FROM pg_stat_user_tables 
       WHERE relname = '${tableName}'
     `));
-    const indexesResult = await db.execute(sql20.raw(`
+    const indexesResult = await db.execute(sql22.raw(`
       SELECT 
         indexname,
         indexdef,
@@ -20021,6 +21675,7 @@ async function registerRoutes(app2) {
   registerRecentActivitiesRoutes(app2);
   registerAuthRoutes(app2);
   registerFileRoutes(app2);
+  registerEmailRoutes(app2);
   app2.use("/api/audit", audit_default);
   app2.use("/api/users", users_default);
   app2.use("/api/settings", settings_default);
@@ -20116,6 +21771,9 @@ async function setupVite(app2, server) {
   app2.use(vite.middlewares);
   app2.use("*", async (req, res, next) => {
     const url = req.originalUrl;
+    if (url.startsWith("/api/")) {
+      return next();
+    }
     try {
       const clientTemplate = path3.resolve(
         import.meta.dirname,
@@ -20144,17 +21802,24 @@ function serveStatic(app2) {
     );
   }
   app2.use(express2.static(distPath));
-  app2.use("*", (_req, res) => {
+  app2.use("*", (req, res, next) => {
+    if (req.originalUrl.startsWith("/api/")) {
+      return next();
+    }
     res.sendFile(path3.resolve(distPath, "index.html"));
   });
 }
 
 // server/index.ts
 init_db();
-import { eq as eq31 } from "drizzle-orm";
+import { eq as eq33 } from "drizzle-orm";
 import bcrypt2 from "bcryptjs";
-dotenv.config();
+dotenv2.config();
 var app = express3();
+app.use(cors({
+  origin: ["http://localhost:5173", "http://localhost:3000", "http://localhost:8080"],
+  credentials: true
+}));
 app.use((req, res, next) => {
   console.log(`[DEBUG][REQ] ${req.method} ${req.originalUrl}`);
   next();
@@ -20196,9 +21861,9 @@ app.use((req, res, next) => {
       { username: "testadmin", email: "testadmin@example.com" }
     ];
     for (const adm of requiredAdmins) {
-      const existing = await db.select().from(users2).where(eq31(users2.username, adm.username)).limit(1);
+      const existing = await db.select().from(users3).where(eq33(users3.username, adm.username)).limit(1);
       if (!existing.length) {
-        await db.insert(users2).values({ username: adm.username, role: "admin", passwordHash: hash, email: adm.email });
+        await db.insert(users3).values({ username: adm.username, role: "admin", passwordHash: hash, email: adm.email });
         log(`Seeded missing admin user '${adm.username}'.`);
       }
     }
