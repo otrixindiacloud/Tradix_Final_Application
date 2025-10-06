@@ -714,17 +714,28 @@ export default function SupplierLpoPage() {
                         variant="outline" 
                         size="sm"
                         className="text-slate-600 hover:text-slate-800 h-8 px-3 text-xs"
-                        onClick={() => setViewingOrder({
-                          id: quote.quoteNumber || quote.id,
-                          customer: quote.customer?.name || 'Unknown Customer',
-                          value: `${quote.currency || 'BHD'} ${quote.totalAmount ? parseFloat(quote.totalAmount).toLocaleString() : '0.00'}`,
-                          supplier: quote.supplier?.name || 'No Supplier',
-                          items: quote.itemCount || 0,
-                          priority: quote.priority || 'Medium',
-                          created: quote.createdAt ? new Date(quote.createdAt).toLocaleDateString() : 'Unknown',
-                          status: 'Ready for LPO',
-                          quoteData: quote
-                        })}
+                        onClick={() => {
+                          // Extract customer name from notes if available
+                          let customerName = quote.customer?.name || 'Unknown Customer';
+                          if (quote.notes && !quote.customer?.name) {
+                            const customerMatch = quote.notes.match(/from customer\s+([^,\n]+)/i);
+                            if (customerMatch && customerMatch[1]) {
+                              customerName = customerMatch[1].trim();
+                            }
+                          }
+                          
+                          setViewingOrder({
+                            id: quote.quoteNumber || quote.id,
+                            customer: customerName,
+                            value: `${quote.currency || 'BHD'} ${quote.totalAmount ? parseFloat(quote.totalAmount).toLocaleString() : '0.00'}`,
+                            supplier: quote.supplier?.name || 'No Supplier',
+                            items: quote.itemCount || 0,
+                            priority: quote.priority || 'Medium',
+                            created: quote.createdAt ? new Date(quote.createdAt).toLocaleDateString() : 'Unknown',
+                            status: 'Ready for LPO',
+                            quoteData: quote
+                          });
+                        }}
                       >
                         <Eye className="h-3 w-3 mr-1" />
                         View
@@ -1246,176 +1257,151 @@ export default function SupplierLpoPage() {
 
       {/* Order Details View Dialog */}
       <Dialog open={!!viewingOrder} onOpenChange={() => setViewingOrder(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
-                <FileText className="h-4 w-4 text-emerald-600" />
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="pb-4 border-b">
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-sm">
+                <FileText className="h-5 w-5 text-white" />
               </div>
-              Order Details - {viewingOrder?.id}
+              <div>
+                <div className="text-slate-900">Quote #{viewingOrder?.id}</div>
+                <CardDescription className="text-xs mt-0.5">Ready for LPO Generation</CardDescription>
+              </div>
             </DialogTitle>
-            <CardDescription>
-              Complete information about the sales order ready for LPO generation
-            </CardDescription>
           </DialogHeader>
           
           {viewingOrder && (
-            <div className="space-y-6">
-              {/* Order Header */}
-              <div className="bg-slate-50 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="text-lg font-semibold text-slate-900">{viewingOrder.orderData?.orderNumber || viewingOrder.id}</h3>
-                    <p className="text-sm text-slate-600">Sales Order</p>
+            <div className="space-y-4 py-4">
+              {/* Key Information Cards */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-lg p-3 border border-blue-200">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Building2 className="h-4 w-4 text-blue-600" />
+                    <span className="text-xs font-medium text-blue-900">Customer</span>
                   </div>
-                  <div className="flex gap-2">
-                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                      {viewingOrder.customer}
-                    </Badge>
-                    <Badge variant="outline" className={
-                      viewingOrder.orderData?.priority === 'High' ? 'bg-red-50 text-red-700 border-red-200' :
-                      viewingOrder.orderData?.priority === 'Medium' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                      'bg-green-50 text-green-700 border-green-200'
-                    }>
-                      {viewingOrder.orderData?.priority || 'Low'} Priority
-                    </Badge>
-                  </div>
+                  <p className="font-semibold text-sm text-blue-950 truncate" title={viewingOrder.customer}>
+                    {viewingOrder.customer}
+                  </p>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-slate-400" />
-                    <span className="text-slate-600">Total Value:</span>
-                    <span className="font-semibold text-slate-900">{viewingOrder.value}</span>
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-lg p-3 border border-purple-200">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Truck className="h-4 w-4 text-purple-600" />
+                    <span className="text-xs font-medium text-purple-900">Supplier</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Building2 className="h-4 w-4 text-slate-400" />
-                    <span className="text-slate-600">Supplier:</span>
-                    <span className="font-medium text-slate-900">{viewingOrder.supplier}</span>
+                  <p className="font-semibold text-sm text-purple-950 truncate" title={viewingOrder.supplier}>
+                    {viewingOrder.supplier}
+                  </p>
+                </div>
+                
+                <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 rounded-lg p-3 border border-emerald-200">
+                  <div className="flex items-center gap-2 mb-1">
+                    <DollarSign className="h-4 w-4 text-emerald-600" />
+                    <span className="text-xs font-medium text-emerald-900">Total Value</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-slate-400" />
-                    <span className="text-slate-600">Items:</span>
-                    <span className="font-medium text-slate-900">{viewingOrder.items}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-slate-400" />
-                    <span className="text-slate-600">Created:</span>
-                    <span className="font-medium text-slate-900">
-                      {viewingOrder.orderData?.createdAt ? new Date(viewingOrder.orderData.createdAt).toLocaleDateString() : 'N/A'}
-                    </span>
-                  </div>
+                  <p className="font-semibold text-sm text-emerald-950">
+                    {viewingOrder.value}
+                  </p>
                 </div>
               </div>
 
-            {/* Order Items */}
-            <div>
-              <h4 className="font-semibold text-slate-900 mb-3">Order Items</h4>
-              <div className="space-y-2">
-                {viewingOrder.orderData?.items && viewingOrder.orderData.items.length > 0 ? (
-                  viewingOrder.orderData.items.map((item: any, i: number) => (
-                    <div key={i} className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center">
-                          <span className="text-xs font-medium text-slate-600">{i + 1}</span>
+              {/* Quick Stats */}
+              <div className="flex items-center gap-4 px-4 py-3 bg-slate-50 rounded-lg border border-slate-200">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-slate-500" />
+                  <span className="text-xs text-slate-600">Items:</span>
+                  <span className="font-semibold text-sm text-slate-900">{viewingOrder.items}</span>
+                </div>
+                <div className="w-px h-4 bg-slate-300"></div>
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-slate-500" />
+                  <span className="text-xs text-slate-600">Created:</span>
+                  <span className="font-semibold text-sm text-slate-900">{viewingOrder.created}</span>
+                </div>
+                <div className="w-px h-4 bg-slate-300"></div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-600">Priority:</span>
+                  <Badge variant="outline" className={`text-xs px-2 py-0.5 ${
+                    viewingOrder.priority === 'High' ? 'bg-red-50 text-red-700 border-red-300' :
+                    viewingOrder.priority === 'Medium' ? 'bg-amber-50 text-amber-700 border-amber-300' :
+                    'bg-green-50 text-green-700 border-green-300'
+                  }`}>
+                    {viewingOrder.priority}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Notes Section */}
+              {(viewingOrder.orderData?.notes || viewingOrder.quoteData?.notes) && (
+                <div className="bg-amber-50/50 border border-amber-200 rounded-lg p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FileText className="h-4 w-4 text-amber-600" />
+                    <h4 className="font-semibold text-sm text-slate-900">Notes</h4>
+                  </div>
+                  <div className="text-xs text-slate-700 whitespace-pre-wrap bg-white p-2.5 rounded border border-amber-100 max-h-32 overflow-y-auto">
+                    {viewingOrder.orderData?.notes || viewingOrder.quoteData?.notes}
+                  </div>
+                </div>
+              )}
+
+              {/* Order Items - Compact View */}
+              {viewingOrder.orderData?.items && viewingOrder.orderData.items.length > 0 && (
+                <div>
+                  <h4 className="font-semibold text-sm text-slate-900 mb-2 px-1">Order Items</h4>
+                  <div className="max-h-48 overflow-y-auto space-y-1.5 pr-2">
+                    {viewingOrder.orderData.items.map((item: any, i: number) => (
+                      <div key={i} className="flex items-center justify-between p-2.5 bg-white border border-slate-200 rounded-md hover:border-slate-300 transition-colors">
+                        <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                          <div className="w-6 h-6 bg-slate-100 rounded flex items-center justify-center flex-shrink-0">
+                            <span className="text-xs font-medium text-slate-600">{i + 1}</span>
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-sm text-slate-900 truncate">{item.productName || item.description || `Item ${i + 1}`}</p>
+                            <p className="text-xs text-slate-500 truncate">{item.specifications || item.notes || 'No specifications'}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium text-slate-900">{item.productName || item.description || `Item ${i + 1}`}</p>
-                          <p className="text-sm text-slate-600">{item.specifications || item.notes || 'Product specifications'}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-slate-900">
-                          {viewingOrder.orderData.currency || 'BHD'} {item.unitPrice ? parseFloat(item.unitPrice).toFixed(2) : '0.00'}
-                        </p>
-                        <p className="text-sm text-slate-600">Qty: {item.quantity || 1}</p>
-                        {item.totalPrice && (
-                          <p className="text-xs text-slate-500">
-                            Total: {viewingOrder.orderData.currency || 'BHD'} {parseFloat(item.totalPrice).toFixed(2)}
+                        <div className="text-right flex-shrink-0 ml-3">
+                          <p className="font-semibold text-sm text-slate-900">
+                            {viewingOrder.orderData.currency || 'BHD'} {item.unitPrice ? parseFloat(item.unitPrice).toFixed(2) : '0.00'}
                           </p>
-                        )}
+                          <p className="text-xs text-slate-600">Qty: {item.quantity || 1}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-4 text-slate-500">
-                    <FileText className="h-8 w-8 mx-auto mb-2 text-slate-300" />
-                    <p className="text-sm">No items available for this order</p>
+                    ))}
                   </div>
-                )}
-              </div>
-            </div>
+                </div>
+              )}
 
-            {/* Additional Order Information */}
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h4 className="font-semibold text-slate-900 mb-3">Order Details</h4>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-slate-600">Order Status:</span>
-                  <p className="font-medium text-slate-900">{viewingOrder.orderData?.status || 'Confirmed'}</p>
-                </div>
-                <div>
-                  <span className="text-slate-600">Currency:</span>
-                  <p className="font-medium text-slate-900">{viewingOrder.orderData?.currency || 'BHD'}</p>
-                </div>
-                <div>
-                  <span className="text-slate-600">Customer ID:</span>
-                  <p className="font-medium text-slate-900">{viewingOrder.orderData?.customerId || 'N/A'}</p>
-                </div>
-                <div>
-                  <span className="text-slate-600">Supplier ID:</span>
-                  <p className="font-medium text-slate-900">{viewingOrder.orderData?.supplierId || 'N/A'}</p>
-                </div>
-                {viewingOrder.orderData?.expectedDeliveryDate && (
-                  <div>
-                    <span className="text-slate-600">Expected Delivery:</span>
-                    <p className="font-medium text-slate-900">
-                      {new Date(viewingOrder.orderData.expectedDeliveryDate).toLocaleDateString()}
-                    </p>
-                  </div>
-                )}
-                {viewingOrder.orderData?.notes && (
-                  <div className="col-span-2">
-                    <span className="text-slate-600">Notes:</span>
-                    <p className="font-medium text-slate-900">{viewingOrder.orderData.notes}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-              {/* Order Status */}
-              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                  <span className="font-semibold text-emerald-800">Ready for LPO Generation</span>
-                </div>
-                <p className="text-sm text-emerald-700">
-                  This order has been approved and is ready to be converted into a supplier LPO. 
-                  All required information has been verified and the supplier has been confirmed.
-                </p>
+              {/* Status Badge */}
+              <div className="flex items-center gap-2 px-3 py-2.5 bg-emerald-50 border border-emerald-200 rounded-lg">
+                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium text-emerald-800">Ready for LPO Generation</span>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
+              <div className="flex justify-end gap-2 pt-3 border-t">
                 <Button 
                   variant="outline" 
+                  size="sm"
                   onClick={() => setViewingOrder(null)}
+                  className="px-4"
                 >
                   Close
                 </Button>
-              <Button 
-                className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white"
-                onClick={() => {
-                  if (viewingOrder.quoteData?.id) {
-                    generateLpoFromQuoteMutation.mutate(viewingOrder.quoteData.id);
-                    setViewingOrder(null);
-                  }
-                }}
-                disabled={generateLpoFromQuoteMutation.isPending}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                {generateLpoFromQuoteMutation.isPending ? "Generating..." : "Generate LPO"}
-              </Button>
+                <Button 
+                  size="sm"
+                  className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-4"
+                  onClick={() => {
+                    if (viewingOrder.quoteData?.id) {
+                      generateLpoFromQuoteMutation.mutate(viewingOrder.quoteData.id);
+                      setViewingOrder(null);
+                    }
+                  }}
+                  disabled={generateLpoFromQuoteMutation.isPending}
+                >
+                  <Plus className="h-4 w-4 mr-1.5" />
+                  {generateLpoFromQuoteMutation.isPending ? "Generating..." : "Generate LPO"}
+                </Button>
               </div>
             </div>
           )}

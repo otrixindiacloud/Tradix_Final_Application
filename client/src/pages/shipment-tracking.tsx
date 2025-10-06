@@ -3015,6 +3015,7 @@ export default function ShipmentTrackingPage() {
                       setShowAllLposDialog(false);
                       setShowGenerateForm(true);
                     }}
+                    fetchLpoItems={fetchLpoItems}
                   />
                 ))}
               </div>

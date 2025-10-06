@@ -5,10 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import StatusPill from "@/components/status/status-pill";
 import { format as formatDateFns } from "date-fns";
-import { Eye, Truck, Package, Navigation, MapPin, FileText, BarChart3, ArrowLeft, Globe, User, ShoppingCart, DollarSign } from "lucide-react";
+import { 
+  Eye, Truck, Package, Navigation, MapPin, FileText, BarChart3, ArrowLeft, 
+  Globe, User, ShoppingCart, DollarSign, Calendar, Clock, Box, Shield, 
+  CheckCircle2, AlertTriangle, Timer, Zap, AlertCircle, XCircle, 
+  CircleDot, TrendingUp, Minus, Hash
+} from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { Separator } from "@/components/ui/separator";
 
 interface Shipment {
   id: string;
@@ -65,20 +71,69 @@ function formatDate(dateStr?: string, pattern = 'MMM dd, yyyy') {
 
 const priorityColor = (p: string) => {
   switch (p) {
-    case 'Low': return 'text-green-700 bg-green-100';
-    case 'Medium': return 'text-yellow-700 bg-yellow-100';
-    case 'High': return 'text-orange-700 bg-orange-100';
-    case 'Urgent': return 'text-red-700 bg-red-100';
-    default: return 'text-gray-700 bg-gray-100';
+    case 'Low': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+    case 'Medium': return 'bg-amber-50 text-amber-700 border-amber-200';
+    case 'High': return 'bg-orange-50 text-orange-700 border-orange-200';
+    case 'Urgent': return 'bg-rose-50 text-rose-700 border-rose-200';
+    default: return 'bg-slate-50 text-slate-700 border-slate-200';
   }
 };
+
+const priorityIcon = (p: string) => {
+  switch (p) {
+    case 'Low': return <Minus className="h-3.5 w-3.5" />;
+    case 'Medium': return <Timer className="h-3.5 w-3.5" />;
+    case 'High': return <TrendingUp className="h-3.5 w-3.5" />;
+    case 'Urgent': return <AlertCircle className="h-3.5 w-3.5" />;
+    default: return null;
+  }
+};
+
 const serviceColor = (s: string) => {
   switch (s) {
-    case 'Economy': return 'text-gray-700 bg-gray-100';
-    case 'Standard': return 'text-blue-700 bg-blue-100';
-    case 'Express': return 'text-purple-700 bg-purple-100';
-    case 'Overnight': return 'text-red-700 bg-red-100';
-    default: return 'text-gray-700 bg-gray-100';
+    case 'Economy': return 'bg-slate-50 text-slate-700 border-slate-200';
+    case 'Standard': return 'bg-blue-50 text-blue-700 border-blue-200';
+    case 'Express': return 'bg-violet-50 text-violet-700 border-violet-200';
+    case 'Overnight': return 'bg-rose-50 text-rose-700 border-rose-200';
+    default: return 'bg-slate-50 text-slate-700 border-slate-200';
+  }
+};
+
+const serviceIcon = (s: string) => {
+  switch (s) {
+    case 'Economy': return <Package className="h-3.5 w-3.5" />;
+    case 'Standard': return <Truck className="h-3.5 w-3.5" />;
+    case 'Express': return <Zap className="h-3.5 w-3.5" />;
+    case 'Overnight': return <Clock className="h-3.5 w-3.5" />;
+    default: return <Package className="h-3.5 w-3.5" />;
+  }
+};
+
+const statusColor = (status: string) => {
+  switch (status) {
+    case 'Pending': return 'bg-amber-50 text-amber-700 border-amber-200';
+    case 'Picked Up': return 'bg-blue-50 text-blue-700 border-blue-200';
+    case 'In Transit': return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+    case 'Out for Delivery': return 'bg-violet-50 text-violet-700 border-violet-200';
+    case 'Delivered': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+    case 'Delayed': return 'bg-orange-50 text-orange-700 border-orange-200';
+    case 'Cancelled': return 'bg-rose-50 text-rose-700 border-rose-200';
+    case 'Lost': return 'bg-red-50 text-red-700 border-red-200';
+    default: return 'bg-slate-50 text-slate-700 border-slate-200';
+  }
+};
+
+const statusIcon = (status: string) => {
+  switch (status) {
+    case 'Pending': return <Timer className="h-3.5 w-3.5" />;
+    case 'Picked Up': return <Package className="h-3.5 w-3.5" />;
+    case 'In Transit': return <Truck className="h-3.5 w-3.5" />;
+    case 'Out for Delivery': return <Navigation className="h-3.5 w-3.5" />;
+    case 'Delivered': return <CheckCircle2 className="h-3.5 w-3.5" />;
+    case 'Delayed': return <AlertCircle className="h-3.5 w-3.5" />;
+    case 'Cancelled': return <XCircle className="h-3.5 w-3.5" />;
+    case 'Lost': return <AlertTriangle className="h-3.5 w-3.5" />;
+    default: return <CircleDot className="h-3.5 w-3.5" />;
   }
 };
 
@@ -108,215 +163,536 @@ export default function ShipmentDetailPage() {
   }, [error]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/shipment-tracking">
-            <Button variant="outline" className="shadow-sm" data-testid="button-back-shipment-list">
-              <ArrowLeft className="h-4 w-4 mr-1" /> Back
-            </Button>
-          </Link>
-          <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-md">
-            <Eye className="h-7 w-7 text-white" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header Section */}
+        <div className="flex items-center justify-between bg-white rounded-xl shadow-sm p-6 border border-slate-200">
+          <div className="flex items-center gap-4">
+            <Link href="/shipment-tracking">
+              <Button variant="outline" className="shadow-sm hover:shadow-md transition-shadow" data-testid="button-back-shipment-list">
+                <ArrowLeft className="h-4 w-4 mr-2" /> Back to List
+              </Button>
+            </Link>
+            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+              <Truck className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900">Shipment Details</h1>
+              <p className="text-sm text-slate-600">Complete shipment information and tracking</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Shipment Detail</h1>
-            <p className="text-muted-foreground">Comprehensive shipment information</p>
+          <div className="flex gap-2">
+            {shipment?.trackingNumber && (
+              <Button 
+                onClick={() => window.open(`https://track.carrier.com/${shipment.trackingNumber}`, '_blank')} 
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md hover:shadow-lg transition-all"
+                data-testid="button-track-online"
+              >
+                <Globe className="h-4 w-4 mr-2" /> Track Online
+              </Button>
+            )}
           </div>
         </div>
-        <div className="flex gap-2">
-          {shipment?.trackingNumber && (
-            <Button onClick={() => window.open(`https://track.carrier.com/${shipment.trackingNumber}`, '_blank')} data-testid="button-track-online">
-              <Globe className="h-4 w-4 mr-2" /> Track Online
-            </Button>
-          )}
-        </div>
-      </div>
 
       {isLoading && (
-        <div className="grid gap-4 md:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-32 w-full" />)}
+        <div className="grid gap-6 md:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-40 w-full rounded-xl" />)}
         </div>
       )}
 
       {!isLoading && !shipment && (
-        <Card className="p-8 text-center">
-          <p className="text-gray-600 mb-4">Shipment not found.</p>
-          <Link href="/shipment-tracking"><Button>Go Back</Button></Link>
+        <Card className="p-12 text-center shadow-lg rounded-xl bg-white">
+          <div className="flex flex-col items-center gap-4">
+            <div className="h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center">
+              <Package className="h-8 w-8 text-slate-400" />
+            </div>
+            <p className="text-slate-600 text-lg font-medium mb-2">Shipment not found.</p>
+            <Link href="/shipment-tracking"><Button className="shadow-md">Go Back to List</Button></Link>
+          </div>
         </Card>
       )}
 
       {shipment && (
-        <div className="space-y-8">
-          {/* Summary Badges */}
-          <div className="flex flex-wrap gap-3">
-            <Badge variant="outline" className="text-xs">{shipment.status}</Badge>
-            <Badge className={priorityColor(shipment.priority)}>{shipment.priority}</Badge>
-            <Badge className={serviceColor(shipment.serviceType)}>{shipment.serviceType}</Badge>
-            {shipment.isInsured && <Badge variant="outline" className="text-xs">Insured</Badge>}
-            {shipment.requiresSignature && <Badge variant="outline" className="text-xs">Signature Required</Badge>}
-          </div>
+        <div className="space-y-6">
+          {/* Status Overview Card */}
+          <Card className="bg-white shadow-lg rounded-xl border-slate-200 overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-slate-200">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-white shadow-sm flex items-center justify-center">
+                    <Package className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-600 font-medium">Shipment Number</p>
+                    <p className="text-lg font-bold text-slate-900 font-mono">{shipment.shipmentNumber}</p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant={null as any} className={`${statusColor(shipment.status)} border font-semibold px-3 py-1 text-xs flex items-center gap-1.5`}>
+                    {statusIcon(shipment.status)}
+                    {shipment.status}
+                  </Badge>
+                  <Badge variant={null as any} className={`${priorityColor(shipment.priority)} border font-semibold px-3 py-1 text-xs flex items-center gap-1.5`}>
+                    {priorityIcon(shipment.priority)}
+                    {shipment.priority} Priority
+                  </Badge>
+                  <Badge variant={null as any} className={`${serviceColor(shipment.serviceType)} border font-semibold px-3 py-1 text-xs flex items-center gap-1.5`}>
+                    {serviceIcon(shipment.serviceType)}
+                    {shipment.serviceType}
+                  </Badge>
+                  {shipment.isInsured && (
+                    <Badge variant={null as any} className="bg-teal-50 text-teal-700 border-teal-200 border font-semibold px-3 py-1 text-xs flex items-center gap-1.5">
+                      <Shield className="h-3.5 w-3.5" /> Insured
+                    </Badge>
+                  )}
+                  {shipment.requiresSignature && (
+                    <Badge variant={null as any} className="bg-purple-50 text-purple-700 border-purple-200 border font-semibold px-3 py-1 text-xs flex items-center gap-1.5">
+                      <CheckCircle2 className="h-3.5 w-3.5" /> Signature Required
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </div>
+          </Card>
 
-          {/* Identification */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="p-5 space-y-3">
-              <h2 className="font-semibold text-gray-700 flex items-center gap-2"><Package className="h-4 w-4 text-blue-600" /> Identification</h2>
-              <div className="grid grid-cols-2 text-sm gap-y-2">
-                <span className="text-gray-500">Shipment #</span><span className="font-mono font-medium">{shipment.shipmentNumber}</span>
-                <span className="text-gray-500">Tracking #</span><span className="font-mono font-medium">{shipment.trackingNumber}</span>
-                {shipment.salesOrderNumber && (<><span className="text-gray-500">Sales Order</span><span>{shipment.salesOrderNumber}</span></>)}
-                {shipment.customerReference && (<><span className="text-gray-500">Customer Ref</span><span>{shipment.customerReference}</span></>)}
-                <span className="text-gray-500">Carrier</span><span>{shipment.carrierName}</span>
-                <span className="text-gray-500">Service</span><span>{shipment.serviceType}</span>
+          {/* Identification & Route Cards */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Identification Card */}
+            <Card className="bg-white shadow-md rounded-xl border-slate-200 hover:shadow-lg transition-shadow">
+              <div className="p-6 space-y-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-10 w-10 rounded-lg bg-blue-50 flex items-center justify-center">
+                    <FileText className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <h2 className="text-lg font-bold text-slate-900">Identification Details</h2>
+                </div>
+                <Separator />
+                <div className="space-y-3">
+                  <div className="flex justify-between items-start">
+                    <span className="text-sm text-slate-600 font-medium">Shipment Number</span>
+                    <span className="text-sm font-mono font-bold text-slate-900">{shipment.shipmentNumber}</span>
+                  </div>
+                  <div className="flex justify-between items-start">
+                    <span className="text-sm text-slate-600 font-medium">Tracking Number</span>
+                    <span className="text-sm font-mono font-bold text-blue-600">{shipment.trackingNumber}</span>
+                  </div>
+                  {shipment.salesOrderNumber && (
+                    <div className="flex justify-between items-start">
+                      <span className="text-sm text-slate-600 font-medium">Sales Order</span>
+                      <span className="text-sm font-semibold text-slate-900">{shipment.salesOrderNumber}</span>
+                    </div>
+                  )}
+                  {shipment.customerReference && (
+                    <div className="flex justify-between items-start">
+                      <span className="text-sm text-slate-600 font-medium">Customer Reference</span>
+                      <span className="text-sm font-semibold text-slate-900">{shipment.customerReference}</span>
+                    </div>
+                  )}
+                  <Separator className="my-2" />
+                  <div className="flex justify-between items-start">
+                    <span className="text-sm text-slate-600 font-medium">Carrier</span>
+                    <span className="text-sm font-semibold text-slate-900">{shipment.carrierName}</span>
+                  </div>
+                  <div className="flex justify-between items-start">
+                    <span className="text-sm text-slate-600 font-medium">Service Type</span>
+                    <Badge variant={null as any} className={`${serviceColor(shipment.serviceType)} border text-xs font-semibold flex items-center gap-1.5`}>
+                      {serviceIcon(shipment.serviceType)}
+                      {shipment.serviceType}
+                    </Badge>
+                  </div>
+                </div>
               </div>
             </Card>
-            <Card className="p-5 space-y-3">
-              <h2 className="font-semibold text-gray-700 flex items-center gap-2"><Navigation className="h-4 w-4 text-purple-600" /> Route & Timing</h2>
-              <div className="grid grid-cols-2 text-sm gap-y-2">
-                <span className="text-gray-500">Origin</span><span className="font-medium flex items-center gap-1"><MapPin className="h-3 w-3 text-green-600" /> {shipment.origin}</span>
-                <span className="text-gray-500">Destination</span><span className="font-medium flex items-center gap-1"><MapPin className="h-3 w-3 text-red-600" /> {shipment.destination}</span>
-                <span className="text-gray-500">Est Delivery</span><span>{formatDate(shipment.estimatedDelivery)}</span>
-                <span className="text-gray-500">Actual</span><span>{formatDate(shipment.actualDelivery)}</span>
-                <span className="text-gray-500">Current Location</span><span>{shipment.currentLocation || 'Updating...'}</span>
-                <span className="text-gray-500">Last Update</span><span>{formatDate(shipment.lastUpdate, 'MMM dd, yyyy HH:mm')}</span>
+
+            {/* Route & Timing Card */}
+            <Card className="bg-white shadow-md rounded-xl border-slate-200 hover:shadow-lg transition-shadow">
+              <div className="p-6 space-y-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-10 w-10 rounded-lg bg-violet-50 flex items-center justify-center">
+                    <Navigation className="h-5 w-5 text-violet-600" />
+                  </div>
+                  <h2 className="text-lg font-bold text-slate-900">Route & Timing</h2>
+                </div>
+                <Separator />
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-slate-600 font-medium">Origin</span>
+                    <span className="text-sm font-semibold text-slate-900 flex items-center gap-1">
+                      <MapPin className="h-4 w-4 text-emerald-600" /> {shipment.origin}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-slate-600 font-medium">Destination</span>
+                    <span className="text-sm font-semibold text-slate-900 flex items-center gap-1">
+                      <MapPin className="h-4 w-4 text-rose-600" /> {shipment.destination}
+                    </span>
+                  </div>
+                  <Separator className="my-2" />
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-slate-600 font-medium flex items-center gap-1">
+                      <Calendar className="h-3.5 w-3.5" /> Estimated Delivery
+                    </span>
+                    <span className="text-sm font-semibold text-blue-600">{formatDate(shipment.estimatedDelivery)}</span>
+                  </div>
+                  {shipment.actualDelivery && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-slate-600 font-medium flex items-center gap-1">
+                        <CheckCircle2 className="h-3.5 w-3.5" /> Actual Delivery
+                      </span>
+                      <span className="text-sm font-semibold text-emerald-600">{formatDate(shipment.actualDelivery)}</span>
+                    </div>
+                  )}
+                  <Separator className="my-2" />
+                  <div className="flex justify-between items-start">
+                    <span className="text-sm text-slate-600 font-medium">Current Location</span>
+                    <span className="text-sm font-semibold text-slate-900 text-right">{shipment.currentLocation || 'Updating...'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-slate-600 font-medium flex items-center gap-1">
+                      <Clock className="h-3.5 w-3.5" /> Last Update
+                    </span>
+                    <span className="text-sm font-semibold text-slate-900">{formatDate(shipment.lastUpdate, 'MMM dd, yyyy HH:mm')}</span>
+                  </div>
+                </div>
               </div>
             </Card>
           </div>
 
           {/* Customer Information */}
           {shipment.customerName && (
-            <Card className="p-5 space-y-3">
-              <h2 className="font-semibold text-gray-700 flex items-center gap-2"><User className="h-4 w-4 text-blue-600" /> Customer Information</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <span className="text-gray-500 text-sm">Customer Name</span>
-                  <p className="text-sm font-semibold text-gray-800">{shipment.customerName}</p>
+            <Card className="bg-white shadow-md rounded-xl border-slate-200 hover:shadow-lg transition-shadow">
+              <div className="p-6 space-y-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-10 w-10 rounded-lg bg-teal-50 flex items-center justify-center">
+                    <User className="h-5 w-5 text-teal-600" />
+                  </div>
+                  <h2 className="text-lg font-bold text-slate-900">Customer Information</h2>
                 </div>
-                {shipment.customerReference && (
-                  <div>
-                    <span className="text-gray-500 text-sm">Customer Reference</span>
-                    <p className="text-sm font-semibold text-gray-800">{shipment.customerReference}</p>
+                <Separator />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="space-y-1">
+                    <span className="text-xs text-slate-500 font-medium uppercase tracking-wide">Customer Name</span>
+                    <p className="text-sm font-semibold text-slate-900">{shipment.customerName}</p>
                   </div>
-                )}
-                {shipment.supplierName && (
-                  <div>
-                    <span className="text-gray-500 text-sm">Supplier</span>
-                    <p className="text-sm font-semibold text-gray-800">{shipment.supplierName}</p>
-                  </div>
-                )}
-                {shipment.paymentTerms && (
-                  <div>
-                    <span className="text-gray-500 text-sm">Payment Terms</span>
-                    <p className="text-sm font-semibold text-gray-800">{shipment.paymentTerms}</p>
-                  </div>
-                )}
+                  {shipment.customerReference && (
+                    <div className="space-y-1">
+                      <span className="text-xs text-slate-500 font-medium uppercase tracking-wide">Customer Reference</span>
+                      <p className="text-sm font-semibold text-slate-900">{shipment.customerReference}</p>
+                    </div>
+                  )}
+                  {shipment.supplierName && (
+                    <div className="space-y-1">
+                      <span className="text-xs text-slate-500 font-medium uppercase tracking-wide">Supplier</span>
+                      <p className="text-sm font-semibold text-slate-900">{shipment.supplierName}</p>
+                    </div>
+                  )}
+                  {shipment.paymentTerms && (
+                    <div className="space-y-1">
+                      <span className="text-xs text-slate-500 font-medium uppercase tracking-wide">Payment Terms</span>
+                      <p className="text-sm font-semibold text-slate-900">{shipment.paymentTerms}</p>
+                    </div>
+                  )}
+                </div>
               </div>
             </Card>
           )}
 
           {/* Items Information */}
           {shipment.items && shipment.items.length > 0 && (
-            <Card className="p-5 space-y-3">
-              <h2 className="font-semibold text-gray-700 flex items-center gap-2"><ShoppingCart className="h-4 w-4 text-green-600" /> Items in Shipment</h2>
-              <div className="space-y-3">
-                {shipment.items.map((item, index) => (
-                  <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1">
-                        <h4 className="font-medium text-gray-800">{item.itemDescription}</h4>
-                        {item.specialInstructions && (
-                          <p className="text-xs text-gray-600 mt-1">{item.specialInstructions}</p>
-                        )}
+            <Card className="bg-white shadow-md rounded-xl border-slate-200 hover:shadow-lg transition-shadow">
+              <div className="p-6 space-y-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-10 w-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+                    <ShoppingCart className="h-5 w-5 text-emerald-600" />
+                  </div>
+                  <h2 className="text-lg font-bold text-slate-900">Items in Shipment</h2>
+                  <Badge variant={null as any} className="bg-slate-100 text-slate-700 border-slate-200 border ml-auto font-semibold flex items-center gap-1.5">
+                    <Package className="h-3.5 w-3.5" />
+                    {shipment.items.length} {shipment.items.length === 1 ? 'Item' : 'Items'}
+                  </Badge>
+                </div>
+                <Separator />
+                <div className="space-y-3">
+                  {shipment.items.map((item, index) => (
+                    <div key={index} className="bg-slate-50 rounded-lg p-4 border border-slate-200 hover:border-slate-300 transition-colors">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge variant={null as any} className="bg-blue-50 text-blue-700 border-blue-200 border text-xs font-semibold flex items-center gap-1.5">
+                              <Hash className="h-3.5 w-3.5" />
+                              {index + 1}
+                            </Badge>
+                            <h4 className="font-semibold text-slate-900">{item.itemDescription}</h4>
+                          </div>
+                          {item.specialInstructions && (
+                            <div className="flex items-start gap-1 mt-2">
+                              <AlertTriangle className="h-3.5 w-3.5 text-amber-600 mt-0.5 flex-shrink-0" />
+                              <p className="text-xs text-slate-600 italic">{item.specialInstructions}</p>
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-right ml-4">
+                          <Badge variant={null as any} className="bg-indigo-50 text-indigo-700 border-indigo-200 border font-semibold flex items-center gap-1.5">
+                            <Box className="h-3.5 w-3.5" />
+                            {item.quantity} {item.unitOfMeasure || 'pcs'}
+                          </Badge>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <span className="text-sm font-semibold text-gray-800">
-                          {item.quantity} {item.unitOfMeasure || 'pcs'}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      {item.unitCost && (
-                        <div>
-                          <span className="text-gray-500">Unit Cost:</span>
-                          <span className="ml-2 font-medium">{shipment.currency || 'BHD'} {parseFloat(item.unitCost).toLocaleString()}</span>
+                      {(item.unitCost || item.totalCost) && (
+                        <div className="flex gap-6 mt-3 pt-3 border-t border-slate-200">
+                          {item.unitCost && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-slate-500 font-medium">Unit Cost:</span>
+                              <span className="text-sm font-semibold text-slate-900">
+                                {shipment.currency || 'BHD'} {parseFloat(item.unitCost).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </span>
+                            </div>
+                          )}
+                          {item.totalCost && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-slate-500 font-medium">Total Cost:</span>
+                              <span className="text-sm font-bold text-emerald-700">
+                                {shipment.currency || 'BHD'} {parseFloat(item.totalCost).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       )}
-                      {item.totalCost && (
-                        <div>
-                          <span className="text-gray-500">Total Cost:</span>
-                          <span className="ml-2 font-semibold text-green-700">{shipment.currency || 'BHD'} {parseFloat(item.totalCost).toLocaleString()}</span>
+                    </div>
+                  ))}
+                  
+                  {/* Financial Summary */}
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200 mt-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-semibold text-slate-700">Total Items:</span>
+                        <span className="text-sm font-bold text-slate-900">{shipment.items.length}</span>
+                      </div>
+                      {shipment.subtotal && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-semibold text-slate-700">Subtotal:</span>
+                          <span className="text-sm font-bold text-blue-700">
+                            {shipment.currency || 'BHD'} {parseFloat(shipment.subtotal).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
                         </div>
+                      )}
+                      {shipment.taxAmount && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-semibold text-slate-700">Tax Amount:</span>
+                          <span className="text-sm font-bold text-slate-700">
+                            {shipment.currency || 'BHD'} {parseFloat(shipment.taxAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                      )}
+                      {shipment.subtotal && shipment.taxAmount && (
+                        <>
+                          <Separator className="my-2" />
+                          <div className="flex items-center justify-between">
+                            <span className="text-base font-bold text-slate-900">Grand Total:</span>
+                            <span className="text-lg font-bold text-emerald-700">
+                              {shipment.currency || 'BHD'} {(parseFloat(shipment.subtotal) + parseFloat(shipment.taxAmount)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                          </div>
+                        </>
                       )}
                     </div>
                   </div>
-                ))}
-                {/* Summary */}
-                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-blue-800">Total Items:</span>
-                    <span className="text-sm font-semibold text-blue-900">{shipment.items.length}</span>
-                  </div>
-                  {shipment.subtotal && (
-                    <div className="flex items-center justify-between mt-1">
-                      <span className="text-sm font-medium text-blue-800">Subtotal:</span>
-                      <span className="text-sm font-semibold text-blue-900">{shipment.currency || 'BHD'} {parseFloat(shipment.subtotal).toLocaleString()}</span>
-                    </div>
-                  )}
-                  {shipment.taxAmount && (
-                    <div className="flex items-center justify-between mt-1">
-                      <span className="text-sm font-medium text-blue-800">Tax Amount:</span>
-                      <span className="text-sm font-semibold text-blue-900">{shipment.currency || 'BHD'} {parseFloat(shipment.taxAmount).toLocaleString()}</span>
-                    </div>
-                  )}
                 </div>
               </div>
             </Card>
           )}
 
-          {/* Package & Value */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="p-5 space-y-3">
-              <h2 className="font-semibold text-gray-700 flex items-center gap-2"><Package className="h-4 w-4 text-orange-600" /> Package</h2>
-              <div className="grid grid-cols-2 text-sm gap-y-2">
-                <span className="text-gray-500">Weight</span><span>{shipment.weight || '—'} kg</span>
-                <span className="text-gray-500">Dimensions</span><span>{shipment.dimensions || '—'}</span>
-                <span className="text-gray-500">Packages</span><span>{shipment.packageCount}</span>
-                <span className="text-gray-500">Signature</span><span>{shipment.requiresSignature ? 'Required' : 'No'}</span>
+          {/* Package, Value & Timestamps */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Package Details */}
+            <Card className="bg-white shadow-md rounded-xl border-slate-200 hover:shadow-lg transition-shadow">
+              <div className="p-6 space-y-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-10 w-10 rounded-lg bg-orange-50 flex items-center justify-center">
+                    <Box className="h-5 w-5 text-orange-600" />
+                  </div>
+                  <h2 className="text-lg font-bold text-slate-900">Package Details</h2>
+                </div>
+                <Separator />
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-slate-600 font-medium">Weight</span>
+                    <span className="text-sm font-semibold text-slate-900">{shipment.weight || '—'}</span>
+                  </div>
+                  <div className="flex justify-between items-start">
+                    <span className="text-sm text-slate-600 font-medium">Dimensions</span>
+                    <span className="text-sm font-semibold text-slate-900 text-right">{shipment.dimensions || '—'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-slate-600 font-medium">Package Count</span>
+                    <Badge variant={null as any} className="bg-indigo-50 text-indigo-700 border-indigo-200 border font-semibold flex items-center gap-1.5">
+                      <Package className="h-3.5 w-3.5" />
+                      {shipment.packageCount}
+                    </Badge>
+                  </div>
+                  <Separator className="my-2" />
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-slate-600 font-medium">Signature</span>
+                    {shipment.requiresSignature ? (
+                      <Badge variant={null as any} className="bg-emerald-50 text-emerald-700 border-emerald-200 border text-xs font-semibold flex items-center gap-1.5">
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        Required
+                      </Badge>
+                    ) : (
+                      <Badge variant={null as any} className="bg-slate-50 text-slate-700 border-slate-200 border text-xs font-semibold flex items-center gap-1.5">
+                        <Minus className="h-3.5 w-3.5" />
+                        Not Required
+                      </Badge>
+                    )}
+                  </div>
+                </div>
               </div>
             </Card>
-            <Card className="p-5 space-y-3">
-              <h2 className="font-semibold text-gray-700 flex items-center gap-2"><FileText className="h-4 w-4 text-purple-600" /> Value</h2>
-              <div className="grid grid-cols-2 text-sm gap-y-2">
-                <span className="text-gray-500">Declared</span><span>{shipment.declaredValue} {shipment.currency}</span>
-                <span className="text-gray-500">Shipping Cost</span><span>{shipment.shippingCost} {shipment.currency}</span>
-                <span className="text-gray-500">Insured</span><span>{shipment.isInsured ? 'Yes' : 'No'}</span>
-                <span className="text-gray-500">Priority</span><span>{shipment.priority}</span>
+
+            {/* Financial Details */}
+            <Card className="bg-white shadow-md rounded-xl border-slate-200 hover:shadow-lg transition-shadow">
+              <div className="p-6 space-y-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-10 w-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+                    <DollarSign className="h-5 w-5 text-emerald-600" />
+                  </div>
+                  <h2 className="text-lg font-bold text-slate-900">Financial Details</h2>
+                </div>
+                <Separator />
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-slate-600 font-medium">Declared Value</span>
+                    <span className="text-sm font-bold text-slate-900">
+                      {shipment.declaredValue} {shipment.currency}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-slate-600 font-medium">Shipping Cost</span>
+                    <span className="text-sm font-bold text-blue-600">
+                      {shipment.shippingCost} {shipment.currency}
+                    </span>
+                  </div>
+                  <Separator className="my-2" />
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-slate-600 font-medium">Insurance</span>
+                    {shipment.isInsured ? (
+                      <Badge variant={null as any} className="bg-teal-50 text-teal-700 border-teal-200 border text-xs font-semibold flex items-center gap-1.5">
+                        <Shield className="h-3.5 w-3.5" /> Insured
+                      </Badge>
+                    ) : (
+                      <Badge variant={null as any} className="bg-slate-50 text-slate-700 border-slate-200 border text-xs font-semibold flex items-center gap-1.5">
+                        <XCircle className="h-3.5 w-3.5" />
+                        Not Insured
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-slate-600 font-medium">Priority</span>
+                    <Badge variant={null as any} className={`${priorityColor(shipment.priority)} border text-xs font-semibold flex items-center gap-1.5`}>
+                      {priorityIcon(shipment.priority)}
+                      {shipment.priority}
+                    </Badge>
+                  </div>
+                </div>
               </div>
             </Card>
-            <Card className="p-5 space-y-3">
-              <h2 className="font-semibold text-gray-700 flex items-center gap-2"><BarChart3 className="h-4 w-4 text-green-600" /> Timestamps</h2>
-              <div className="grid grid-cols-2 text-sm gap-y-2">
-                <span className="text-gray-500">Created</span><span>{formatDate(shipment.createdAt)}</span>
-                <span className="text-gray-500">Updated</span><span>{formatDate(shipment.updatedAt, 'MMM dd, yyyy HH:mm')}</span>
-                <span className="text-gray-500">Last Update</span><span>{formatDate(shipment.lastUpdate, 'MMM dd, yyyy HH:mm')}</span>
-                <span className="text-gray-500">Est Lead (days)</span><span>{shipment.estimatedDelivery ? Math.max(0, Math.round((new Date(shipment.estimatedDelivery).getTime() - new Date(shipment.createdAt).getTime()) / (1000*60*60*24))) : '—'}</span>
+
+            {/* Timestamps */}
+            <Card className="bg-white shadow-md rounded-xl border-slate-200 hover:shadow-lg transition-shadow">
+              <div className="p-6 space-y-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-10 w-10 rounded-lg bg-blue-50 flex items-center justify-center">
+                    <Clock className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <h2 className="text-lg font-bold text-slate-900">Timeline</h2>
+                </div>
+                <Separator />
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-slate-600 font-medium">Created</span>
+                    <span className="text-sm font-semibold text-slate-900">{formatDate(shipment.createdAt)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-slate-600 font-medium">Updated</span>
+                    <span className="text-sm font-semibold text-slate-900">{formatDate(shipment.updatedAt, 'MMM dd, yyyy HH:mm')}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-slate-600 font-medium">Last Update</span>
+                    <span className="text-sm font-semibold text-blue-600">{formatDate(shipment.lastUpdate, 'MMM dd, yyyy HH:mm')}</span>
+                  </div>
+                  <Separator className="my-2" />
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-slate-600 font-medium">Est. Lead Time</span>
+                    <Badge variant={null as any} className="bg-violet-50 text-violet-700 border-violet-200 border font-semibold flex items-center gap-1.5">
+                      <Clock className="h-3.5 w-3.5" />
+                      {shipment.estimatedDelivery 
+                        ? `${Math.max(0, Math.round((new Date(shipment.estimatedDelivery).getTime() - new Date(shipment.createdAt).getTime()) / (1000*60*60*24)))} days`
+                        : '—'
+                      }
+                    </Badge>
+                  </div>
+                </div>
               </div>
             </Card>
           </div>
 
-          {shipment.specialInstructions && (
-            <Card className="p-5 space-y-2">
-              <h2 className="font-semibold text-gray-700">Special Instructions</h2>
-              <p className="text-sm text-gray-700 whitespace-pre-wrap bg-gray-50 p-3 rounded-md border">{shipment.specialInstructions}</p>
-            </Card>
+          {/* Special Instructions & Delivery Terms */}
+          {(shipment.specialInstructions || shipment.deliveryTerms) && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {shipment.specialInstructions && (
+                <Card className="bg-white shadow-md rounded-xl border-slate-200 hover:shadow-lg transition-shadow">
+                  <div className="p-6 space-y-4">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="h-10 w-10 rounded-lg bg-amber-50 flex items-center justify-center">
+                        <AlertTriangle className="h-5 w-5 text-amber-600" />
+                      </div>
+                      <h2 className="text-lg font-bold text-slate-900">Special Instructions</h2>
+                    </div>
+                    <Separator />
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                      <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">{shipment.specialInstructions}</p>
+                    </div>
+                  </div>
+                </Card>
+              )}
+              
+              {shipment.deliveryTerms && (
+                <Card className="bg-white shadow-md rounded-xl border-slate-200 hover:shadow-lg transition-shadow">
+                  <div className="p-6 space-y-4">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="h-10 w-10 rounded-lg bg-blue-50 flex items-center justify-center">
+                        <FileText className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <h2 className="text-lg font-bold text-slate-900">Delivery Terms</h2>
+                    </div>
+                    <Separator />
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">{shipment.deliveryTerms}</p>
+                    </div>
+                  </div>
+                </Card>
+              )}
+            </div>
           )}
 
-          {/* Status Pill */}
-          <div>
-            <StatusPill status={shipment.status.toLowerCase().replace(' ', '-')} />
-          </div>
+          {/* Status Indicator */}
+          <Card className="bg-gradient-to-r from-slate-50 to-slate-100 shadow-md rounded-xl border-slate-200">
+            <div className="p-6">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div>
+                  <p className="text-xs text-slate-600 font-medium uppercase tracking-wide mb-1">Current Status</p>
+                  <StatusPill status={shipment.status.toLowerCase().replace(' ', '-')} />
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-slate-600 font-medium uppercase tracking-wide mb-1">Last Updated</p>
+                  <p className="text-sm font-semibold text-slate-900">{formatDate(shipment.lastUpdate, 'MMM dd, yyyy HH:mm')}</p>
+                </div>
+              </div>
+            </div>
+          </Card>
         </div>
       )}
+      </div>
     </div>
   );
 }

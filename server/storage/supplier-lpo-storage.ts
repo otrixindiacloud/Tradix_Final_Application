@@ -1,5 +1,5 @@
 import { db } from "../db";
-import { supplierLpos, supplierLpoItems, salesOrders, salesOrderItems, items, suppliers, supplierQuotes, supplierQuoteItems, InsertSupplierLpo, InsertSupplierLpoItem } from "@shared/schema";
+import { supplierLpos, supplierLpoItems, salesOrders, salesOrderItems, items, suppliers, supplierQuotes, supplierQuoteItems, enquiries, customers, InsertSupplierLpo, InsertSupplierLpoItem, type SupplierLpo } from "@shared/schema";
 import { and, desc, eq, sql, inArray, or } from "drizzle-orm";
 import { BaseStorage } from "./base";
 
@@ -180,6 +180,7 @@ export class SupplierLpoStorage extends BaseStorage {
           id: supplierQuotes.id,
           quoteNumber: supplierQuotes.quoteNumber,
           supplierId: supplierQuotes.supplierId,
+          enquiryId: supplierQuotes.enquiryId,
           status: supplierQuotes.status,
           subtotal: supplierQuotes.subtotal,
           taxAmount: supplierQuotes.taxAmount,
@@ -201,6 +202,25 @@ export class SupplierLpoStorage extends BaseStorage {
     }
     
     if (!quotes.length) return out;
+    
+    // Get customer name from enquiry if available
+    let customerName: string | null = null;
+    const firstQuoteWithEnquiry = quotes.find(q => q.enquiryId);
+    if (firstQuoteWithEnquiry?.enquiryId) {
+      const enquiryResult = await db
+        .select({
+          customerId: enquiries.customerId,
+          customerName: customers.name
+        })
+        .from(enquiries)
+        .leftJoin(customers, eq(enquiries.customerId, customers.id))
+        .where(eq(enquiries.id, firstQuoteWithEnquiry.enquiryId))
+        .limit(1);
+      
+      if (enquiryResult[0]?.customerName) {
+        customerName = enquiryResult[0].customerName;
+      }
+    }
     
     // Group quotes by supplier if groupBy is 'supplier'
     const groupedQuotes = groupBy === 'supplier' 
@@ -244,6 +264,14 @@ export class SupplierLpoStorage extends BaseStorage {
       const taxAmount = supplierQuotes.reduce((sum, quote) => sum + Number(quote.taxAmount || 0), 0);
       const totalAmount = supplierQuotes.reduce((sum, quote) => sum + Number(quote.totalAmount || 0), 0);
       
+      // Prepare notes with customer name
+      let lpoNotes = supplierQuotes[0].notes || '';
+      if (customerName) {
+        // Add customer name to notes in text format
+        const customerInfo = `Customer: ${customerName}`;
+        lpoNotes = lpoNotes ? `${customerInfo}\n\n${lpoNotes}` : customerInfo;
+      }
+      
       // Create LPO
       const lpo = await this.createSupplierLpo({
         supplierId: supplierId === 'single' ? supplierQuotes[0].supplierId : supplierId,
@@ -263,7 +291,7 @@ export class SupplierLpoStorage extends BaseStorage {
         paymentTerms: supplierQuotes[0].paymentTerms,
         deliveryTerms: supplierQuotes[0].deliveryTerms,
         termsAndConditions: supplierQuotes[0].terms,
-        specialInstructions: supplierQuotes[0].notes,
+        specialInstructions: lpoNotes,
       } as any);
       
       // Create LPO items from quote items

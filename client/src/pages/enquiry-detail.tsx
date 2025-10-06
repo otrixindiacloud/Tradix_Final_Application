@@ -285,24 +285,9 @@ export default function EnquiryDetail() {
             Convert to Quotation
           </Button>
 
-          <Button 
-            variant="outline" 
-            data-testid="button-edit"
-            onClick={() => setShowEditDialog(true)}
-          >
-            <Edit className="h-4 w-4 mr-2" />
-            Edit
-          </Button>
+          
 
-          <Button
-            variant="destructive"
-            onClick={() => deleteEnquiry.mutate()}
-            disabled={deleteEnquiry.isPending}
-            data-testid="button-delete"
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Delete
-          </Button>
+          
         </div>
       </div>
 
@@ -408,7 +393,7 @@ export default function EnquiryDetail() {
                     </div>
                   </div>
                 </div>
-
+  
                 <div>
                   <h4 className="font-medium mb-2">Customer Information</h4>
                   <div className="space-y-3">
@@ -704,4 +689,4 @@ export default function EnquiryDetail() {
     </AlertDialog>
   </div>
    );
-  }
+  } 
