@@ -276,6 +276,33 @@ export default function PurchaseInvoiceDetailPage() {
     }
   });
 
+  // Fetch goods receipt items for additional details
+  const { data: goodsReceiptItems = [] } = useQuery<any[]>({
+    queryKey: ["/api/goods-receipt-headers", invoice?.goodsReceiptId, "items"],
+    enabled: !!invoice?.goodsReceiptId,
+    queryFn: async () => {
+      const resp = await fetch(`/api/goods-receipt-headers/${invoice?.goodsReceiptId}/items`);
+      if (!resp.ok) throw new Error("Failed to fetch goods receipt items");
+      return resp.json();
+    }
+  });
+
+  // Merge invoice items with goods receipt items for complete details
+  const enrichedItems = invoiceItems.map(invItem => {
+    const grItem = goodsReceiptItems.find((gr: any) => gr.id === invItem.goodsReceiptItemId);
+    return {
+      ...invItem,
+      // Add goods receipt specific details
+      quantityExpected: grItem?.quantityExpected,
+      quantityReceived: grItem?.quantityReceived,
+      quantityDamaged: grItem?.quantityDamaged,
+      quantityShort: grItem?.quantityShort,
+      discrepancyReason: grItem?.discrepancyReason,
+      scannedAt: grItem?.scannedAt,
+      receivedAt: grItem?.receivedAt,
+    };
+  });
+
   const paymentHistory: PaymentEntry[] = [];
 
   // Handler functions
@@ -650,57 +677,184 @@ export default function PurchaseInvoiceDetailPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Package className="h-5 w-5" />
-                Invoice Items ({invoiceItems.length})
+                Invoice Items ({enrichedItems.length})
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left py-3 px-2 font-medium text-gray-600">Item</th>
-                      <th className="text-center py-3 px-2 font-medium text-gray-600">Qty</th>
-                      <th className="text-right py-3 px-2 font-medium text-gray-600">Unit Price</th>
-                      <th className="text-right py-3 px-2 font-medium text-gray-600">Discount</th>
-                      <th className="text-right py-3 px-2 font-medium text-gray-600">Tax</th>
-                      <th className="text-right py-3 px-2 font-medium text-gray-600">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {invoiceItems.map((item: any) => (
-                      <tr key={item.id} className="border-b">
-                        <td className="py-3 px-2">
-                          <div>
-                            <p className="font-medium">{item.itemDescription || item.description || 'Item'}</p>
-                            {item.supplierCode && <p className="text-sm text-gray-600">{item.supplierCode}</p>}
-                            {item.barcode && (<p className="text-xs text-gray-500">Barcode: {item.barcode}</p>)}
-                            {item.notes && (<p className="text-xs text-gray-500 italic">{item.notes}</p>)}
+              <div className="space-y-4">
+                {enrichedItems.map((item: any, index: number) => (
+                  <div key={item.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <Package className="h-5 w-5 text-blue-600" />
                           </div>
-                        </td>
-                        <td className="text-center py-3 px-2">
-                          {item.quantity} {item.unitOfMeasure || ''}
-                        </td>
-                        <td className="text-right py-3 px-2">
-                          {invoice?.currency} {parseFloat(item.unitPrice || '0').toLocaleString()}
-                        </td>
-                        <td className="text-right py-3 px-2">
-                          {item.discountAmount && parseFloat(item.discountAmount) > 0 ? (
-                            <span className="text-green-600">-{invoice?.currency} {parseFloat(item.discountAmount).toLocaleString()}</span>
-                          ) : '-'}
-                        </td>
-                        <td className="text-right py-3 px-2">
-                          {invoice?.currency} {parseFloat(item.taxAmount || '0').toLocaleString()}
-                        </td>
-                        <td className="text-right py-3 px-2 font-medium">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-gray-900 text-base mb-1">
+                              {item.itemDescription || item.description || `Item ${index + 1}`}
+                            </h4>
+                            <div className="flex flex-wrap gap-2 mb-2">
+                              {item.supplierCode && (
+                                <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                                  <span className="font-medium">Code:</span> {item.supplierCode}
+                                </Badge>
+                              )}
+                              {item.barcode && (
+                                <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+                                  <span className="font-medium">Barcode:</span> {item.barcode}
+                                </Badge>
+                              )}
+                              {item.storageLocation && (
+                                <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                                  <span className="font-medium">Location:</span> {item.storageLocation}
+                                </Badge>
+                              )}
+                              {item.condition && (
+                                <Badge 
+                                  variant="outline" 
+                                  className={`text-xs ${
+                                    item.condition === 'Good' ? 'bg-green-50 text-green-700 border-green-200' :
+                                    item.condition === 'Damaged' ? 'bg-red-50 text-red-700 border-red-200' :
+                                    'bg-gray-50 text-gray-700 border-gray-200'
+                                  }`}
+                                >
+                                  <span className="font-medium">Condition:</span> {item.condition}
+                                </Badge>
+                              )}
+                            </div>
+                            
+                            {/* Goods Receipt Details */}
+                            {(item.quantityExpected || item.quantityReceived) && (
+                              <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3 mb-3">
+                                <p className="text-xs font-semibold text-indigo-900 mb-2">📦 Goods Receipt Details</p>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                                  {item.quantityExpected && (
+                                    <div>
+                                      <p className="text-indigo-600 text-xs font-medium">Expected</p>
+                                      <p className="font-semibold text-indigo-900">{item.quantityExpected}</p>
+                                    </div>
+                                  )}
+                                  {item.quantityReceived !== undefined && (
+                                    <div>
+                                      <p className="text-green-600 text-xs font-medium">Received</p>
+                                      <p className="font-semibold text-green-700">{item.quantityReceived}</p>
+                                    </div>
+                                  )}
+                                  {item.quantityDamaged > 0 && (
+                                    <div>
+                                      <p className="text-red-600 text-xs font-medium">Damaged</p>
+                                      <p className="font-semibold text-red-700">{item.quantityDamaged}</p>
+                                    </div>
+                                  )}
+                                  {item.quantityShort > 0 && (
+                                    <div>
+                                      <p className="text-orange-600 text-xs font-medium">Short</p>
+                                      <p className="font-semibold text-orange-700">{item.quantityShort}</p>
+                                    </div>
+                                  )}
+                                </div>
+                                {item.discrepancyReason && (
+                                  <div className="mt-2 pt-2 border-t border-indigo-200">
+                                    <p className="text-xs text-indigo-600 font-medium">Discrepancy:</p>
+                                    <p className="text-sm text-indigo-900 italic">{item.discrepancyReason}</p>
+                                  </div>
+                                )}
+                                {(item.scannedAt || item.receivedAt) && (
+                                  <div className="mt-2 pt-2 border-t border-indigo-200 flex flex-wrap gap-3 text-xs">
+                                    {item.scannedAt && (
+                                      <div>
+                                        <span className="text-indigo-600 font-medium">Scanned:</span>{' '}
+                                        <span className="text-indigo-900">{formatDate(new Date(item.scannedAt), 'MMM dd, yyyy HH:mm')}</span>
+                                      </div>
+                                    )}
+                                    {item.receivedAt && (
+                                      <div>
+                                        <span className="text-indigo-600 font-medium">Received:</span>{' '}
+                                        <span className="text-indigo-900">{formatDate(new Date(item.receivedAt), 'MMM dd, yyyy HH:mm')}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Invoice Details Grid */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3 text-sm">
+                              <div>
+                                <p className="text-gray-500 text-xs font-medium">Invoiced Qty</p>
+                                <p className="font-semibold text-gray-900">
+                                  {item.quantity} {item.unitOfMeasure || 'units'}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-gray-500 text-xs font-medium">Unit Price</p>
+                                <p className="font-semibold text-gray-900">
+                                  {invoice?.currency} {parseFloat(item.unitPrice || '0').toLocaleString()}
+                                </p>
+                              </div>
+                              {item.discountAmount && parseFloat(item.discountAmount) > 0 && (
+                                <div>
+                                  <p className="text-gray-500 text-xs font-medium">Discount</p>
+                                  <p className="font-semibold text-green-600">
+                                    -{invoice?.currency} {parseFloat(item.discountAmount).toLocaleString()}
+                                    {item.discountRate && ` (${item.discountRate}%)`}
+                                  </p>
+                                </div>
+                              )}
+                              <div>
+                                <p className="text-gray-500 text-xs font-medium">Tax</p>
+                                <p className="font-semibold text-gray-900">
+                                  {invoice?.currency} {parseFloat(item.taxAmount || '0').toLocaleString()}
+                                  {item.taxRate && ` (${item.taxRate}%)`}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Batch and Expiry Info */}
+                            {(item.batchNumber || item.expiryDate) && (
+                              <div className="mt-3 pt-3 border-t border-gray-200">
+                                <div className="flex flex-wrap gap-4 text-sm">
+                                  {item.batchNumber && (
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-gray-500 font-medium">Batch:</span>
+                                      <span className="text-gray-900 font-mono">{item.batchNumber}</span>
+                                    </div>
+                                  )}
+                                  {item.expiryDate && (
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-gray-500 font-medium">Expiry:</span>
+                                      <span className="text-gray-900">{formatDate(new Date(item.expiryDate), 'MMM dd, yyyy')}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Item Notes */}
+                            {item.notes && (
+                              <div className="mt-3 pt-3 border-t border-gray-200">
+                                <p className="text-xs text-gray-500 font-medium mb-1">Notes:</p>
+                                <p className="text-sm text-gray-700 italic">{item.notes}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Item Total */}
+                      <div className="text-right ml-4">
+                        <p className="text-xs text-gray-500 font-medium mb-1">Total</p>
+                        <p className="text-xl font-bold text-gray-900">
                           {invoice?.currency} {parseFloat(item.totalPrice || '0').toLocaleString()}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              <Separator className="my-4" />
+              <Separator className="my-6" />
 
               {/* Invoice Totals */}
               <div className="space-y-2">
@@ -769,18 +923,7 @@ export default function PurchaseInvoiceDetailPage() {
           </Card>
 
           {/* Payment History (not available yet) */}
-          <Card className="shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5" />
-                Payment History
-              </CardTitle>
-            </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-600 text-center py-4">Payment integration coming soon</p>
-                  )
-            </CardContent>
-          </Card>
+          
 
 
           {/* Quick Actions (limited - derived data) */}

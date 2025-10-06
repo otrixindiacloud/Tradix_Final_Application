@@ -354,20 +354,23 @@ export function registerQuotationRoutes(app: Express) {
       // Get quotation with items and customer
       const quotation = await storage.getQuotation(quotationId);
       if (!quotation) {
+        console.error(`Quotation not found: ${quotationId}`);
         return res.status(404).json({ message: "Quotation not found" });
       }
 
       const items = await storage.getQuotationItems(quotationId);
       const customer = await storage.getCustomer(quotation.customerId);
       if (!customer) {
+        console.error(`Customer not found for quotation: ${quotationId}, customerId: ${quotation.customerId}`);
         return res.status(404).json({ message: "Customer not found" });
       }
 
+      console.log(`Generating PDF for quotation: ${quotationId}, items count: ${items.length}`);
       const result = generateQuotationPdf({ quotation: quotation as any, items: items as any, customer: customer as any });
-  sendPdf(res, result);
+      sendPdf(res, result);
     } catch (error) {
       console.error("Error generating quotation PDF:", error);
-      res.status(500).json({ message: "Failed to generate quotation PDF" });
+      res.status(500).json({ message: "Failed to generate quotation PDF", error: error instanceof Error ? error.message : String(error) });
     }
   });
 }

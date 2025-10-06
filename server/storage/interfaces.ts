@@ -669,4 +669,5 @@ export interface IStorage extends
   IAuditStorage,
   IDashboardStorage,
   IPricingStorage {
+  approveGoodsReceipt(id: string, approvedBy: any): unknown;
 }

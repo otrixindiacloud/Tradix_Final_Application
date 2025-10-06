@@ -1183,14 +1183,13 @@ export default function GoodsReceipt() {
                     </div>
                   );
                 }
-              },
-              { key: "storageLocation", header: "Storage Location" },
+              }, 
               {
                 key: "lpoValue",
                 header: "LPO Value",
                 render: (v: any, row: any) => {
                   return (
-                    <div className="text-sm text-right">
+                    <div className="text-sm text-left">
                       <div className="font-medium text-gray-900">
                         {row.lpoTotalAmount ? formatCurrency(parseFloat(row.lpoTotalAmount)) : "-"}
                       </div>
@@ -1267,26 +1266,21 @@ export default function GoodsReceipt() {
       </Card>
       {/* Dialogs for view/edit/delete actions */}
       <Dialog open={viewDialogOpen} onOpenChange={(open) => { setViewDialogOpen(open); if (!open) setSelectedReceipt(null); }}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <div className="flex items-center gap-2 mb-2">
-              <Eye className="h-5 w-5 text-blue-600" />
-              <DialogTitle className="text-blue-700">Goods Receipt Details</DialogTitle>
-            </div>
-          </DialogHeader>
-          {selectedReceipt && (
-            <div className="space-y-4 p-2">
-              <div className="grid grid-cols-2 gap-4 bg-blue-50 rounded p-3 mb-2">
-                <div><span className="font-semibold text-gray-700">Receipt Number:</span> <span className="font-mono">{selectedReceipt.receiptNumber || selectedReceipt.id}</span></div>
-                <div><span className="font-semibold text-gray-700">LPO Number:</span> <span className="font-mono text-blue-600">{selectedReceipt.lpoNumber || selectedReceipt.supplierLpoId || "N/A"}</span></div>
-                <div><span className="font-semibold text-gray-700">LPO ID:</span> <span className="font-mono">{selectedReceipt.supplierLpoId}</span></div>
-                <div><span className="font-semibold text-gray-700">Supplier Name:</span> <span className="font-mono">{selectedReceipt.supplierName || "Unknown Supplier"}</span></div>
-                <div><span className="font-semibold text-gray-700">Storage Location:</span> <span className="font-mono">{selectedReceipt.storageLocation || "-"}</span></div>
-                <div><span className="font-semibold text-gray-700">LPO Value:</span> <span className="font-mono">{
-                  selectedReceipt.lpoTotalAmount ? `${formatCurrency(parseFloat(selectedReceipt.lpoTotalAmount))} ${selectedReceipt.lpoCurrency || ''}` : "-"
-                }</span></div>
-                <div><span className="font-semibold text-gray-700">Status:</span> {
-                  (() => {
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader className="border-b pb-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg">
+                  <Eye className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <DialogTitle className="text-2xl font-bold text-gray-900">Goods Receipt Details</DialogTitle>
+                  <p className="text-sm text-gray-500 mt-1">Complete receipt information and status</p>
+                </div>
+              </div>
+              {selectedReceipt && (
+                <div>
+                  {(() => {
                     let color = "bg-gray-100 text-gray-700 border-gray-300";
                     const v = selectedReceipt.status;
                     if (v === "Draft") color = "bg-yellow-100 text-yellow-700 border-yellow-300";
@@ -1295,31 +1289,214 @@ export default function GoodsReceipt() {
                     else if (v === "Complete" || v === "Completed") color = "bg-green-100 text-green-700 border-green-300";
                     else if (v === "Approved") color = "bg-emerald-100 text-emerald-700 border-emerald-300";
                     else if (v === "Discrepancy") color = "bg-red-100 text-red-700 border-red-300";
-                    return <Badge className={color}>{v || selectedReceipt.id}</Badge>;
-                  })()
-                }</div>
-                <div><span className="font-semibold text-gray-700">Created At:</span> <span className="font-mono">{selectedReceipt.createdAt ? formatDate(selectedReceipt.createdAt) : "-"}</span></div>
-                <div><span className="font-semibold text-gray-700">Updated At:</span> <span className="font-mono">{selectedReceipt.updatedAt ? formatDate(selectedReceipt.updatedAt) : "-"}</span></div>
-                <div><span className="font-semibold text-gray-700">Notes:</span> <span className="font-mono">{selectedReceipt.notes || "-"}</span></div>
-              </div>
-              {Array.isArray(selectedReceipt.items) && selectedReceipt.items.length > 0 && (
-                <div>
-                  <div className="font-semibold text-gray-700 mb-1">Items</div>
-                  <ul className="text-xs bg-white rounded border p-2">
-                    {selectedReceipt.items.map((item: any, idx: number) => (
-                      <li key={idx} className="mb-1 flex gap-2 items-center">
-                        <Package className="h-3 w-3 text-orange-500" />
-                        <span className="font-mono">{item.barcode || item.id}</span> — {item.description || item.itemId || item.id} (Qty: {item.quantity})
-                        {selectedReceipt.lpoNumber && (
-                          <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-1 py-0.5 rounded">
-                            LPO: {selectedReceipt.lpoNumber}
-                          </span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
+                    return <Badge className={`${color} text-sm px-3 py-1.5 font-semibold`}>{v}</Badge>;
+                  })()}
                 </div>
               )}
+            </div>
+          </DialogHeader>
+          {selectedReceipt && (
+            <div className="space-y-6 pt-6">
+              {/* Receipt Information Section */}
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-6 border border-blue-200 shadow-sm">
+                <div className="flex items-center gap-2 mb-4">
+                  <Package className="h-5 w-5 text-blue-600" />
+                  <h3 className="text-lg font-bold text-gray-900">Receipt Information</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white rounded-lg p-4 shadow-sm border border-blue-100">
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Receipt Number</p>
+                    <p className="text-lg font-bold text-gray-900 font-mono">{selectedReceipt.receiptNumber || selectedReceipt.id}</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 shadow-sm border border-blue-100">
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">LPO Number</p>
+                    <p className="text-lg font-bold text-blue-600 font-mono">{selectedReceipt.lpoNumber || selectedReceipt.supplierLpoId || "N/A"}</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 shadow-sm border border-blue-100">
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Supplier Name</p>
+                    <p className="text-lg font-semibold text-gray-900">{selectedReceipt.supplierName || "Unknown Supplier"}</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 shadow-sm border border-blue-100">
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">LPO Value</p>
+                    <p className="text-lg font-bold text-green-600">
+                      {selectedReceipt.lpoTotalAmount ? `${formatCurrency(parseFloat(selectedReceipt.lpoTotalAmount))} ${selectedReceipt.lpoCurrency || ''}` : "-"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Storage & Logistics Section */}
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl p-6 border border-purple-200 shadow-sm">
+                <div className="flex items-center gap-2 mb-4">
+                  <Truck className="h-5 w-5 text-purple-600" />
+                  <h3 className="text-lg font-bold text-gray-900">Storage & Logistics</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-white rounded-lg p-4 shadow-sm border border-purple-100">
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Storage Location</p>
+                    <p className="text-base font-semibold text-gray-900">{selectedReceipt.storageLocation || "-"}</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 shadow-sm border border-purple-100">
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Expected Delivery</p>
+                    <p className="text-base font-semibold text-gray-900">
+                      {selectedReceipt.expectedDeliveryDate ? formatDate(selectedReceipt.expectedDeliveryDate) : "-"}
+                    </p>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 shadow-sm border border-purple-100">
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Actual Delivery</p>
+                    <p className="text-base font-semibold text-gray-900">
+                      {selectedReceipt.actualDeliveryDate ? formatDate(selectedReceipt.actualDeliveryDate) : "-"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Timestamps & Tracking Section */}
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-xl p-6 border border-gray-200 shadow-sm">
+                <div className="flex items-center gap-2 mb-4">
+                  <Clock className="h-5 w-5 text-gray-600" />
+                  <h3 className="text-lg font-bold text-gray-900">Timestamps & Tracking</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Created At</p>
+                    <p className="text-base font-semibold text-gray-900">{selectedReceipt.createdAt ? formatDate(selectedReceipt.createdAt) : "-"}</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Updated At</p>
+                    <p className="text-base font-semibold text-gray-900">{selectedReceipt.updatedAt ? formatDate(selectedReceipt.updatedAt) : "-"}</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Received By</p>
+                    <p className="text-base font-semibold text-gray-900">{selectedReceipt.receivedBy || "-"}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Notes Section */}
+              {selectedReceipt.notes && (
+                <div className="bg-gradient-to-br from-amber-50 to-amber-100/50 rounded-xl p-6 border border-amber-200 shadow-sm">
+                  <div className="flex items-center gap-2 mb-3">
+                    <AlertTriangle className="h-5 w-5 text-amber-600" />
+                    <h3 className="text-lg font-bold text-gray-900">Notes & Comments</h3>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 shadow-sm border border-amber-100">
+                    <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{selectedReceipt.notes}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Items Section */}
+              {Array.isArray(selectedReceipt.items) && selectedReceipt.items.length > 0 && (
+                <div className="bg-gradient-to-br from-green-50 to-green-100/50 rounded-xl p-6 border border-green-200 shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <Package className="h-5 w-5 text-green-600" />
+                      <h3 className="text-lg font-bold text-gray-900">Received Items</h3>
+                    </div>
+                    <Badge className="bg-green-100 text-green-700 border-green-300 text-sm px-3 py-1">
+                      {selectedReceipt.items.length} {selectedReceipt.items.length === 1 ? 'Item' : 'Items'}
+                    </Badge>
+                  </div>
+                  <div className="space-y-3 max-h-80 overflow-y-auto">
+                    {selectedReceipt.items.map((item: any, idx: number) => (
+                      <div key={idx} className="bg-white rounded-lg p-4 shadow-sm border border-green-100 hover:shadow-md transition-shadow">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <Package className="h-5 w-5 text-green-600" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2 mb-2">
+                              <div className="flex-1">
+                                <p className="font-semibold text-gray-900 text-base">
+                                  {item.description || item.itemDescription || item.itemId || `Item ${idx + 1}`}
+                                </p>
+                                {item.barcode && (
+                                  <p className="text-xs font-mono text-gray-500 mt-1">
+                                    Barcode: {item.barcode}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="text-right">
+                                <p className="text-sm font-medium text-gray-500">Quantity</p>
+                                <p className="text-xl font-bold text-green-600">{item.quantity || item.quantityReceived || 0}</p>
+                              </div>
+                            </div>
+                            <div className="flex flex-wrap gap-2 items-center">
+                              {item.supplierCode && (
+                                <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                                  Code: {item.supplierCode}
+                                </Badge>
+                              )}
+                              {selectedReceipt.lpoNumber && (
+                                <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+                                  LPO: {selectedReceipt.lpoNumber}
+                                </Badge>
+                              )}
+                              {item.unitCost && (
+                                <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-700 border-emerald-200">
+                                  Unit Cost: {formatCurrency(parseFloat(item.unitCost))}
+                                </Badge>
+                              )}
+                              {item.condition && (
+                                <Badge variant="outline" className={`text-xs ${
+                                  item.condition === 'Good' ? 'bg-green-50 text-green-700 border-green-200' :
+                                  item.condition === 'Damaged' ? 'bg-red-50 text-red-700 border-red-200' :
+                                  'bg-gray-50 text-gray-700 border-gray-200'
+                                }`}>
+                                  {item.condition}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Summary Statistics */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 shadow-lg text-white">
+                  <p className="text-xs font-medium opacity-90 uppercase tracking-wide mb-1">Total Items</p>
+                  <p className="text-3xl font-bold">{selectedReceipt.totalItems || selectedReceipt.items?.length || 0}</p>
+                </div>
+                <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-4 shadow-lg text-white">
+                  <p className="text-xs font-medium opacity-90 uppercase tracking-wide mb-1">Qty Expected</p>
+                  <p className="text-3xl font-bold">{selectedReceipt.totalQuantityExpected || 0}</p>
+                </div>
+                <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-4 shadow-lg text-white">
+                  <p className="text-xs font-medium opacity-90 uppercase tracking-wide mb-1">Qty Received</p>
+                  <p className="text-3xl font-bold">{selectedReceipt.totalQuantityReceived || 0}</p>
+                </div>
+                <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-4 shadow-lg text-white">
+                  <p className="text-xs font-medium opacity-90 uppercase tracking-wide mb-1">Discrepancy</p>
+                  <p className="text-3xl font-bold">{selectedReceipt.discrepancyFlag ? 'Yes' : 'No'}</p>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => setViewDialogOpen(false)}
+                  className="px-6"
+                >
+                  Close
+                </Button>
+                <Button
+                  onClick={() => {
+                    setViewDialogOpen(false);
+                    setSelectedReceipt(selectedReceipt);
+                    setStatusChangeDialogOpen(true);
+                  }}
+                  className="px-6 bg-purple-600 hover:bg-purple-700"
+                >
+                  <Clock className="h-4 w-4 mr-2" />
+                  Change Status
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>

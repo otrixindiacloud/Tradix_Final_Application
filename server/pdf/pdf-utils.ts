@@ -429,21 +429,21 @@ export function generateQuotationPdf(ctx: QuotationPdfContext): PdfGenerateResul
     },
     columnStyles: {
       0: { cellWidth: 8, halign:'center' }, // S.I.
-      1: { cellWidth: 45, halign: 'left' }, // Item Description & Specifications
+      1: { cellWidth: 60, halign: 'left' }, // Item Description & Specifications - INCREASED WIDTH
       2: { cellWidth: 12, halign:'center' }, // Qty
       3: { cellWidth: 15, halign:'right' }, // Unit Rate
       4: { cellWidth: 10, halign:'center' }, // Disc. %
       5: { cellWidth: 12, halign:'right' }, // Disc. Amt
-      6: { cellWidth: 18, halign:'right' }, // Net Total
+      6: { cellWidth: 16, halign:'right' }, // Net Total
       7: { cellWidth: 10, halign:'center' }, // VAT %
-      8: { cellWidth: 15, halign:'right' }  // VAT Amt
+      8: { cellWidth: 14, halign:'right' }  // VAT Amt
     },
     alternateRowStyles: {
       fillColor: [248, 249, 250] // Light gray alternating rows
     },
-    margin: { left: 20, right: 20 },
+    margin: { left: 15, right: 15 },
     pageBreak: 'auto',
-    tableWidth: 'wrap',
+    tableWidth: 100,
     showHead: 'everyPage'
   });
 

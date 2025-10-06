@@ -180,7 +180,8 @@ export class SupplierLpoStorage extends BaseStorage {
           id: supplierQuotes.id,
           quoteNumber: supplierQuotes.quoteNumber,
           supplierId: supplierQuotes.supplierId,
-          enquiryId: supplierQuotes.enquiryId,
+          // Remove enquiryId from select to avoid column error
+          // enquiryId: supplierQuotes.enquiryId,
           status: supplierQuotes.status,
           subtotal: supplierQuotes.subtotal,
           taxAmount: supplierQuotes.taxAmount,
@@ -203,8 +204,9 @@ export class SupplierLpoStorage extends BaseStorage {
     
     if (!quotes.length) return out;
     
-    // Get customer name from enquiry if available
+    // Get customer name from enquiry if available - COMMENTED OUT since enquiryId column doesn't exist yet
     let customerName: string | null = null;
+    /*
     const firstQuoteWithEnquiry = quotes.find(q => q.enquiryId);
     if (firstQuoteWithEnquiry?.enquiryId) {
       const enquiryResult = await db
@@ -221,6 +223,7 @@ export class SupplierLpoStorage extends BaseStorage {
         customerName = enquiryResult[0].customerName;
       }
     }
+    */
     
     // Group quotes by supplier if groupBy is 'supplier'
     const groupedQuotes = groupBy === 'supplier' 

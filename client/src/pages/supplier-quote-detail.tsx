@@ -266,10 +266,10 @@ export default function SupplierQuoteDetailPage() {
         </div>
         
         <div className="flex space-x-2">
-          <Button variant="outline">
+          {/* <Button variant="outline">
             <Download className="h-4 w-4 mr-2" />
             Export
-          </Button>
+          </Button> */}
           {quote?.status === "Under Review" && (
             <>
               <Button 
@@ -523,8 +523,6 @@ export default function SupplierQuoteDetailPage() {
                   <th className="text-left p-2">Quantity</th>
                   <th className="text-left p-2">Unit Price</th>
                   <th className="text-left p-2">Total Price</th>
-                  <th className="text-left p-2">Lead Time</th>
-                  <th className="text-left p-2">Warranty</th>
                 </tr>
               </thead>
               <tbody>
@@ -546,8 +544,6 @@ export default function SupplierQuoteDetailPage() {
                         <td className="p-2">{item.quantity} {item.unitOfMeasure || 'pcs'}</td>
                         <td className="p-2">{quote?.currency} {parseFloat(item.unitPrice).toLocaleString()}</td>
                         <td className="p-2 font-medium">{quote?.currency} {parseFloat(item.lineTotal).toLocaleString()}</td>
-                        <td className="p-2">{item.leadTime || '-'}</td>
-                        <td className="p-2">{item.warranty || '-'}</td>
                       </tr>
                     ))}
                     <tr className="border-t-2 border-gray-200 font-semibold">

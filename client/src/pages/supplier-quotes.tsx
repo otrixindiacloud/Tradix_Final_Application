@@ -360,7 +360,14 @@ export default function SupplierQuotesPage() {
         const errorMessage = errorData.message || `HTTP ${res.status}: Failed to delete supplier quote`;
         throw new Error(errorMessage);
       }
-      return await res.json();
+      
+      // Check if response has content before parsing JSON
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        const text = await res.text();
+        return text ? JSON.parse(text) : { message: "Deleted successfully" };
+      }
+      return { message: "Deleted successfully" };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/supplier-quotes"] });
@@ -844,33 +851,33 @@ export default function SupplierQuotesPage() {
         </div>
       ),
     },
-    {
-      key: "supplierQuotationDocument",
-      header: "Quotation",
-      className: "text-center",
-      render: (_: any, quote: SupplierQuote) => (
-        <div className="text-center">
-          {quote.supplierQuotationDocument ? (
-            <div className="flex items-center justify-center gap-2">
-              <FileText className="h-4 w-4 text-blue-500" />
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  window.open(quote.supplierQuotationDocument, '_blank');
-                }}
-                className="text-blue-600 hover:text-blue-800 p-1 h-auto"
-              >
-                View
-              </Button>
-            </div>
-          ) : (
-            <span className="text-gray-400 text-sm">No Document</span>
-          )}
-        </div>
-      ),
-    },
+    // {
+    //   key: "supplierQuotationDocument",
+    //   header: "Quotation",
+    //   className: "text-center",
+    //   render: (_: any, quote: SupplierQuote) => (
+    //     <div className="text-center">
+    //       {quote.supplierQuotationDocument ? (
+    //         <div className="flex items-center justify-center gap-2">
+    //           <FileText className="h-4 w-4 text-blue-500" />
+    //           <Button
+    //             variant="ghost"
+    //             size="sm"
+    //             onClick={(e) => {
+    //               e.stopPropagation();
+    //               window.open(quote.supplierQuotationDocument, '_blank');
+    //             }}
+    //             className="text-blue-600 hover:text-blue-800 p-1 h-auto"
+    //           >
+    //             View
+    //           </Button>
+    //         </div>
+    //       ) : (
+    //         <span className="text-gray-400 text-sm">No Document</span>
+    //       )}
+    //     </div>
+    //   ),
+    // },
     // {
     //   key: "evaluationScore",
     //   header: "Score",
@@ -931,21 +938,7 @@ export default function SupplierQuotesPage() {
           >
             <Edit className="h-4 w-4 text-blue-600" />
           </Button>
-          {quote.status === "Accepted" && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                generateLpoFromQuotesMutation.mutate([quote.id]);
-              }}
-              disabled={generateLpoFromQuotesMutation.isPending}
-              data-testid={`button-generate-lpo-${quote.id}`}
-              title="Generate LPO from this accepted quote"
-            >
-              <FileText className="h-4 w-4 text-green-600" />
-            </Button>
-          )}
+      
           <Button
             variant="ghost"
             size="sm"
@@ -1506,38 +1499,43 @@ export default function SupplierQuotesPage() {
               </div>
               <div>
                 <Label htmlFor="edit-customerId">Customer</Label>
-                <Select
-                  value={editQuote.customerId}
-                  onValueChange={(value) => setEditQuote({ ...editQuote, customerId: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select customer" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {customersLoading ? (
-                      <SelectItem value="" disabled>Loading customers...</SelectItem>
-                    ) : customersError ? (
-                      <SelectItem value="" disabled>Error loading customers</SelectItem>
-                    ) : (
-                      customers.map((customer: Customer) => (
-                        <SelectItem key={customer.id} value={customer.id}>
-                          {customer.name}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
+                <Input
+                  id="edit-customerId"
+                  value={(() => {
+                    if (editingQuote?.customerId) {
+                      const customerObj = customers.find((c: Customer) => c.id === editingQuote.customerId);
+                      if (customerObj && customerObj.name) {
+                        return customerObj.name;
+                      }
+                    }
+                    // Extract customer name from notes
+                    const notes = editingQuote?.notes || '';
+                    const customerMatch = notes.match(/from customer\s+([^,\s]+)/i);
+                    return customerMatch && customerMatch[1] ? customerMatch[1] : 'No Customer';
+                  })()}
+                  readOnly
+                  className="bg-gray-50 cursor-not-allowed"
+                />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="edit-rfqNumber">RFQ Number</Label>
-                <Input
-                  id="edit-rfqNumber"
-                  value={editQuote.rfqNumber}
-                  onChange={(e) => setEditQuote({ ...editQuote, rfqNumber: e.target.value })}
-                  placeholder="RFQ-2024-XXX"
-                />
+                <Label htmlFor="edit-rfqNumber">Status</Label>
+                <Select
+                  value={editQuote.priority}
+                  onValueChange={(value: "Low" | "Medium" | "High" | "Urgent") => 
+                    setEditQuote({ ...editQuote, priority: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Low">Low</SelectItem>
+                    <SelectItem value="Medium">Medium</SelectItem>
+                    <SelectItem value="High">High</SelectItem>
+                    <SelectItem value="Urgent">Urgent</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label htmlFor="edit-priority">Priority</Label>
@@ -1558,27 +1556,7 @@ export default function SupplierQuotesPage() {
                 </Select>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="edit-status">Status</Label>
-                <Select
-                  value={editQuote.status}
-                  onValueChange={(value: "Draft" | "Sent" | "Accepted" | "Rejected" | "Expired") => 
-                    setEditQuote({ ...editQuote, status: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Draft">Draft</SelectItem>
-                    <SelectItem value="Sent">Sent</SelectItem>
-                    <SelectItem value="Accepted">Accepted</SelectItem>
-                    <SelectItem value="Rejected">Rejected</SelectItem>
-                    <SelectItem value="Expired">Expired</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            
             <div>
               <Label htmlFor="edit-validUntil">Valid Until</Label>
               <Input

@@ -37,16 +37,18 @@ export default function EditLpoDialog({ lpo, open, onClose, onSave }: {
               value={form.lpoNumber || ""}
               onChange={e => handleChange("lpoNumber", e.target.value)}
               disabled={saving}
+              readOnly
+              className="bg-gray-50 cursor-not-allowed"
             />
           </div>
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium mb-1">Supplier ID</label>
             <Input
               value={form.supplierId || ""}
               onChange={e => handleChange("supplierId", e.target.value)}
               disabled={saving}
             />
-          </div>
+          </div> */}
           <div>
             <label className="block text-sm font-medium mb-1">Total Amount</label>
             <Input

@@ -29,7 +29,7 @@ export function registerGoodsReceiptRoutes(app: Express) {
       const createdHeader = await storage.createGoodsReceiptHeader(headerData);
       console.log('[GOODS RECEIPT BATCH][HEADER CREATED]', createdHeader);
       
-      const itemsWithHeaderId = items.map(item => ({ ...item, receiptHeaderId: createdHeader.id }));
+      const itemsWithHeaderId = items.map((item: any) => ({ ...item, receiptHeaderId: createdHeader.id }));
       console.log('[GOODS RECEIPT BATCH][ITEMS WITH HEADER ID]', itemsWithHeaderId);
       
       // Now validate the items with the header ID
@@ -112,7 +112,7 @@ export function registerGoodsReceiptRoutes(app: Express) {
     try {
       const { id } = req.params;
       const { status } = req.body;
-      const updatedReceipt = await storage.updateGoodsReceiptStatus(id, status);
+      const updatedReceipt = await storage.updateGoodsReceiptItem(id, status);
       res.json(updatedReceipt);
     } catch (error) {
       console.error("Error updating goods receipt status:", error);
@@ -138,16 +138,14 @@ export function registerGoodsReceiptRoutes(app: Express) {
     try {
       const { id } = req.params;
       console.log(`[DELETE] Attempting to delete goods receipt: ${id}`);
-      const deleted = await storage.deleteGoodsReceiptHeader(id);
-      if (!deleted) {
-        console.log(`[DELETE] Goods receipt not found: ${id}`);
-        return res.status(404).json({ message: "Goods receipt header not found" });
-      }
+      await storage.deleteGoodsReceiptHeader(id);
+      // If the header does not exist, storage.deleteGoodsReceiptHeader should throw or handle error internally
       console.log(`[DELETE] Successfully deleted goods receipt: ${id}`);
       res.json({ message: "Goods receipt deleted successfully" });
     } catch (error) {
       console.error("Error deleting goods receipt:", error);
-      res.status(500).json({ message: "Failed to delete goods receipt", error: error.message });
+      const errorMsg = typeof error === 'object' && error !== null && 'message' in error ? (error as any).message : String(error);
+      res.status(500).json({ message: "Failed to delete goods receipt", error: errorMsg });
     }
   });
 

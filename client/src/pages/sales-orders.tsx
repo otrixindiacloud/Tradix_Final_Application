@@ -631,10 +631,10 @@ export default function SalesOrders() {
   const userId = useUserId();
   const orderStats = {
     draft: salesOrders.filter((o) => o.status === "Draft").length,
-    confirmed: salesOrders.filter((o) => o.status === "Confirmed").length,
     processing: salesOrders.filter((o) => o.status === "Processing").length,
     shipped: salesOrders.filter((o) => o.status === "Shipped").length,
     delivered: salesOrders.filter((o) => o.status === "Delivered").length,
+    confirmed: salesOrders.filter((o) => o.status === "Confirmed").length,
     pendingLpo: salesOrders.filter((o) => o.customerLpoRequired && o.customerLpoValidationStatus === "Pending").length,
   };
 

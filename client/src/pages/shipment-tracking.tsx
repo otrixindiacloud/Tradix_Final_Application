@@ -1378,27 +1378,37 @@ export default function ShipmentTrackingPage() {
               </div>
             ) : availableLpos && availableLpos.length > 0 ? (
               /* Display top 3 available LPOs with compact UI */
-              availableLpos.slice(0, 3).map((lpo: any) => (
-                <LpoItemComponent
-                  key={lpo.id}
-                  lpo={lpo}
-                  fetchLpoItems={fetchLpoItems}
-                  onGenerate={(lpoData) => {
-                    setConfirmedLpoData(lpoData);
-                    setShowGenerateForm(true);
-                  }}
-                />
-              ))
-            ) : availableLpos && availableLpos.length > 3 ? (
-              /* Show message if there are more LPOs available */
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-                <div className="flex items-center justify-center gap-2 text-blue-700">
-                  <Package className="h-4 w-4" />
-                  <span className="text-sm font-medium">
-                    {availableLpos.length - 3} more LPOs available for shipment tracking
-                  </span>
-                </div>
-              </div>
+              <>
+                {availableLpos.slice(0, 3).map((lpo: any) => (
+                  <LpoItemComponent
+                    key={lpo.id}
+                    lpo={lpo}
+                    fetchLpoItems={fetchLpoItems}
+                    onGenerate={(lpoData) => {
+                      setConfirmedLpoData(lpoData);
+                      setShowGenerateForm(true);
+                    }}
+                  />
+                ))}
+                {availableLpos.length > 3 && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                    <div className="flex items-center justify-center gap-2 text-blue-700">
+                      <Package className="h-4 w-4" />
+                      <span className="text-sm font-medium">
+                        {availableLpos.length - 3} more LPOs available for shipment tracking
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowAllLposDialog(true)}
+                        className="ml-2 text-blue-600 border-blue-300 hover:bg-blue-100"
+                      >
+                        View All
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
             ) : confirmedLpoData ? (
               /* Fallback to sessionStorage data if API fails */
               <div className="bg-white border border-green-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
