@@ -211,25 +211,43 @@ export function registerSupplierQuoteRoutes(app: Express) {
   app.delete("/api/supplier-quotes/:id", async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
+      console.log(`[DELETE /api/supplier-quotes/${id}] Starting deletion process`);
       
       // Check if the quotation is referenced by other records
       const hasReferences = await SupplierQuoteStorage.hasReferences(id);
       if (hasReferences) {
+        console.log(`[DELETE /api/supplier-quotes/${id}] Has references, cannot delete`);
         return res.status(400).json({ 
           message: "Cannot delete supplier quote. It is referenced by sales orders, customer acceptances, or purchase orders. Please delete the related records first." 
         });
       }
       
+      console.log(`[DELETE /api/supplier-quotes/${id}] No references found, proceeding with deletion`);
       const result = await SupplierQuoteStorage.delete(id);
+      console.log(`[DELETE /api/supplier-quotes/${id}] Deletion successful`);
       res.json(result);
     } catch (error) {
-      console.error("Error deleting supplier quote:", error);
-      if (error instanceof Error && 'code' in error && error.code === '23503') {
-        return res.status(400).json({ 
-          message: "Cannot delete supplier quote. It is referenced by other records. Please delete the related records first." 
+      console.error(`[DELETE /api/supplier-quotes/${req.params.id}] Error:`, error);
+      
+      if (error instanceof Error) {
+        if (error.message === 'Supplier quote not found') {
+          return res.status(404).json({ message: "Supplier quote not found" });
+        }
+        if ('code' in error && error.code === '23503') {
+          return res.status(400).json({ 
+            message: "Cannot delete supplier quote. It is referenced by other records. Please delete the related records first." 
+          });
+        }
+        return res.status(500).json({ 
+          message: "Failed to delete supplier quote", 
+          error: error.message 
         });
       }
-      res.status(500).json({ message: "Failed to delete supplier quote" });
+      
+      res.status(500).json({ 
+        message: "Failed to delete supplier quote",
+        error: "Unknown error occurred"
+      });
     }
   });
 

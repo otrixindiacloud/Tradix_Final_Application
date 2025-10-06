@@ -28,6 +28,12 @@ import type { SalesOrder, SalesOrderItem, Quotation, Customer } from "@shared/sc
 
 interface SalesOrderWithRelations extends SalesOrder {
   customer?: Customer;
+  quotation?: {
+    id: string;
+    quoteNumber: string;
+    revision: number;
+    status: string;
+  };
   items?: SalesOrderItem[];
   isAmended?: boolean;
   amendedBy?: string;
@@ -412,6 +418,26 @@ export default function SalesOrders() {
       render: (value: string | null) => (
         <span className="font-mono text-sm">{value || "-"}</span>
       ),
+    },
+    {
+      key: "quotation",
+      header: "Quotation",
+      render: (_: any, order: SalesOrderWithRelations) => {
+        const quotation = order.quotation;
+        if (!quotation || !quotation.quoteNumber) {
+          return <span className="text-gray-400">-</span>;
+        }
+        return (
+          <div className="flex flex-col">
+            <span className="font-mono text-sm text-blue-600 font-medium">
+              {quotation.quoteNumber}
+            </span>
+            {quotation.revision > 1 && (
+              <span className="text-xs text-gray-500">v{quotation.revision}</span>
+            )}
+          </div>
+        );
+      },
     },
     {
       key: "sourceType",
