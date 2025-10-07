@@ -2327,7 +2327,7 @@ var init_customer_storage = __esm({
         }
         let query = db.select().from(customers);
         if (conditions.length > 0) {
-          query = query.where(and(...conditions));
+          return query.where(and(...conditions)).limit(limit).offset(offset).orderBy(desc(customers.createdAt));
         }
         return query.limit(limit).offset(offset).orderBy(desc(customers.createdAt));
       }
@@ -2355,10 +2355,7 @@ var init_customer_storage = __esm({
       )`);
         }
         let query = db.select({ count: count() }).from(customers);
-        if (conditions.length > 0) {
-          query = query.where(and(...conditions));
-        }
-        const result = await query;
+        const result = conditions.length > 0 ? await query.where(and(...conditions)) : await query;
         return Number(result[0]?.count || 0);
       }
       async searchCustomers(searchParams, limit = 50, offset = 0) {
@@ -2455,7 +2452,9 @@ var init_customer_storage = __esm({
             ...recentEnquiries,
             ...recentQuotations,
             ...recentSalesOrders
-          ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, limit);
+          ].sort(
+            (a, b) => new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime()
+          ).slice(0, limit);
           return allActivities;
         } catch (error) {
           console.error("Error getting customer recent activities:", error);
@@ -2568,6 +2567,14 @@ var init_customer_storage = __esm({
         const [customer] = await db.update(customers).set({ ...customerData, updatedAt: /* @__PURE__ */ new Date() }).where(eq3(customers.id, id)).returning();
         await this.logAuditEvent("customer", id, "update", void 0, oldCustomer, customer);
         return customer;
+      }
+      async deleteCustomer(id) {
+        const oldCustomer = await this.getCustomer(id);
+        await db.update(customers).set({
+          isActive: false,
+          updatedAt: /* @__PURE__ */ new Date()
+        }).where(eq3(customers.id, id));
+        await this.logAuditEvent("customer", id, "delete", void 0, oldCustomer, { isActive: false });
       }
       async logAuditEvent(entityType, entityId, action, userId, oldData, newData) {
         await db.insert(auditLogs).values({
@@ -3300,6 +3307,10 @@ var init_inventory_storage = __esm({
 });
 
 // server/storage/enquiry-storage.ts
+var enquiry_storage_exports = {};
+__export(enquiry_storage_exports, {
+  EnquiryStorage: () => EnquiryStorage
+});
 import { eq as eq7, desc as desc5, and as and4, or as or2, like as like2, count as count3, sql as sql4 } from "drizzle-orm";
 var EnquiryStorage;
 var init_enquiry_storage = __esm({
@@ -5179,6 +5190,19 @@ var init_quotation_storage = __esm({
             await this.updateQuotation(quotation.id, updatedQuotation);
           }
           const refreshed = await this.getQuotation(quotation.id);
+          console.log("=== ATTEMPTING TO UPDATE ENQUIRY STATUS ===");
+          console.log("Enquiry ID:", enquiryId);
+          try {
+            const { EnquiryStorage: EnquiryStorage2 } = await Promise.resolve().then(() => (init_enquiry_storage(), enquiry_storage_exports));
+            console.log("EnquiryStorage imported successfully");
+            const enquiryStorage = new EnquiryStorage2();
+            console.log("EnquiryStorage instance created");
+            const updateResult = await enquiryStorage.updateEnquiry(enquiryId, { status: "Quoted" });
+            console.log("\u2705 Successfully updated enquiry status to 'Quoted'", updateResult);
+          } catch (statusError) {
+            console.error("\u274C Error updating enquiry status:", statusError);
+            console.error("Error details:", JSON.stringify(statusError, Object.getOwnPropertyNames(statusError), 2));
+          }
           console.log("Successfully generated quotation with items from enquiry");
           return refreshed || quotation;
         } catch (error) {
@@ -7262,6 +7286,8 @@ var init_supplier_lpo_storage = __esm({
             id: supplierQuotes.id,
             quoteNumber: supplierQuotes.quoteNumber,
             supplierId: supplierQuotes.supplierId,
+            // Remove enquiryId from select to avoid column error
+            // enquiryId: supplierQuotes.enquiryId,
             status: supplierQuotes.status,
             subtotal: supplierQuotes.subtotal,
             taxAmount: supplierQuotes.taxAmount,
@@ -7278,6 +7304,7 @@ var init_supplier_lpo_storage = __esm({
           }
         }
         if (!quotes.length) return out;
+        let customerName = null;
         const groupedQuotes = groupBy === "supplier" ? quotes.reduce((acc, quote) => {
           const supplierId = quote.supplierId;
           if (!acc[supplierId]) acc[supplierId] = [];
@@ -7308,6 +7335,13 @@ var init_supplier_lpo_storage = __esm({
           const subtotal = supplierQuotes3.reduce((sum4, quote) => sum4 + Number(quote.subtotal || 0), 0);
           const taxAmount = supplierQuotes3.reduce((sum4, quote) => sum4 + Number(quote.taxAmount || 0), 0);
           const totalAmount = supplierQuotes3.reduce((sum4, quote) => sum4 + Number(quote.totalAmount || 0), 0);
+          let lpoNotes = supplierQuotes3[0].notes || "";
+          if (customerName) {
+            const customerInfo = `Customer: ${customerName}`;
+            lpoNotes = lpoNotes ? `${customerInfo}
+
+${lpoNotes}` : customerInfo;
+          }
           const lpo = await this.createSupplierLpo({
             supplierId: supplierId === "single" ? supplierQuotes3[0].supplierId : supplierId,
             status: "Draft",
@@ -7326,7 +7360,7 @@ var init_supplier_lpo_storage = __esm({
             paymentTerms: supplierQuotes3[0].paymentTerms,
             deliveryTerms: supplierQuotes3[0].deliveryTerms,
             termsAndConditions: supplierQuotes3[0].terms,
-            specialInstructions: supplierQuotes3[0].notes
+            specialInstructions: lpoNotes
           });
           const lpoItems = quoteItems.map((item, idx) => ({
             supplierLpoId: lpo.id,
@@ -8690,6 +8724,9 @@ var init_modular_storage_clean = __esm({
       async updateCustomer(id, customer) {
         return this.customerStorage.updateCustomer(id, customer);
       }
+      async deleteCustomer(id) {
+        return this.customerStorage.deleteCustomer(id);
+      }
       async getCustomerDetails(id) {
         return this.customerStorage.getCustomerDetails(id);
       }
@@ -9469,12 +9506,12 @@ var init_modular_storage_clean = __esm({
       }
       async getDashboardStats() {
         try {
-          const [enquiries3, quotations3, salesOrders3] = await Promise.all([
+          const [enquiries4, quotations3, salesOrders3] = await Promise.all([
             this.enquiryStorage.getEnquiries(100, 0),
             this.quotationStorage.getQuotations(100, 0),
             this.salesOrderStorage.getSalesOrders(100, 0)
           ]);
-          const activeEnquiries = enquiries3.filter((e) => e.status === "New" || e.status === "In Progress").length;
+          const activeEnquiries = enquiries4.filter((e) => e.status === "New" || e.status === "In Progress").length;
           const pendingQuotes = quotations3.filter((q) => q.status === "Draft" || q.status === "Sent").length;
           const activeOrders = salesOrders3.filter((o) => o.status === "Confirmed" || o.status === "Processing" || o.status === "Shipped").length;
           const currentMonth = (/* @__PURE__ */ new Date()).getMonth();
@@ -9510,13 +9547,13 @@ var init_modular_storage_clean = __esm({
       }
       async getCustomerStats() {
         try {
-          const customers4 = await this.customerStorage.getCustomers(1e3, 0);
+          const customers5 = await this.customerStorage.getCustomers(1e3, 0);
           const stats = {
-            totalCustomers: customers4.length,
-            activeCustomers: customers4.filter((c) => c.isActive).length,
-            retailCustomers: customers4.filter((c) => c.customerType === "Retail").length,
-            wholesaleCustomers: customers4.filter((c) => c.customerType === "Wholesale").length,
-            totalCreditLimit: customers4.reduce((sum4, c) => sum4 + (Number(c.creditLimit) || 0), 0),
+            totalCustomers: customers5.length,
+            activeCustomers: customers5.filter((c) => c.isActive).length,
+            retailCustomers: customers5.filter((c) => c.customerType === "Retail").length,
+            wholesaleCustomers: customers5.filter((c) => c.customerType === "Wholesale").length,
+            totalCreditLimit: customers5.reduce((sum4, c) => sum4 + (Number(c.creditLimit) || 0), 0),
             averageCreditLimit: 0
           };
           stats.averageCreditLimit = stats.totalCustomers > 0 ? stats.totalCreditLimit / stats.totalCustomers : 0;
@@ -10449,14 +10486,14 @@ function registerCustomerRoutes(app2) {
           delete filters[key];
         }
       });
-      let customers4;
+      let customers5;
       let totalCount;
       if (filters.name || filters.email) {
-        customers4 = await storage.searchCustomers({ name: filters.name, email: filters.email }, limit, offset);
+        customers5 = await storage.searchCustomers({ name: filters.name, email: filters.email }, limit, offset);
         const stats = await storage.getCustomerStats();
         totalCount = stats.totalCustomers;
       } else {
-        customers4 = await storage.getCustomers(limit, offset, filters);
+        customers5 = await storage.getCustomers(limit, offset, filters);
         totalCount = await storage.getCustomersCount(filters);
       }
       const pagination = {
@@ -10466,7 +10503,7 @@ function registerCustomerRoutes(app2) {
         pages: Math.ceil(totalCount / limit)
       };
       res.json({
-        customers: customers4,
+        customers: customers5,
         pagination
       });
     } catch (error) {
@@ -10566,6 +10603,15 @@ function registerCustomerRoutes(app2) {
       }
       console.error("Error updating customer:", error);
       res.status(500).json({ message: "Failed to update customer" });
+    }
+  });
+  app2.delete("/api/customers/:id", async (req, res) => {
+    try {
+      await storage.deleteCustomer(req.params.id);
+      res.json({ message: "Customer deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting customer:", error);
+      res.status(500).json({ message: "Failed to delete customer" });
     }
   });
 }
@@ -10774,8 +10820,8 @@ function registerEnquiryRoutes(app2) {
           delete filters[key];
         }
       });
-      const enquiries3 = await storage.getEnquiries(limit, offset, Object.keys(filters).length > 0 ? filters : void 0);
-      res.json(enquiries3);
+      const enquiries4 = await storage.getEnquiries(limit, offset, Object.keys(filters).length > 0 ? filters : void 0);
+      res.json(enquiries4);
     } catch (error) {
       console.error("Error fetching enquiries:", error);
       res.status(500).json({ message: "Failed to fetch enquiries" });
@@ -11374,104 +11420,122 @@ function buildEnhancedInvoicePdf(ctx) {
   const doc = baseDoc();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
-  doc.setFontSize(8).setFont("helvetica", "normal");
-  doc.setTextColor(0, 0, 0);
-  doc.text("Page No. 1 of 1", 15, 15);
-  doc.text("Original Copy", pageWidth - 15, 15, { align: "right" });
+  doc.setFontSize(22).setFont("helvetica", "bold");
+  doc.setTextColor(218, 165, 32);
+  doc.text("GOLDEN TAG", 15, 20);
+  doc.setFontSize(9).setFont("helvetica", "normal");
+  doc.setTextColor(60, 60, 60);
+  doc.text("Trading & Supply Company", 15, 27);
+  doc.text("Kingdom of Bahrain", 15, 32);
+  doc.text("Mobile: +973 XXXX XXXX", 15, 37);
+  doc.text("Email: info@goldentag.com", 15, 42);
   doc.setFontSize(18).setFont("helvetica", "bold");
-  doc.text("TAX INVOICE", pageWidth / 2, 35, { align: "center" });
-  const companyY = 45;
-  doc.setFontSize(10).setFont("helvetica", "bold");
-  doc.text("GOLDEN STYLE W.L.L", pageWidth / 2, companyY, { align: "center" });
+  doc.setTextColor(0, 0, 0);
+  doc.text("INVOICE", pageWidth - 15, 20, { align: "right" });
   doc.setFontSize(9).setFont("helvetica", "normal");
-  doc.text("Building 728, Road 2012, Town 2564, Bahrain", pageWidth / 2, companyY + 6, { align: "center" });
-  doc.text("Mobile: +973 12345678 | Email: info@goldenstyle.com", pageWidth / 2, companyY + 12, { align: "center" });
-  doc.text("VAT Reg No: 100004744700962", pageWidth / 2, companyY + 18, { align: "center" });
-  const invoiceDetailsY = companyY + 35;
-  doc.setFontSize(9).setFont("helvetica", "normal");
-  doc.text("Invoice Number:", 15, invoiceDetailsY);
-  doc.text(`INV-${invoice.invoiceNumber}`, 70, invoiceDetailsY);
-  doc.text("Invoice Date:", 15, invoiceDetailsY + 6);
-  doc.text(fmtDate(invoice.invoiceDate || invoice.createdAt), 70, invoiceDetailsY + 6);
-  doc.text("Due Date:", 15, invoiceDetailsY + 12);
-  doc.text(fmtDate(invoice.dueDate), 70, invoiceDetailsY + 12);
-  doc.text("Place of Supply:", 15, invoiceDetailsY + 18);
-  doc.text("Bahrain", 70, invoiceDetailsY + 18);
-  doc.text("Reverse Charge:", 15, invoiceDetailsY + 24);
-  doc.text("No", 70, invoiceDetailsY + 24);
-  const billingY = invoiceDetailsY + 35;
-  doc.setFontSize(10).setFont("helvetica", "bold");
-  doc.text("Billing Details", 15, billingY);
-  doc.setFontSize(9).setFont("helvetica", "normal");
-  const customerName = customer.customerName || customer.name || "Customer";
-  doc.text(customerName, 15, billingY + 8);
-  const billingInfo = `GSTIN: ${customer.taxId || "N/A"} | Mobile: ${customer.phone || "N/A"}`;
-  const emailInfo = `Email: ${customer.email || "N/A"}`;
-  doc.text(billingInfo, 15, billingY + 14);
-  doc.text(emailInfo, 15, billingY + 20);
-  doc.text(customer.address || "Address not provided", 15, billingY + 26);
-  doc.setFontSize(10).setFont("helvetica", "bold");
-  doc.text("Shipping Details", pageWidth / 2 + 15, billingY);
-  doc.setFontSize(9).setFont("helvetica", "normal");
-  doc.text(customerName, pageWidth / 2 + 15, billingY + 8);
-  doc.text(billingInfo, pageWidth / 2 + 15, billingY + 14);
-  doc.text(emailInfo, pageWidth / 2 + 15, billingY + 20);
-  doc.text(customer.address || "Address not provided", pageWidth / 2 + 15, billingY + 26);
-  const tableStartY = billingY + 35;
+  doc.setTextColor(60, 60, 60);
+  const invoiceDate = fmtDate(invoice.invoiceDate || invoice.createdAt);
+  doc.text(`Date: ${invoiceDate}`, pageWidth - 15, 30, { align: "right" });
+  doc.text(`Invoice #: ${invoice.invoiceNumber}`, pageWidth - 15, 35, { align: "right" });
+  const dueDate = fmtDate(invoice.dueDate);
+  if (dueDate) {
+    doc.text(`Due Date: ${dueDate}`, pageWidth - 15, 40, { align: "right" });
+  }
+  doc.setDrawColor(218, 165, 32);
+  doc.setLineWidth(0.5);
+  doc.line(15, 48, pageWidth - 15, 48);
+  doc.setFontSize(8).setFont("helvetica", "normal");
+  const customerName = customer.customerName || customer.name || "";
+  const salesPerson = invoice.salesPerson || invoice.createdBy || "";
+  const paymentTerms = invoice.terms ? invoice.terms.split("\n")[0].slice(0, 40) : "30 Days";
+  const invoiceDateFormatted = fmtDate(invoice.invoiceDate || invoice.createdAt);
+  const dueDateFormatted = fmtDate(invoice.dueDate);
+  autoTable(doc, {
+    startY: 56,
+    head: [["Invoice No", "Invoice Date", "Customer Name", "Sales Person", "Payment Terms", "Due Date"]],
+    body: [[
+      invoice.invoiceNumber,
+      invoiceDateFormatted,
+      customerName,
+      String(salesPerson).slice(0, 12),
+      paymentTerms,
+      dueDateFormatted || "N/A"
+    ]],
+    styles: { fontSize: 7, cellPadding: 2 },
+    headStyles: { fillColor: [255, 255, 255], textColor: 0, fontStyle: "bold" },
+    margin: { left: 15, right: 15 }
+  });
+  const afterMeta = doc.lastAutoTable.finalY + 5;
+  const custName = customer.customerName || customer.name || "N/A";
+  const custAddress = customer.address || "N/A";
+  const custEmail = customer.email || "N/A";
+  const custPhone = customer.phone || customer.phone || "N/A";
+  const contactPerson = invoice.contactPerson || customer.contactPerson || "N/A";
+  const contactEmail = customer.contactEmail || customer.email || "N/A";
+  const contactPhone = customer.contactPhone || customer.phone || "N/A";
+  const addressBlock = [
+    custName,
+    custAddress,
+    custEmail,
+    custPhone
+  ].filter((line) => line && line !== "N/A").join("\n");
+  const contactBlock = [
+    contactPerson,
+    contactEmail,
+    contactPhone
+  ].filter((line) => line && line !== "N/A").join("\n");
+  autoTable(doc, {
+    startY: afterMeta,
+    body: [
+      [
+        { content: "Customer Name & Address:", styles: { fontStyle: "bold", fontSize: 8, halign: "left", cellPadding: { top: 3, left: 5, right: 5, bottom: 1 } } },
+        { content: "Customer Contact Person:", styles: { fontStyle: "bold", fontSize: 8, halign: "left", cellPadding: { top: 3, left: 5, right: 5, bottom: 1 } } }
+      ],
+      [
+        { content: addressBlock || "No information available", styles: { fontSize: 7, halign: "left", cellPadding: { top: 1, left: 5, right: 5, bottom: 3 } } },
+        { content: contactBlock || "No contact information", styles: { fontSize: 7, halign: "left", cellPadding: { top: 1, left: 5, right: 5, bottom: 3 } } }
+      ]
+    ],
+    styles: { cellPadding: 0, lineColor: [200, 200, 200], lineWidth: 0.1 },
+    columnStyles: { 0: { cellWidth: (pageWidth - 30) / 2 }, 1: { cellWidth: (pageWidth - 30) / 2 } },
+    theme: "grid",
+    margin: { left: 15, right: 15 }
+  });
+  const afterAddress = doc.lastAutoTable.finalY + 5;
   const currency = invoice.currency || "BHD";
-  const rows = items4.map((it, i) => {
+  const itemRows = items4.map((it, i) => {
     const qty = Number(it.quantity) || 0;
-    const rate = Number(it.unitPrice) || 0;
-    const discountRate = Number(it.discountPercentage) || 0;
-    const discountAmount2 = rate * qty * discountRate / 100;
-    const netAmount = rate * qty - discountAmount2;
-    const vatRate = Number(it.taxRate) || 10;
-    const vatAmount = netAmount * vatRate / 100;
-    const lineTotal = netAmount + vatAmount;
+    const unit = Number(it.unitPrice) || 0;
+    const discPerc = Number(it.discountPercentage) || Number(invoice.discountPercentage) || 0;
+    const gross = qty * unit;
+    const discAmt = gross * discPerc / 100;
+    const net = gross - discAmt;
+    const vatPerc = Number(it.taxRate) || Number(invoice.taxRate) || 0;
+    const vatAmt = net * vatPerc / 100;
     return [
       (i + 1).toString(),
-      it.description || "Item Description",
-      it.hsnCode || "N/A",
-      qty.toFixed(2),
-      "Pcs",
-      rate.toFixed(2),
-      discountRate > 0 ? `${discountRate.toFixed(2)}%` : "0.00%",
-      `${vatRate}%`,
-      lineTotal.toFixed(2)
+      it.description || "Product Description",
+      `${qty.toFixed(2)} PCS`,
+      `${currency} ${unit.toFixed(3)}`,
+      discPerc > 0 ? `${discPerc.toFixed(1)}%` : "0%",
+      `${currency} ${discAmt.toFixed(2)}`,
+      `${currency} ${net.toFixed(2)}`,
+      vatPerc > 0 ? `${vatPerc.toFixed(1)}%` : "0%",
+      `${currency} ${vatAmt.toFixed(2)}`
     ];
   });
-  const totalDiscount = items4.reduce((sum4, it) => {
-    const qty = Number(it.quantity) || 0;
-    const rate = Number(it.unitPrice) || 0;
-    const discountRate = Number(it.discountPercentage) || 0;
-    return sum4 + rate * qty * discountRate / 100;
-  }, 0);
-  if (totalDiscount > 0) {
-    rows.push(["", "", "", "", "", "", "Discount", "", `-${totalDiscount.toFixed(2)}`]);
-  }
-  const grandTotal = items4.reduce((sum4, it) => {
-    const qty = Number(it.quantity) || 0;
-    const rate = Number(it.unitPrice) || 0;
-    const discountRate = Number(it.discountPercentage) || 0;
-    const discountAmount2 = rate * qty * discountRate / 100;
-    const netAmount = rate * qty - discountAmount2;
-    const vatRate = Number(it.taxRate) || 10;
-    const vatAmount = netAmount * vatRate / 100;
-    return sum4 + netAmount + vatAmount;
-  }, 0) - totalDiscount;
-  rows.push(["", "", "", "", "", "", "Total", "", grandTotal.toFixed(2)]);
   autoTable(doc, {
-    startY: tableStartY,
-    head: [["Sr.", "Item Description", "HSN/SAC", "Qty", "Unit", "List Price", "Disc.", "Tax %", "Amount (\u20B9)"]],
-    body: rows,
+    startY: afterAddress,
+    head: [["S.I.", "Item Description & Specifications", "Qty", "Unit Rate", "Disc. %", "Disc. Amt", "Net Total", "VAT %", "VAT Amt"]],
+    body: itemRows,
     styles: {
-      fontSize: 8,
-      cellPadding: 6,
+      fontSize: 7,
+      cellPadding: 4,
+      valign: "middle",
       lineColor: [0, 0, 0],
       lineWidth: 0.1,
-      valign: "middle",
       overflow: "linebreak",
-      cellWidth: 15,
+      cellWidth: "wrap",
       textColor: [0, 0, 0]
     },
     headStyles: {
@@ -11479,75 +11543,94 @@ function buildEnhancedInvoicePdf(ctx) {
       textColor: [0, 0, 0],
       fontStyle: "bold",
       halign: "center",
-      fontSize: 9,
-      cellPadding: 5,
+      fontSize: 8,
+      cellPadding: 4,
       lineColor: [0, 0, 0],
       lineWidth: 0.1
     },
     columnStyles: {
-      0: { cellWidth: 8, halign: "center" },
-      // Sr.
-      1: { cellWidth: 50, halign: "left" },
-      // Item Description
+      0: { cellWidth: 10, halign: "center" },
+      1: { cellWidth: 55, halign: "left" },
       2: { cellWidth: 18, halign: "center" },
-      // HSN/SAC
-      3: { cellWidth: 12, halign: "center" },
-      // Qty
-      4: { cellWidth: 10, halign: "center" },
-      // Unit
+      3: { cellWidth: 20, halign: "right" },
+      4: { cellWidth: 12, halign: "center" },
       5: { cellWidth: 18, halign: "right" },
-      // List Price
-      6: { cellWidth: 12, halign: "center" },
-      // Disc.
+      6: { cellWidth: 20, halign: "right" },
       7: { cellWidth: 12, halign: "center" },
-      // Tax %
-      8: { cellWidth: 18, halign: "right" }
-      // Amount
+      8: { cellWidth: 20, halign: "right" }
     },
-    margin: { left: 10, right: 10 },
+    alternateRowStyles: {
+      fillColor: [248, 249, 250]
+    },
+    margin: { left: 15, right: 15 },
     pageBreak: "auto",
-    tableWidth: "wrap",
+    tableWidth: 150,
     showHead: "everyPage"
   });
-  const afterItemsTable = doc.lastAutoTable?.finalY || tableStartY + 40;
-  const subtotal = Number(invoice.subtotal) || items4.reduce((sum4, it) => sum4 + (Number(it.quantity) || 0) * (Number(it.unitPrice) || 0), 0);
-  const discountPerc = Number(invoice.discountPercentage) || 0;
-  const discountAmount = Number(invoice.discountAmount) || subtotal * discountPerc / 100;
-  const taxRate = Number(invoice.taxRate) || 10;
-  const taxAmount = Number(invoice.taxAmount) || (subtotal - discountAmount) * taxRate / 100;
-  const total = Number(invoice.totalAmount) || subtotal - discountAmount + taxAmount;
-  const paidAmount = Number(invoice.paidAmount) || 0;
-  const outstandingAmount = Number(invoice.outstandingAmount) || total - paidAmount;
-  const summaryY = afterItemsTable + 10;
-  doc.setFontSize(9).setFont("helvetica", "bold");
-  doc.text("Total in Words:", 15, summaryY);
-  doc.setFont("helvetica", "normal");
-  const amountWords = `Rs. ${amountInWords(total, currency)}`;
-  const splitAmountWords = doc.splitTextToSize(amountWords, pageWidth / 2 - 20);
-  doc.text(splitAmountWords, 15, summaryY + 6);
-  doc.setFont("helvetica", "bold").setFontSize(9);
-  doc.text("Terms and Conditions", pageWidth / 2 + 15, summaryY);
-  doc.setFont("helvetica", "normal").setFontSize(8);
-  doc.text("E & O.E", pageWidth / 2 + 15, summaryY + 6);
-  const termsRight = [
-    "1. Goods once sold will not be taken back.",
-    "2. Interest @ 18% p.a. will be charged if payment is delayed.",
-    "3. Subject to 'Bahrain' jurisdiction only."
-  ];
-  termsRight.forEach((t, i) => {
-    const split = doc.splitTextToSize(t, pageWidth / 2 - 25);
-    doc.text(split, pageWidth / 2 + 15, summaryY + 12 + i * 6);
+  const afterItems = doc.lastAutoTable.finalY + 4;
+  let calculatedSubtotal = 0;
+  let calculatedDiscount = 0;
+  let calculatedVAT = 0;
+  items4.forEach((it) => {
+    const qty = Number(it.quantity) || 0;
+    const unit = Number(it.unitPrice) || 0;
+    const discPerc = Number(it.discountPercentage) || Number(invoice.discountPercentage) || 0;
+    const gross = qty * unit;
+    const discAmt = gross * discPerc / 100;
+    const net = gross - discAmt;
+    const vatPerc = Number(it.taxRate) || Number(invoice.taxRate) || 0;
+    const vatAmt = net * vatPerc / 100;
+    calculatedSubtotal += gross;
+    calculatedDiscount += discAmt;
+    calculatedVAT += vatAmt;
   });
-  const taxY = summaryY + 20;
-  const saleAmount = subtotal - discountAmount;
-  const cgst = taxAmount / 2;
-  const sgst = taxAmount / 2;
-  const taxBreakdown1 = `Sale @${taxRate}% = ${saleAmount.toFixed(2)}, CGST = ${cgst.toFixed(2)}, SGST = ${sgst.toFixed(2)}`;
-  const taxBreakdown2 = `Total Sale = ${saleAmount.toFixed(2)}, Tax = ${taxAmount.toFixed(2)}, Cess = 0.00, Add. Cess = 0.00`;
-  const splitTax1 = doc.splitTextToSize(taxBreakdown1, pageWidth - 30);
-  const splitTax2 = doc.splitTextToSize(taxBreakdown2, pageWidth - 30);
-  doc.text(splitTax1, 15, taxY);
-  doc.text(splitTax2, 15, taxY + 6);
+  const subtotal = Number(invoice.subtotal) || calculatedSubtotal;
+  const discountAmount = Number(invoice.discountAmount) || calculatedDiscount;
+  const taxAmount = Number(invoice.taxAmount) || calculatedVAT;
+  const netAmount = subtotal - discountAmount;
+  const totalAmount = Number(invoice.totalAmount) || netAmount + taxAmount;
+  autoTable(doc, {
+    startY: afterItems,
+    theme: "plain",
+    body: [
+      ["Total Amount", `${currency} ${subtotal.toFixed(2)}`],
+      ["Discount Amount", `${currency} ${discountAmount.toFixed(2)}`],
+      ["Net Amount", `${currency} ${netAmount.toFixed(2)}`],
+      ["VAT Amount", `${currency} ${taxAmount.toFixed(2)}`],
+      ["Grand Total", `${currency} ${totalAmount.toFixed(2)}`]
+    ],
+    styles: { fontSize: 7, cellPadding: 2 },
+    columnStyles: { 0: { halign: "right", cellWidth: 40, fontStyle: "bold" }, 1: { halign: "right", cellWidth: 25, fontStyle: "bold" } },
+    margin: { left: pageWidth - 15 - 65, right: 15 }
+  });
+  const afterSummary = doc.lastAutoTable.finalY + 6;
+  doc.setFont("helvetica", "bold").setFontSize(7).text(`${currency} In Words:`, 15, afterSummary);
+  doc.setFont("helvetica", "normal");
+  doc.text(amountInWords(totalAmount, currency) + " ONLY", 15, afterSummary + 4);
+  const remarks = invoice.notes || invoice.terms || "";
+  const remarksLines = doc.splitTextToSize("Remarks:\n" + (remarks || "Generation from enquiry [NO-2024-191]"), pageWidth - 30);
+  autoTable(doc, {
+    startY: afterSummary + 8,
+    body: [[{ content: remarksLines.join("\n"), styles: { fontSize: 7, halign: "left" } }]],
+    styles: { cellPadding: 3 },
+    margin: { left: 15, right: 15 },
+    theme: "grid"
+  });
+  const afterRemarks = doc.lastAutoTable.finalY + 6;
+  const sigY = afterRemarks + 10;
+  doc.setFont("helvetica", "normal").text("_________________________", 15, sigY);
+  doc.text("_________________________", pageWidth / 2 + 20, sigY);
+  doc.setFont("helvetica", "bold").setFontSize(7).text("Authorized Signatory", 15, sigY + 5);
+  doc.text("Customer Signature Date & Stamp", pageWidth / 2 + 20, sigY + 5);
+  doc.setDrawColor(218, 165, 32);
+  doc.setLineWidth(0.5);
+  doc.line(15, pageHeight - 25, pageWidth - 15, pageHeight - 25);
+  doc.setFontSize(7).setFont("helvetica", "italic");
+  doc.setTextColor(100, 100, 100);
+  doc.text("Thank you for your business!", pageWidth / 2, pageHeight - 20, { align: "center" });
+  doc.text("Golden Tag - Your Trusted Trading Partner", pageWidth / 2, pageHeight - 15, { align: "center" });
+  doc.setFontSize(6);
+  doc.text("Kingdom of Bahrain | Mobile: +973 XXXX XXXX | Email: info@goldentag.com", pageWidth / 2, pageHeight - 10, { align: "center" });
   return Buffer.from(doc.output("arraybuffer"));
 }
 function buildSimpleInvoicePdf(ctx) {
@@ -11585,21 +11668,44 @@ function generateQuotationPdf(ctx) {
   const { quotation, items: items4, customer } = ctx;
   const doc = baseDoc();
   const pageWidth = doc.internal.pageSize.getWidth();
-  doc.setFontSize(16).setFont("helvetica", "bold").text("QUOTATION", pageWidth / 2, 15, { align: "center" });
+  doc.setFontSize(22).setFont("helvetica", "bold");
+  doc.setTextColor(218, 165, 32);
+  doc.text("GOLDEN TAG", 15, 20);
+  doc.setFontSize(9).setFont("helvetica", "normal");
+  doc.setTextColor(60, 60, 60);
+  doc.text("Trading & Supply Company", 15, 27);
+  doc.text("Kingdom of Bahrain", 15, 32);
+  doc.text("Mobile: +973 XXXX XXXX", 15, 37);
+  doc.text("Email: info@goldentag.com", 15, 42);
+  doc.setFontSize(18).setFont("helvetica", "bold");
+  doc.setTextColor(0, 0, 0);
+  doc.text("QUOTATION", pageWidth - 15, 20, { align: "right" });
+  doc.setFontSize(9).setFont("helvetica", "normal");
+  doc.setTextColor(60, 60, 60);
+  const qDate = fmtDate(quotation.quoteDate || quotation.createdAt);
+  doc.text(`Date: ${qDate}`, pageWidth - 15, 30, { align: "right" });
+  doc.text(`Quote #: ${quotation.quotationNumber || quotation.quoteNumber}`, pageWidth - 15, 35, { align: "right" });
+  const validUntilDate = fmtDate(quotation.validUntil);
+  if (validUntilDate) {
+    doc.text(`Valid Until: ${validUntilDate}`, pageWidth - 15, 40, { align: "right" });
+  }
+  doc.setDrawColor(218, 165, 32);
+  doc.setLineWidth(0.5);
+  doc.line(15, 48, pageWidth - 15, 48);
   doc.setFontSize(8).setFont("helvetica", "normal");
-  const customerCode = customer.customerCode || customer.code || "";
+  const customerName = customer.customerName || customer.name || "";
   const salesPerson = quotation.salesPerson || quotation.createdBy || "";
   const paymentTerms = quotation.terms ? quotation.terms.split("\n")[0].slice(0, 40) : "30 Days";
   const leadTime = quotation.leadTime || "10 days after receiving agreed LPO";
-  const qDate = fmtDate(quotation.quoteDate || quotation.createdAt);
+  const quoteDateFormatted = fmtDate(quotation.quoteDate || quotation.createdAt);
   const validUntil = fmtDate(quotation.validUntil);
   autoTable(doc, {
-    startY: 22,
-    head: [["Quotation No", "Quotation Date", "Customer Code", "Sales Person", "Payment Terms", "Lead Time / Validity"]],
+    startY: 56,
+    head: [["Quotation No", "Quotation Date", "Customer Name", "Sales Person", "Payment Terms", "Lead Time / Validity"]],
     body: [[
       quotation.quotationNumber || quotation.quoteNumber,
-      qDate,
-      customerCode,
+      quoteDateFormatted,
+      customerName,
       String(salesPerson).slice(0, 12),
       paymentTerms,
       validUntil || leadTime
@@ -11608,22 +11714,38 @@ function generateQuotationPdf(ctx) {
     headStyles: { fillColor: [255, 255, 255], textColor: 0, fontStyle: "bold" },
     margin: { left: 15, right: 15 }
   });
-  const afterMeta = doc.lastAutoTable.finalY + 3;
-  const addressLines = [
-    customer.customerName || customer.name || "",
-    customer.address || "",
-    customer.email || "",
-    customer.phone || customer.phone || ""
-  ].filter(Boolean);
-  const addressText = addressLines.length ? addressLines.join("\n") : "No Address";
-  const contactPerson = quotation.contactPerson || customer.contactPerson || "---";
-  const contactLines = [contactPerson, customer.contactEmail || customer.email || "", customer.contactPhone || customer.phone || ""].filter(Boolean).join("\n");
+  const afterMeta = doc.lastAutoTable.finalY + 5;
+  const custName = customer.customerName || customer.name || "N/A";
+  const custAddress = customer.address || "N/A";
+  const custEmail = customer.email || "N/A";
+  const custPhone = customer.phone || customer.phone || "N/A";
+  const contactPerson = quotation.contactPerson || customer.contactPerson || "N/A";
+  const contactEmail = customer.contactEmail || customer.email || "N/A";
+  const contactPhone = customer.contactPhone || customer.phone || "N/A";
+  const addressBlock = [
+    custName,
+    custAddress,
+    custEmail,
+    custPhone
+  ].filter((line) => line && line !== "N/A").join("\n");
+  const contactBlock = [
+    contactPerson,
+    contactEmail,
+    contactPhone
+  ].filter((line) => line && line !== "N/A").join("\n");
   autoTable(doc, {
     startY: afterMeta,
     body: [
-      [{ content: "Customer Name & Address:\n" + addressText, styles: { halign: "left" } }, { content: "Customer Contact Person:\n" + contactLines, styles: { halign: "left" } }]
+      [
+        { content: "Customer Name & Address:", styles: { fontStyle: "bold", fontSize: 8, halign: "left", cellPadding: { top: 3, left: 5, right: 5, bottom: 1 } } },
+        { content: "Customer Contact Person:", styles: { fontStyle: "bold", fontSize: 8, halign: "left", cellPadding: { top: 3, left: 5, right: 5, bottom: 1 } } }
+      ],
+      [
+        { content: addressBlock || "No information available", styles: { fontSize: 7, halign: "left", cellPadding: { top: 1, left: 5, right: 5, bottom: 3 } } },
+        { content: contactBlock || "No contact information", styles: { fontSize: 7, halign: "left", cellPadding: { top: 1, left: 5, right: 5, bottom: 3 } } }
+      ]
     ],
-    styles: { fontSize: 7, cellPadding: 3 },
+    styles: { cellPadding: 0, lineColor: [200, 200, 200], lineWidth: 0.1 },
     columnStyles: { 0: { cellWidth: (pageWidth - 30) / 2 }, 1: { cellWidth: (pageWidth - 30) / 2 } },
     theme: "grid",
     margin: { left: 15, right: 15 }
@@ -11633,13 +11755,12 @@ function generateQuotationPdf(ctx) {
   const itemRows = items4.map((it, i) => {
     const qty = Number(it.quantity) || 0;
     const unit = Number(it.unitPrice) || 0;
-    const discPerc = Number(quotation.discountPercentage) || 0;
+    const discPerc = Number(it.discountPercentage) || Number(quotation.discountPercentage) || 0;
     const gross = qty * unit;
     const discAmt = gross * discPerc / 100;
     const net = gross - discAmt;
-    const vatPerc = Number(quotation.taxRate) || 0;
+    const vatPerc = Number(it.taxRate) || Number(quotation.taxRate) || 0;
     const vatAmt = net * vatPerc / 100;
-    const lineTotal = net + vatAmt;
     let enhancedDesc = it.description || "Product Description";
     if (it.supplierCode) enhancedDesc += `
 Code: ${it.supplierCode}`;
@@ -11652,12 +11773,12 @@ Specs: ${it.specifications}`;
     return [
       (i + 1).toString(),
       enhancedDesc,
-      `${qty} PCS`,
+      `${qty.toFixed(2)} PCS`,
       `${currency} ${unit.toFixed(3)}`,
-      discPerc ? `${discPerc.toFixed(1)}%` : "0%",
+      discPerc > 0 ? `${discPerc.toFixed(1)}%` : "0%",
       `${currency} ${discAmt.toFixed(2)}`,
       `${currency} ${net.toFixed(2)}`,
-      vatPerc ? `${vatPerc.toFixed(1)}%` : "0%",
+      vatPerc > 0 ? `${vatPerc.toFixed(1)}%` : "0%",
       `${currency} ${vatAmt.toFixed(2)}`
     ];
   });
@@ -11691,47 +11812,65 @@ Specs: ${it.specifications}`;
       lineWidth: 0.1
     },
     columnStyles: {
-      0: { cellWidth: 8, halign: "center" },
+      0: { cellWidth: 10, halign: "center" },
       // S.I.
-      1: { cellWidth: 45, halign: "left" },
+      1: { cellWidth: 55, halign: "left" },
       // Item Description & Specifications
-      2: { cellWidth: 12, halign: "center" },
+      2: { cellWidth: 18, halign: "center" },
       // Qty
-      3: { cellWidth: 15, halign: "right" },
+      3: { cellWidth: 20, halign: "right" },
       // Unit Rate
-      4: { cellWidth: 10, halign: "center" },
+      4: { cellWidth: 12, halign: "center" },
       // Disc. %
-      5: { cellWidth: 12, halign: "right" },
+      5: { cellWidth: 18, halign: "right" },
       // Disc. Amt
-      6: { cellWidth: 18, halign: "right" },
+      6: { cellWidth: 20, halign: "right" },
       // Net Total
-      7: { cellWidth: 10, halign: "center" },
+      7: { cellWidth: 12, halign: "center" },
       // VAT %
-      8: { cellWidth: 15, halign: "right" }
+      8: { cellWidth: 20, halign: "right" }
       // VAT Amt
     },
     alternateRowStyles: {
       fillColor: [248, 249, 250]
       // Light gray alternating rows
     },
-    margin: { left: 20, right: 20 },
+    margin: { left: 15, right: 15 },
     pageBreak: "auto",
-    tableWidth: "wrap",
+    tableWidth: 150,
     showHead: "everyPage"
   });
   const afterItems = doc.lastAutoTable.finalY + 4;
-  const subtotal = Number(quotation.subtotal) || itemRows.reduce((s, r) => s + Number(r[7]), 0);
-  const discountAmount = Number(quotation.discountAmount) || 0;
-  const taxAmount = Number(quotation.taxAmount) || 0;
-  const totalAmount = Number(quotation.totalAmount) || subtotal - discountAmount + taxAmount;
+  let calculatedSubtotal = 0;
+  let calculatedDiscount = 0;
+  let calculatedVAT = 0;
+  items4.forEach((it) => {
+    const qty = Number(it.quantity) || 0;
+    const unit = Number(it.unitPrice) || 0;
+    const discPerc = Number(it.discountPercentage) || Number(quotation.discountPercentage) || 0;
+    const gross = qty * unit;
+    const discAmt = gross * discPerc / 100;
+    const net = gross - discAmt;
+    const vatPerc = Number(it.taxRate) || Number(quotation.taxRate) || 0;
+    const vatAmt = net * vatPerc / 100;
+    calculatedSubtotal += gross;
+    calculatedDiscount += discAmt;
+    calculatedVAT += vatAmt;
+  });
+  const subtotal = Number(quotation.subtotal) || calculatedSubtotal;
+  const discountAmount = Number(quotation.discountAmount) || calculatedDiscount;
+  const taxAmount = Number(quotation.taxAmount) || calculatedVAT;
+  const netAmount = subtotal - discountAmount;
+  const totalAmount = Number(quotation.totalAmount) || netAmount + taxAmount;
   autoTable(doc, {
     startY: afterItems,
     theme: "plain",
     body: [
-      ["Total Amount", subtotal.toFixed(2)],
-      ["Discount Amount", discountAmount.toFixed(2)],
-      ["VAT Amount", taxAmount.toFixed(2)],
-      ["Grand Total", totalAmount.toFixed(2)]
+      ["Total Amount", `${currency} ${subtotal.toFixed(2)}`],
+      ["Discount Amount", `${currency} ${discountAmount.toFixed(2)}`],
+      ["Net Amount", `${currency} ${netAmount.toFixed(2)}`],
+      ["VAT Amount", `${currency} ${taxAmount.toFixed(2)}`],
+      ["Grand Total", `${currency} ${totalAmount.toFixed(2)}`]
     ],
     styles: { fontSize: 7, cellPadding: 2 },
     columnStyles: { 0: { halign: "right", cellWidth: 40, fontStyle: "bold" }, 1: { halign: "right", cellWidth: 25, fontStyle: "bold" } },
@@ -11758,6 +11897,16 @@ Specs: ${it.specifications}`;
   doc.text("_________________________", pageWidth / 2 + 20, sigY);
   doc.setFont("helvetica", "bold").setFontSize(7).text("Authorized Signatory", 15, sigY + 5);
   doc.text("Customer Signature Date & Stamp", pageWidth / 2 + 20, sigY + 5);
+  const pageHeight = doc.internal.pageSize.getHeight();
+  doc.setDrawColor(218, 165, 32);
+  doc.setLineWidth(0.5);
+  doc.line(15, pageHeight - 25, pageWidth - 15, pageHeight - 25);
+  doc.setFontSize(7).setFont("helvetica", "italic");
+  doc.setTextColor(100, 100, 100);
+  doc.text("Thank you for your business!", pageWidth / 2, pageHeight - 20, { align: "center" });
+  doc.text("Golden Tag - Your Trusted Trading Partner", pageWidth / 2, pageHeight - 15, { align: "center" });
+  doc.setFontSize(6);
+  doc.text("Kingdom of Bahrain | Mobile: +973 XXXX XXXX | Email: info@goldentag.com", pageWidth / 2, pageHeight - 10, { align: "center" });
   const buffer = Buffer.from(doc.output("arraybuffer"));
   return { buffer, byteLength: buffer.length, fileName: `quotation-${quotation.quotationNumber || quotation.quoteNumber}.pdf`, contentType: "application/pdf" };
 }
@@ -11766,286 +11915,217 @@ function buildEnhancedPurchaseInvoicePdf(ctx) {
   const doc = baseDoc();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
-  doc.setFillColor(255, 255, 255);
-  doc.rect(0, 0, pageWidth, 35, "F");
+  doc.setFontSize(22).setFont("helvetica", "bold");
+  doc.setTextColor(218, 165, 32);
+  doc.text("GOLDEN TAG", 15, 20);
+  doc.setFontSize(9).setFont("helvetica", "normal");
+  doc.setTextColor(60, 60, 60);
+  doc.text("Trading & Supply Company", 15, 27);
+  doc.text("Kingdom of Bahrain", 15, 32);
+  doc.text("Mobile: +973 XXXX XXXX", 15, 37);
+  doc.text("Email: info@goldentag.com", 15, 42);
   doc.setFontSize(18).setFont("helvetica", "bold");
   doc.setTextColor(0, 0, 0);
-  doc.text("PURCHASE INVOICE", pageWidth / 2, 22, { align: "center" });
-  doc.setDrawColor(0, 0, 0);
-  doc.setLineWidth(1);
-  doc.line(0, 35, pageWidth, 35);
-  const invoiceDetailsY = 45;
-  doc.setFontSize(9).setFont("helvetica", "bold");
-  doc.setTextColor(0, 0, 0);
-  doc.text("Invoice No :", pageWidth - 80, invoiceDetailsY);
-  doc.setFont("helvetica", "normal");
-  doc.text(invoice.invoiceNumber || "N/A", pageWidth - 50, invoiceDetailsY);
-  doc.setFont("helvetica", "bold");
-  doc.text("Date :", pageWidth - 80, invoiceDetailsY + 5);
-  doc.setFont("helvetica", "normal");
-  doc.text(fmtDate(invoice.invoiceDate || invoice.createdAt), pageWidth - 50, invoiceDetailsY + 5);
-  doc.setFont("helvetica", "bold");
-  doc.text("Due Date :", pageWidth - 80, invoiceDetailsY + 10);
-  doc.setFont("helvetica", "normal");
-  doc.text(fmtDate(invoice.dueDate), pageWidth - 50, invoiceDetailsY + 10);
-  doc.setFontSize(9).setFont("helvetica", "bold");
-  doc.setTextColor(0, 0, 0);
-  doc.text("Company: GOLDEN STYLE W.L.L", 20, invoiceDetailsY);
-  doc.setFont("helvetica", "normal");
-  doc.text("VAT Reg No: 100004744700962", 20, invoiceDetailsY + 5);
-  doc.text("Building 728, Road 2012, Town 2564, Bahrain", 20, invoiceDetailsY + 10);
-  const companyTableY = 65;
-  const coreHead = [["Invoice Type", "Status", "Purchase Order", "Goods Receipt", "Payment Terms", "Currency", "Payment Method"]];
-  const coreBody = [[
-    "Purchase Invoice",
-    invoice.status || "Draft",
-    invoice.purchaseOrderNumber || "N/A",
-    invoice.goodsReceiptNumber || "N/A",
-    invoice.paymentTerms || "30 Days",
-    invoice.currency || "BHD",
-    invoice.paymentMethod || "Bank Transfer"
-  ]];
+  doc.text("PURCHASE INVOICE", pageWidth - 15, 20, { align: "right" });
+  doc.setFontSize(9).setFont("helvetica", "normal");
+  doc.setTextColor(60, 60, 60);
+  const invoiceDate = fmtDate(invoice.invoiceDate || invoice.createdAt);
+  doc.text(`Date: ${invoiceDate}`, pageWidth - 15, 30, { align: "right" });
+  doc.text(`Invoice #: ${invoice.invoiceNumber || "N/A"}`, pageWidth - 15, 35, { align: "right" });
+  const dueDate = fmtDate(invoice.dueDate);
+  if (dueDate) {
+    doc.text(`Due Date: ${dueDate}`, pageWidth - 15, 40, { align: "right" });
+  }
+  doc.setDrawColor(218, 165, 32);
+  doc.setLineWidth(0.5);
+  doc.line(15, 48, pageWidth - 15, 48);
+  doc.setFontSize(8).setFont("helvetica", "normal");
+  const supplierName = supplier.supplierName || supplier.name || "";
+  const paymentTerms = invoice.paymentTerms || "30 Days";
+  const invoiceDateFormatted = fmtDate(invoice.invoiceDate || invoice.createdAt);
+  const dueDateFormatted = fmtDate(invoice.dueDate);
+  const status = invoice.status || "Draft";
   autoTable(doc, {
-    startY: companyTableY,
-    head: coreHead,
-    body: coreBody,
-    styles: {
-      fontSize: 7,
-      cellPadding: 2,
-      lineColor: [0, 0, 0],
-      lineWidth: 0.1
-    },
-    headStyles: {
-      fillColor: [255, 255, 255],
-      // White header
-      textColor: [0, 0, 0],
-      // Black text
-      fontStyle: "bold",
-      halign: "center"
-    },
-    alternateRowStyles: {
-      fillColor: [255, 255, 255]
-      // White alternating rows
-    },
-    margin: { left: 12, right: 12 },
-    didParseCell: (data) => {
-      if (data.section === "head") data.cell.styles.halign = "center";
-    }
+    startY: 56,
+    head: [["Invoice No", "Invoice Date", "Supplier Name", "Status", "Payment Terms", "Due Date"]],
+    body: [[
+      invoice.invoiceNumber || "N/A",
+      invoiceDateFormatted,
+      supplierName,
+      status,
+      paymentTerms,
+      dueDateFormatted || "N/A"
+    ]],
+    styles: { fontSize: 7, cellPadding: 2 },
+    headStyles: { fillColor: [255, 255, 255], textColor: 0, fontStyle: "bold" },
+    margin: { left: 15, right: 15 }
   });
-  const afterCompanyTable = doc.lastAutoTable?.finalY + 10 || companyTableY + 25;
-  doc.setFontSize(10).setFont("helvetica", "bold");
-  doc.setTextColor(0, 0, 0);
-  doc.text("Supplier Name :", 20, afterCompanyTable);
-  doc.text("Bill To :", pageWidth / 2 + 20, afterCompanyTable);
-  doc.setDrawColor(0, 0, 0);
-  doc.setLineWidth(1);
-  doc.line(20, afterCompanyTable + 2, 20 + 100, afterCompanyTable + 2);
-  doc.line(pageWidth / 2 + 20, afterCompanyTable + 2, pageWidth / 2 + 20 + 50, afterCompanyTable + 2);
-  doc.setFont("helvetica", "bold").setFontSize(9);
-  doc.setTextColor(0, 0, 0);
-  const supplierName = supplier?.name || supplier?.supplierName || invoice.supplierName || "Supplier";
-  doc.text(supplierName.toUpperCase(), 20, afterCompanyTable + 8);
-  const supplierDetailsY = afterCompanyTable + 15;
-  const supplierLines = [
-    supplier?.address || "Supplier Address",
-    supplier?.email || invoice.supplierEmail || "supplier@email.com",
-    supplier?.phone || invoice.supplierPhone || "Phone: N/A",
-    supplier?.taxId ? `Tax ID: ${supplier.taxId}` : "Tax ID: N/A"
-  ];
-  doc.setFont("helvetica", "normal").setFontSize(8);
-  doc.setTextColor(0, 0, 0);
-  supplierLines.forEach((line, idx) => {
-    doc.text(line, 20, supplierDetailsY + idx * 5);
+  const afterMeta = doc.lastAutoTable.finalY + 5;
+  const suppName = supplier.supplierName || supplier.name || "N/A";
+  const suppAddress = supplier.address || "N/A";
+  const suppEmail = supplier.email || "N/A";
+  const suppPhone = supplier.phone || "N/A";
+  const contactPerson = supplier.contactPerson || "N/A";
+  const contactEmail = supplier.contactEmail || supplier.email || "N/A";
+  const contactPhone = supplier.contactPhone || supplier.phone || "N/A";
+  const addressBlock = [
+    suppName,
+    suppAddress,
+    suppEmail,
+    suppPhone
+  ].filter((line) => line && line !== "N/A").join("\n");
+  const contactBlock = [
+    contactPerson,
+    contactEmail,
+    contactPhone
+  ].filter((line) => line && line !== "N/A").join("\n");
+  autoTable(doc, {
+    startY: afterMeta,
+    body: [
+      [
+        { content: "Supplier Name & Address:", styles: { fontStyle: "bold", fontSize: 8, halign: "left", cellPadding: { top: 3, left: 5, right: 5, bottom: 1 } } },
+        { content: "Supplier Contact Person:", styles: { fontStyle: "bold", fontSize: 8, halign: "left", cellPadding: { top: 3, left: 5, right: 5, bottom: 1 } } }
+      ],
+      [
+        { content: addressBlock || "No information available", styles: { fontSize: 7, halign: "left", cellPadding: { top: 1, left: 5, right: 5, bottom: 3 } } },
+        { content: contactBlock || "No contact information", styles: { fontSize: 7, halign: "left", cellPadding: { top: 1, left: 5, right: 5, bottom: 3 } } }
+      ]
+    ],
+    styles: { cellPadding: 0, lineColor: [200, 200, 200], lineWidth: 0.1 },
+    columnStyles: { 0: { cellWidth: (pageWidth - 30) / 2 }, 1: { cellWidth: (pageWidth - 30) / 2 } },
+    theme: "grid",
+    margin: { left: 15, right: 15 }
   });
-  const billToLines = [
-    "GOLDEN STYLE W.L.L",
-    "Building 728, Road 2012, Town 2564",
-    "Bahrain",
-    "VAT Reg: 100004744700962"
-  ];
-  doc.setFont("helvetica", "bold").setFontSize(8);
-  doc.setTextColor(0, 0, 0);
-  billToLines.forEach((line, idx) => {
-    doc.text(line, pageWidth / 2 + 20, supplierDetailsY + idx * 5);
-  });
-  const itemsHeaderY = supplierDetailsY + 24;
-  doc.setFontSize(10).setFont("helvetica", "bold");
-  doc.setTextColor(0, 0, 0);
-  doc.text("ITEMS & SERVICES", 20, itemsHeaderY);
-  doc.setDrawColor(0, 0, 0);
-  doc.setLineWidth(1);
-  doc.line(20, itemsHeaderY + 2, 20 + 120, itemsHeaderY + 2);
-  const tableStartY = itemsHeaderY + 6;
+  const afterAddress = doc.lastAutoTable.finalY + 5;
   const currency = invoice.currency || "BHD";
-  const rows = items4.map((it, i) => {
+  const itemRows = items4.map((it, i) => {
     const qty = Number(it.quantity) || 0;
-    const rate = Number(it.unitPrice) || 0;
-    const discountRate = Number(it.discountRate) || 0;
-    const discountAmount2 = Number(it.discountAmount) || rate * qty * discountRate / 100;
-    const netAmount = rate * qty - discountAmount2;
-    const vatRate = Number(it.taxRate) || 0;
-    const vatAmount = Number(it.taxAmount) || netAmount * vatRate / 100;
-    const lineTotal = Number(it.totalPrice) || netAmount + vatAmount;
-    let enhancedDesc = it.itemDescription || it.description || "Item Description";
-    if (it.supplierCode) enhancedDesc += `
-Supplier Code: ${it.supplierCode}`;
-    if (it.barcode) enhancedDesc += `
-Barcode: ${it.barcode}`;
-    if (it.notes) enhancedDesc += `
-Notes: ${it.notes}`;
+    const unit = Number(it.unitPrice) || 0;
+    const discPerc = Number(it.discountPercentage) || 0;
+    const gross = qty * unit;
+    const discAmt = gross * discPerc / 100;
+    const net = gross - discAmt;
+    const vatPerc = Number(it.taxRate) || 0;
+    const vatAmt = net * vatPerc / 100;
     return [
       (i + 1).toString(),
-      enhancedDesc,
-      `${qty} ${it.unitOfMeasure || "PCS"}`,
-      `${currency} ${rate.toFixed(3)}`,
-      discountRate > 0 ? `${discountRate.toFixed(1)}%` : "0%",
-      `${currency} ${discountAmount2.toFixed(2)}`,
-      `${currency} ${netAmount.toFixed(2)}`,
-      `${vatRate}%`,
-      `${currency} ${vatAmount.toFixed(2)}`
+      it.description || "Product Description",
+      `${qty.toFixed(2)} PCS`,
+      `${currency} ${unit.toFixed(3)}`,
+      discPerc > 0 ? `${discPerc.toFixed(1)}%` : "0%",
+      `${currency} ${discAmt.toFixed(2)}`,
+      `${currency} ${net.toFixed(2)}`,
+      vatPerc > 0 ? `${vatPerc.toFixed(1)}%` : "0%",
+      `${currency} ${vatAmt.toFixed(2)}`
     ];
   });
   autoTable(doc, {
-    startY: tableStartY,
-    head: [["S.I.", "Description & Item Details", "Qty", "Unit Rate", "Disc. %", "Disc. Amt", "Net Amount", "VAT %", "VAT Amt"]],
-    body: rows,
+    startY: afterAddress,
+    head: [["S.I.", "Item Description & Specifications", "Qty", "Unit Rate", "Disc. %", "Disc. Amt", "Net Total", "VAT %", "VAT Amt"]],
+    body: itemRows,
     styles: {
-      fontSize: 5,
-      cellPadding: 1,
-      lineColor: [0, 0, 0],
-      // Black borders
-      lineWidth: 0.1,
+      fontSize: 7,
+      cellPadding: 4,
       valign: "middle",
+      lineColor: [0, 0, 0],
+      lineWidth: 0.1,
       overflow: "linebreak",
       cellWidth: "wrap",
       textColor: [0, 0, 0]
-      // Black text
     },
     headStyles: {
       fillColor: [255, 255, 255],
-      // White header background
       textColor: [0, 0, 0],
-      // Black text
       fontStyle: "bold",
       halign: "center",
-      fontSize: 6,
-      cellPadding: 1,
+      fontSize: 8,
+      cellPadding: 4,
       lineColor: [0, 0, 0],
-      // Black borders
       lineWidth: 0.1
     },
     columnStyles: {
-      0: { cellWidth: 6, halign: "center" },
-      // S.I.
-      1: { cellWidth: 40, halign: "left" },
-      // Description & Item Details
-      2: { cellWidth: 9, halign: "center" },
-      // Qty
-      3: { cellWidth: 12, halign: "right" },
-      // Unit Rate
-      4: { cellWidth: 8, halign: "center" },
-      // Disc. %
-      5: { cellWidth: 10, halign: "right" },
-      // Disc. Amt
-      6: { cellWidth: 15, halign: "right" },
-      // Net Amount
-      7: { cellWidth: 8, halign: "center" },
-      // VAT %
-      8: { cellWidth: 12, halign: "right" }
-      // VAT Amt
+      0: { cellWidth: 10, halign: "center" },
+      1: { cellWidth: 55, halign: "left" },
+      2: { cellWidth: 18, halign: "center" },
+      3: { cellWidth: 20, halign: "right" },
+      4: { cellWidth: 12, halign: "center" },
+      5: { cellWidth: 18, halign: "right" },
+      6: { cellWidth: 20, halign: "right" },
+      7: { cellWidth: 12, halign: "center" },
+      8: { cellWidth: 20, halign: "right" }
     },
     alternateRowStyles: {
-      fillColor: [255, 255, 255]
-      // White alternating rows
+      fillColor: [248, 249, 250]
     },
-    margin: { left: 12, right: 12 },
-    // Keep the entire table on a single page
-    pageBreak: "avoid",
-    rowPageBreak: "avoid",
-    tableWidth: "wrap",
-    showHead: "firstPage"
+    margin: { left: 15, right: 15 },
+    pageBreak: "auto",
+    tableWidth: 150,
+    showHead: "everyPage"
   });
-  const afterItemsTable = doc.lastAutoTable?.finalY || tableStartY + 40;
-  const subtotal = Number(invoice.subtotal) || 0;
-  const discountAmount = Number(invoice.discountAmount) || 0;
-  const taxAmount = Number(invoice.taxAmount) || 0;
-  const total = Number(invoice.totalAmount) || 0;
-  const paidAmount = Number(invoice.paidAmount) || 0;
-  const remainingAmount = Number(invoice.remainingAmount) || total - paidAmount;
-  let finStartY = afterItemsTable + 4;
+  const afterItems = doc.lastAutoTable.finalY + 4;
+  let calculatedSubtotal = 0;
+  let calculatedDiscount = 0;
+  let calculatedVAT = 0;
+  items4.forEach((it) => {
+    const qty = Number(it.quantity) || 0;
+    const unit = Number(it.unitPrice) || 0;
+    const discPerc = Number(it.discountPercentage) || 0;
+    const gross = qty * unit;
+    const discAmt = gross * discPerc / 100;
+    const net = gross - discAmt;
+    const vatPerc = Number(it.taxRate) || 0;
+    const vatAmt = net * vatPerc / 100;
+    calculatedSubtotal += gross;
+    calculatedDiscount += discAmt;
+    calculatedVAT += vatAmt;
+  });
+  const subtotal = Number(invoice.subtotal) || calculatedSubtotal;
+  const discountAmount = Number(invoice.discountAmount) || calculatedDiscount;
+  const taxAmount = Number(invoice.taxAmount) || calculatedVAT;
+  const netAmount = subtotal - discountAmount;
+  const totalAmount = Number(invoice.totalAmount) || netAmount + taxAmount;
   autoTable(doc, {
-    startY: finStartY,
-    head: [[`${currency} Summary`, "Amount"]],
+    startY: afterItems,
+    theme: "plain",
     body: [
-      ["Subtotal", `${currency} ${subtotal.toFixed(2)}`],
-      ["Discount", `${currency} ${discountAmount.toFixed(2)}`],
-      ["Tax Amount", `${currency} ${taxAmount.toFixed(2)}`],
-      ["Total", `${currency} ${total.toFixed(2)}`],
-      ["Paid", `${currency} ${paidAmount.toFixed(2)}`],
-      ["Remaining", `${currency} ${remainingAmount.toFixed(2)}`]
+      ["Total Amount", `${currency} ${subtotal.toFixed(2)}`],
+      ["Discount Amount", `${currency} ${discountAmount.toFixed(2)}`],
+      ["Net Amount", `${currency} ${netAmount.toFixed(2)}`],
+      ["VAT Amount", `${currency} ${taxAmount.toFixed(2)}`],
+      ["Grand Total", `${currency} ${totalAmount.toFixed(2)}`]
     ],
-    styles: {
-      fontSize: 7,
-      cellPadding: 2,
-      lineColor: [0, 0, 0],
-      lineWidth: 0.1
-    },
-    headStyles: {
-      fillColor: [255, 255, 255],
-      // White header
-      textColor: [0, 0, 0],
-      // Black text
-      fontStyle: "bold",
-      halign: "center"
-    },
-    columnStyles: {
-      0: { cellWidth: 70, halign: "left", fontStyle: "bold" },
-      1: { cellWidth: 36, halign: "right", fontStyle: "bold" }
-    },
-    alternateRowStyles: {
-      fillColor: [255, 255, 255]
-      // White alternating rows
-    },
-    margin: { left: pageWidth - 118, right: 12 }
+    styles: { fontSize: 7, cellPadding: 2 },
+    columnStyles: { 0: { halign: "right", cellWidth: 40, fontStyle: "bold" }, 1: { halign: "right", cellWidth: 25, fontStyle: "bold" } },
+    margin: { left: pageWidth - 15 - 65, right: 15 }
   });
-  let summaryY = doc.lastAutoTable?.finalY + 4;
-  doc.setDrawColor(0);
+  const afterSummary = doc.lastAutoTable.finalY + 6;
+  doc.setFont("helvetica", "bold").setFontSize(7).text(`${currency} In Words:`, 15, afterSummary);
+  doc.setFont("helvetica", "normal");
+  doc.text(amountInWords(totalAmount, currency) + " ONLY", 15, afterSummary + 4);
+  const remarks = invoice.notes || "";
+  const remarksLines = doc.splitTextToSize("Remarks:\n" + (remarks || "---"), pageWidth - 30);
+  autoTable(doc, {
+    startY: afterSummary + 8,
+    body: [[{ content: remarksLines.join("\n"), styles: { fontSize: 7, halign: "left" } }]],
+    styles: { cellPadding: 3 },
+    margin: { left: 15, right: 15 },
+    theme: "grid"
+  });
+  const afterRemarks = doc.lastAutoTable.finalY + 6;
+  const sigY = afterRemarks + 10;
+  doc.setFont("helvetica", "normal").text("_________________________", 15, sigY);
+  doc.text("_________________________", pageWidth / 2 + 20, sigY);
+  doc.setFont("helvetica", "bold").setFontSize(7).text("Authorized Signatory", 15, sigY + 5);
+  doc.text("Supplier Signature Date & Stamp", pageWidth / 2 + 20, sigY + 5);
+  doc.setDrawColor(218, 165, 32);
   doc.setLineWidth(0.5);
-  const summaryItems = [
-    ["Amount Chargeable (in words):", ""],
-    [amountInWords(total, currency), ""],
-    ["Subtotal:", subtotal.toFixed(2)],
-    ["Discount:", discountAmount.toFixed(2)],
-    ["Tax:", taxAmount.toFixed(2)],
-    ["Total*:", total.toFixed(2)],
-    ["Paid:", paidAmount.toFixed(2)],
-    ["Remaining:", remainingAmount.toFixed(2)]
-  ];
-  let currentY = summaryY;
-  summaryItems.forEach(([label, amount], idx) => {
-    if (idx < 2) {
-      doc.setFont("helvetica", "bold").setFontSize(7);
-      doc.text(label, 20, currentY);
-      if (amount) {
-        doc.setFont("helvetica", "normal");
-        doc.text(amount, 20, currentY + 5);
-      }
-      currentY += idx === 0 ? 4 : 8;
-    } else {
-      doc.setFont("helvetica", "normal").setFontSize(7);
-      doc.text(label, pageWidth - 80, currentY);
-      doc.setFont("helvetica", "bold");
-      doc.text(`${currency} ${amount}`, pageWidth - 25, currentY, { align: "right" });
-      if (label.includes("Total*")) {
-        doc.line(pageWidth - 80, currentY + 1, pageWidth - 20, currentY + 1);
-      }
-      currentY += 5;
-    }
-  });
-  const footerTop = Math.min(pageHeight - 22, currentY + 8);
-  doc.setFontSize(7).setTextColor(0, 0, 0);
-  doc.text("Generated by GT ERP System", 20, footerTop);
-  doc.text(`Generated on: ${(/* @__PURE__ */ new Date()).toLocaleDateString()}`, pageWidth - 20, footerTop, { align: "right" });
+  doc.line(15, pageHeight - 25, pageWidth - 15, pageHeight - 25);
+  doc.setFontSize(7).setFont("helvetica", "italic");
+  doc.setTextColor(100, 100, 100);
+  doc.text("Thank you for your business!", pageWidth / 2, pageHeight - 20, { align: "center" });
+  doc.text("Golden Tag - Your Trusted Trading Partner", pageWidth / 2, pageHeight - 15, { align: "center" });
+  doc.setFontSize(6);
+  doc.text("Kingdom of Bahrain | Mobile: +973 XXXX XXXX | Email: info@goldentag.com", pageWidth / 2, pageHeight - 10, { align: "center" });
   return Buffer.from(doc.output("arraybuffer"));
 }
 function buildSimplePurchaseInvoicePdf(ctx) {
@@ -12383,18 +12463,21 @@ function registerQuotationRoutes(app2) {
       const quotationId = req.params.id;
       const quotation = await storage.getQuotation(quotationId);
       if (!quotation) {
+        console.error(`Quotation not found: ${quotationId}`);
         return res.status(404).json({ message: "Quotation not found" });
       }
       const items4 = await storage.getQuotationItems(quotationId);
       const customer = await storage.getCustomer(quotation.customerId);
       if (!customer) {
+        console.error(`Customer not found for quotation: ${quotationId}, customerId: ${quotation.customerId}`);
         return res.status(404).json({ message: "Customer not found" });
       }
+      console.log(`Generating PDF for quotation: ${quotationId}, items count: ${items4.length}`);
       const result = generateQuotationPdf({ quotation, items: items4, customer });
       sendPdf(res, result);
     } catch (error) {
       console.error("Error generating quotation PDF:", error);
-      res.status(500).json({ message: "Failed to generate quotation PDF" });
+      res.status(500).json({ message: "Failed to generate quotation PDF", error: error instanceof Error ? error.message : String(error) });
     }
   });
 }
@@ -12753,9 +12836,12 @@ function registerPurchaseOrderRoutes(app2) {
   });
   app2.post("/api/customer-po-upload", async (req, res) => {
     try {
-      const { quotationId, documentPath, documentName, documentType, uploadedBy, poDate, currency, paymentTerms, deliveryTerms, specialInstructions, customerReference } = req.body;
+      console.log("[CUSTOMER-PO-UPLOAD] Received request body:", JSON.stringify(req.body, null, 2));
+      const { quotationId, poNumber, documentPath, documentName, documentType, uploadedBy, poDate, currency, paymentTerms, deliveryTerms, specialInstructions, customerReference } = req.body;
+      console.log("[CUSTOMER-PO-UPLOAD] Extracted poNumber:", poNumber);
       const missing = [];
       if (!quotationId) missing.push("quotationId");
+      if (!poNumber) missing.push("poNumber");
       if (!documentPath) missing.push("documentPath");
       if (!documentName) missing.push("documentName");
       if (!documentType) missing.push("documentType");
@@ -12797,10 +12883,11 @@ function registerPurchaseOrderRoutes(app2) {
       if (!hasAcceptedItem && quotation.status !== "Accepted") {
         return res.status(400).json({ message: "No accepted quotation items found; cannot upload PO" });
       }
-      const poNumber = storage.generateNumber ? storage.generateNumber("PO") : `PO-${Date.now()}`;
+      console.log("[CUSTOMER-PO-UPLOAD] Creating PO with user-provided poNumber:", poNumber);
       const poPayload = insertPurchaseOrderSchema.parse({
         quotationId,
         poNumber,
+        // Use the PO number from request body
         poDate: poDate ? new Date(poDate) : /* @__PURE__ */ new Date(),
         documentPath,
         documentName,
@@ -12812,7 +12899,9 @@ function registerPurchaseOrderRoutes(app2) {
         specialInstructions: specialInstructions || void 0,
         customerReference: customerReference || void 0
       });
+      console.log("[CUSTOMER-PO-UPLOAD] PO payload to be inserted:", JSON.stringify(poPayload, null, 2));
       const purchaseOrder = await storage.createPurchaseOrder(poPayload);
+      console.log("[CUSTOMER-PO-UPLOAD] Created PO:", JSON.stringify(purchaseOrder, null, 2));
       res.status(201).json(purchaseOrder);
     } catch (error) {
       console.error("Error uploading PO:", error);
@@ -14721,11 +14810,11 @@ function registerWorkflowRoutes(app2) {
   app2.get("/api/workflow/progress", async (req, res) => {
     try {
       const { status, priority, assignedTo, search } = req.query;
-      const enquiries3 = await storage.getEnquiries();
+      const enquiries4 = await storage.getEnquiries();
       const quotations3 = await storage.getQuotations();
       const salesOrders3 = await storage.getSalesOrders();
       const workflows = [];
-      for (const enquiry of enquiries3) {
+      for (const enquiry of enquiries4) {
         const workflow = {
           id: `workflow-enquiry-${enquiry.id}`,
           entityId: enquiry.id,
@@ -14854,13 +14943,13 @@ function registerWorkflowRoutes(app2) {
   app2.get("/api/workflow/analytics", async (req, res) => {
     try {
       const { period = "30d" } = req.query;
-      const enquiries3 = await storage.getEnquiries();
+      const enquiries4 = await storage.getEnquiries();
       const quotations3 = await storage.getQuotations();
       const salesOrders3 = await storage.getSalesOrders();
-      const totalWorkflows = enquiries3.length + quotations3.length + salesOrders3.length;
+      const totalWorkflows = enquiries4.length + quotations3.length + salesOrders3.length;
       const completedWorkflows = quotations3.filter((q) => q.status === "Accepted").length + salesOrders3.filter((so) => so.status === "Completed").length;
-      const inProgressWorkflows = enquiries3.filter((e) => e.status === "In Progress").length + quotations3.filter((q) => q.status === "Sent").length + salesOrders3.filter((so) => so.status === "Pending").length;
-      const blockedWorkflows = enquiries3.filter((e) => e.status === "Closed").length + quotations3.filter((q) => q.status === "Rejected").length + salesOrders3.filter((so) => so.status === "Cancelled").length;
+      const inProgressWorkflows = enquiries4.filter((e) => e.status === "In Progress").length + quotations3.filter((q) => q.status === "Sent").length + salesOrders3.filter((so) => so.status === "Pending").length;
+      const blockedWorkflows = enquiries4.filter((e) => e.status === "Closed").length + quotations3.filter((q) => q.status === "Rejected").length + salesOrders3.filter((so) => so.status === "Cancelled").length;
       const analytics = {
         totalWorkflows,
         completedWorkflows,
@@ -14880,8 +14969,8 @@ function registerWorkflowRoutes(app2) {
           { month: "Jun", completed: 22, inProgress: 12, blocked: 4, cancelled: 2 }
         ],
         stepBreakdown: {
-          "Customer": enquiries3.length + quotations3.length + salesOrders3.length,
-          "Enquiry": enquiries3.length,
+          "Customer": enquiries4.length + quotations3.length + salesOrders3.length,
+          "Enquiry": enquiries4.length,
           "Quotation": quotations3.length,
           "Acceptance": quotations3.filter((q) => q.status === "Accepted").length,
           "Customer PO Upload": quotations3.filter((q) => q.status === "Accepted").length,
@@ -16573,11 +16662,11 @@ async function handleEnquiryQuestions(message, pageContext) {
   try {
     const stats = await storage.getDashboardStats();
     if (containsKeywords(message, ["recent", "latest", "new"])) {
-      const enquiries3 = await storage.getEnquiries(5, 0);
+      const enquiries4 = await storage.getEnquiries(5, 0);
       return {
-        response: `I found ${enquiries3.length} recent enquiries in the system:
+        response: `I found ${enquiries4.length} recent enquiries in the system:
 
-${enquiries3.map(
+${enquiries4.map(
           (e, i) => `${i + 1}. #${e.enquiryNumber} - Status: ${e.status} - ${e.enquiryDate ? new Date(e.enquiryDate).toLocaleDateString() : "No date"}`
         ).join("\n")}
 
@@ -16745,7 +16834,7 @@ Would you like to check specific items or update inventory levels?`,
 }
 async function handleCustomerQuestions(message, pageContext) {
   try {
-    const customers4 = await storage.getCustomers(5, 0);
+    const customers5 = await storage.getCustomers(5, 0);
     if (containsKeywords(message, ["add", "new", "create"])) {
       return {
         response: "To add a new customer, I'll need:\n\n\u2022 Customer name and contact information\n\u2022 Customer type (Retail/Wholesale)\n\u2022 Classification (Internal/Corporate/Individual/Family/Ministry)\n\u2022 Address and tax ID\n\u2022 Credit limit and payment terms\n\nShall I guide you through creating a new customer profile?",
@@ -16759,9 +16848,9 @@ async function handleCustomerQuestions(message, pageContext) {
     }
     if (containsKeywords(message, ["list", "show", "all", "view"])) {
       return {
-        response: `You have ${customers4.length} recent customers in the system:
+        response: `You have ${customers5.length} recent customers in the system:
 
-${customers4.map(
+${customers5.map(
           (c, i) => `${i + 1}. ${c.name} - ${c.customerType} (${c.classification})`
         ).join("\n")}
 
@@ -18178,7 +18267,7 @@ function registerGoodsReceiptRoutes(app2) {
     try {
       const { id } = req.params;
       const { status } = req.body;
-      const updatedReceipt = await storage.updateGoodsReceiptStatus(id, status);
+      const updatedReceipt = await storage.updateGoodsReceiptItem(id, status);
       res.json(updatedReceipt);
     } catch (error) {
       console.error("Error updating goods receipt status:", error);
@@ -18200,16 +18289,13 @@ function registerGoodsReceiptRoutes(app2) {
     try {
       const { id } = req.params;
       console.log(`[DELETE] Attempting to delete goods receipt: ${id}`);
-      const deleted = await storage.deleteGoodsReceiptHeader(id);
-      if (!deleted) {
-        console.log(`[DELETE] Goods receipt not found: ${id}`);
-        return res.status(404).json({ message: "Goods receipt header not found" });
-      }
+      await storage.deleteGoodsReceiptHeader(id);
       console.log(`[DELETE] Successfully deleted goods receipt: ${id}`);
       res.json({ message: "Goods receipt deleted successfully" });
     } catch (error) {
       console.error("Error deleting goods receipt:", error);
-      res.status(500).json({ message: "Failed to delete goods receipt", error: error.message });
+      const errorMsg = typeof error === "object" && error !== null && "message" in error ? error.message : String(error);
+      res.status(500).json({ message: "Failed to delete goods receipt", error: errorMsg });
     }
   });
   app2.post("/api/goods-receipt-headers", async (req, res) => {
@@ -18762,7 +18848,7 @@ var users3 = pgTable2("users", {
   createdAt: timestamp2("created_at").defaultNow(),
   updatedAt: timestamp2("updated_at").defaultNow()
 });
-var customers3 = pgTable2("customers", {
+var customers4 = pgTable2("customers", {
   id: uuid2("id").primaryKey().default(sql6`gen_random_uuid()`),
   name: varchar2("name", { length: 255 }).notNull(),
   email: varchar2("email", { length: 255 }),
@@ -18789,7 +18875,7 @@ var suppliers4 = pgTable2("suppliers", {
   createdAt: timestamp2("created_at").defaultNow(),
   updatedAt: timestamp2("updated_at").defaultNow()
 });
-var insertCustomerSchema2 = createInsertSchema2(customers3).omit({ id: true, createdAt: true, updatedAt: true });
+var insertCustomerSchema2 = createInsertSchema2(customers4).omit({ id: true, createdAt: true, updatedAt: true });
 var insertSupplierSchema2 = createInsertSchema2(suppliers4).omit({ id: true, createdAt: true, updatedAt: true });
 
 // shared/schemas/audit.ts
@@ -19215,10 +19301,10 @@ var insertItemSchema2 = createInsertSchema2(items3).omit({ id: true, createdAt: 
 
 // shared/schemas/enquiries.ts
 init_common();
-var enquiries2 = pgTable2("enquiries", {
+var enquiries3 = pgTable2("enquiries", {
   id: uuid2("id").primaryKey().default(sql6`gen_random_uuid()`),
   enquiryNumber: varchar2("enquiry_number", { length: 50 }).unique().notNull(),
-  customerId: uuid2("customer_id").references(() => customers3.id).notNull(),
+  customerId: uuid2("customer_id").references(() => customers4.id).notNull(),
   enquiryDate: timestamp2("enquiry_date").defaultNow(),
   status: enquiryStatusEnum2("status").default("New"),
   source: enquirySourceEnum2("source").notNull(),
@@ -19232,14 +19318,14 @@ var enquiries2 = pgTable2("enquiries", {
 });
 var enquiryItems3 = pgTable2("enquiry_items", {
   id: uuid2("id").primaryKey().default(sql6`gen_random_uuid()`),
-  enquiryId: uuid2("enquiry_id").references(() => enquiries2.id).notNull(),
+  enquiryId: uuid2("enquiry_id").references(() => enquiries3.id).notNull(),
   itemId: uuid2("item_id").references(() => items3.id),
   description: text2("description").notNull(),
   quantity: integer2("quantity").notNull(),
   unitPrice: decimal2("unit_price", { precision: 10, scale: 2 }),
   notes: text2("notes")
 });
-var insertEnquirySchema2 = createInsertSchema2(enquiries2, {
+var insertEnquirySchema2 = createInsertSchema2(enquiries3, {
   targetDeliveryDate: z2.string().optional()
 }).omit({ id: true, enquiryNumber: true, createdAt: true, updatedAt: true }).extend({
   createdBy: z2.string().optional()
@@ -19263,8 +19349,8 @@ var quotations2 = pgTable2("quotations", {
   supersededAt: timestamp2("superseded_at"),
   supersededBy: uuid2("superseded_by").references(() => users3.id),
   isSuperseded: boolean2("is_superseded").default(false),
-  enquiryId: uuid2("enquiry_id").references(() => enquiries2.id),
-  customerId: uuid2("customer_id").references(() => customers3.id).notNull(),
+  enquiryId: uuid2("enquiry_id").references(() => enquiries3.id),
+  customerId: uuid2("customer_id").references(() => customers4.id).notNull(),
   customerType: customerTypeEnum2("customer_type").notNull(),
   status: quotationStatusEnum2("status").default("Draft"),
   quoteDate: timestamp2("quote_date").defaultNow(),
@@ -19362,7 +19448,7 @@ var salesOrders2 = pgTable2("sales_orders", {
   orderNumber: varchar2("order_number", { length: 50 }).unique().notNull(),
   quotationId: uuid2("quotation_id"),
   // Will reference quotations.id
-  customerId: uuid2("customer_id").references(() => customers3.id).notNull(),
+  customerId: uuid2("customer_id").references(() => customers4.id).notNull(),
   orderDate: timestamp2("order_date").defaultNow(),
   status: salesOrderStatusEnum2("status").default("Draft"),
   customerPoNumber: varchar2("customer_po_number", { length: 100 }),
@@ -19429,7 +19515,7 @@ var invoices3 = pgTable2("invoices", {
   // References sales_orders.id
   deliveryId: uuid2("delivery_id"),
   // References deliveries.id
-  customerId: uuid2("customer_id").references(() => customers3.id).notNull(),
+  customerId: uuid2("customer_id").references(() => customers4.id).notNull(),
   invoiceDate: timestamp2("invoice_date").defaultNow(),
   dueDate: timestamp2("due_date"),
   status: invoiceStatusEnum2("status").default("Draft"),
@@ -19518,7 +19604,7 @@ router7.get("/dashboard", async (req, res) => {
       in_progress_enquiries: sql20`COUNT(CASE WHEN status = 'In Progress' THEN 1 END)`,
       quoted_enquiries: sql20`COUNT(CASE WHEN status = 'Quoted' THEN 1 END)`,
       closed_enquiries: sql20`COUNT(CASE WHEN status = 'Closed' THEN 1 END)`
-    }).from(enquiries2);
+    }).from(enquiries3);
     const quotationStats = await db.select({
       total_quotations: count6(),
       draft_quotations: sql20`COUNT(CASE WHEN status = 'Draft' THEN 1 END)`,
@@ -19549,7 +19635,7 @@ router7.get("/dashboard", async (req, res) => {
       active_customers: sql20`COUNT(CASE WHEN is_active = true THEN 1 END)`,
       retail_customers: sql20`COUNT(CASE WHEN customer_type = 'Retail' THEN 1 END)`,
       wholesale_customers: sql20`COUNT(CASE WHEN customer_type = 'Wholesale' THEN 1 END)`
-    }).from(customers3);
+    }).from(customers4);
     res.json({
       enquiries: enquiryStats[0] || {
         total_enquiries: 0,
@@ -19737,7 +19823,7 @@ router7.get("/products/top", async (req, res) => {
 });
 router7.get("/conversion/funnel", async (req, res) => {
   try {
-    const enquiryCount = await db.select({ count: count6() }).from(enquiries2);
+    const enquiryCount = await db.select({ count: count6() }).from(enquiries3);
     const quotationCount = await db.select({ count: count6() }).from(quotations2);
     const salesOrderCount = await db.select({ count: count6() }).from(salesOrders2);
     const invoiceCount = await db.select({ count: count6() }).from(invoices3);

@@ -60,6 +60,8 @@ interface Shipment {
   }>;
   subtotal?: string;
   taxAmount?: string;
+  totalAmount?: string;
+  total?: string;
   paymentTerms?: string;
   deliveryTerms?: string;
 }
@@ -282,12 +284,7 @@ export default function ShipmentDetailPage() {
                       <span className="text-sm font-semibold text-slate-900">{shipment.salesOrderNumber}</span>
                     </div>
                   )}
-                  {shipment.customerReference && (
-                    <div className="flex justify-between items-start">
-                      <span className="text-sm text-slate-600 font-medium">Customer Reference</span>
-                      <span className="text-sm font-semibold text-slate-900">{shipment.customerReference}</span>
-                    </div>
-                  )}
+                  
                   <Separator className="my-2" />
                   <div className="flex justify-between items-start">
                     <span className="text-sm text-slate-600 font-medium">Carrier</span>
@@ -359,43 +356,7 @@ export default function ShipmentDetailPage() {
           </div>
 
           {/* Customer Information */}
-          {shipment.customerName && (
-            <Card className="bg-white shadow-md rounded-xl border-slate-200 hover:shadow-lg transition-shadow">
-              <div className="p-6 space-y-4">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="h-10 w-10 rounded-lg bg-teal-50 flex items-center justify-center">
-                    <User className="h-5 w-5 text-teal-600" />
-                  </div>
-                  <h2 className="text-lg font-bold text-slate-900">Customer Information</h2>
-                </div>
-                <Separator />
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="space-y-1">
-                    <span className="text-xs text-slate-500 font-medium uppercase tracking-wide">Customer Name</span>
-                    <p className="text-sm font-semibold text-slate-900">{shipment.customerName}</p>
-                  </div>
-                  {shipment.customerReference && (
-                    <div className="space-y-1">
-                      <span className="text-xs text-slate-500 font-medium uppercase tracking-wide">Customer Reference</span>
-                      <p className="text-sm font-semibold text-slate-900">{shipment.customerReference}</p>
-                    </div>
-                  )}
-                  {shipment.supplierName && (
-                    <div className="space-y-1">
-                      <span className="text-xs text-slate-500 font-medium uppercase tracking-wide">Supplier</span>
-                      <p className="text-sm font-semibold text-slate-900">{shipment.supplierName}</p>
-                    </div>
-                  )}
-                  {shipment.paymentTerms && (
-                    <div className="space-y-1">
-                      <span className="text-xs text-slate-500 font-medium uppercase tracking-wide">Payment Terms</span>
-                      <p className="text-sm font-semibold text-slate-900">{shipment.paymentTerms}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </Card>
-          )}
+         
 
           {/* Items Information */}
           {shipment.items && shipment.items.length > 0 && (
@@ -468,14 +429,19 @@ export default function ShipmentDetailPage() {
                         <span className="text-sm font-semibold text-slate-700">Total Items:</span>
                         <span className="text-sm font-bold text-slate-900">{shipment.items.length}</span>
                       </div>
-                      {shipment.subtotal && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-semibold text-slate-700">Subtotal:</span>
-                          <span className="text-sm font-bold text-blue-700">
-                            {shipment.currency || 'BHD'} {parseFloat(shipment.subtotal).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </span>
-                        </div>
-                      )}
+                      {(() => {
+                        const calculatedTotal = shipment.items.reduce((sum, item) => {
+                          return sum + (item.totalCost ? parseFloat(item.totalCost) : 0);
+                        }, 0);
+                        return calculatedTotal > 0 && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-semibold text-slate-700">Subtotal:</span>
+                            <span className="text-sm font-bold text-blue-700">
+                              {shipment.currency || 'BHD'} {calculatedTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                          </div>
+                        );
+                      })()}
                       {shipment.taxAmount && (
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-semibold text-slate-700">Tax Amount:</span>
@@ -484,17 +450,24 @@ export default function ShipmentDetailPage() {
                           </span>
                         </div>
                       )}
-                      {shipment.subtotal && shipment.taxAmount && (
-                        <>
-                          <Separator className="my-2" />
-                          <div className="flex items-center justify-between">
-                            <span className="text-base font-bold text-slate-900">Grand Total:</span>
-                            <span className="text-lg font-bold text-emerald-700">
-                              {shipment.currency || 'BHD'} {(parseFloat(shipment.subtotal) + parseFloat(shipment.taxAmount)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </span>
-                          </div>
-                        </>
-                      )}
+                      {(() => {
+                        const calculatedTotal = shipment.items.reduce((sum, item) => {
+                          return sum + (item.totalCost ? parseFloat(item.totalCost) : 0);
+                        }, 0);
+                        const taxAmount = shipment.taxAmount ? parseFloat(shipment.taxAmount) : 0;
+                        const grandTotal = calculatedTotal + taxAmount;
+                        return grandTotal > 0 && (
+                          <>
+                            <Separator className="my-2" />
+                            <div className="flex items-center justify-between">
+                              <span className="text-base font-bold text-slate-900">Grand Total:</span>
+                              <span className="text-lg font-bold text-emerald-700">
+                                {shipment.currency || 'BHD'} {grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </span>
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>

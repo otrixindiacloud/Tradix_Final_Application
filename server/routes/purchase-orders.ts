@@ -173,11 +173,14 @@ export function registerPurchaseOrderRoutes(app: Express) {
   // Customer PO Upload route
   app.post("/api/customer-po-upload", async (req, res) => {
     try {
-  const { quotationId, documentPath, documentName, documentType, uploadedBy, poDate, currency, paymentTerms, deliveryTerms, specialInstructions, customerReference } = req.body;
+      console.log('[CUSTOMER-PO-UPLOAD] Received request body:', JSON.stringify(req.body, null, 2));
+  const { quotationId, poNumber, documentPath, documentName, documentType, uploadedBy, poDate, currency, paymentTerms, deliveryTerms, specialInstructions, customerReference } = req.body;
+      console.log('[CUSTOMER-PO-UPLOAD] Extracted poNumber:', poNumber);
 
       // Basic presence validation (uploadedBy handled specially below)
       const missing: string[] = [];
       if (!quotationId) missing.push('quotationId');
+      if (!poNumber) missing.push('poNumber');
       if (!documentPath) missing.push('documentPath');
       if (!documentName) missing.push('documentName');
       if (!documentType) missing.push('documentType');
@@ -226,11 +229,11 @@ export function registerPurchaseOrderRoutes(app: Express) {
         return res.status(400).json({ message: 'No accepted quotation items found; cannot upload PO' });
       }
 
-      // Auto-generate PO number
-  const poNumber = (storage as any).generateNumber ? (storage as any).generateNumber('PO') : `PO-${Date.now()}`;
+      // Use the PO number provided by the user
+      console.log('[CUSTOMER-PO-UPLOAD] Creating PO with user-provided poNumber:', poNumber);
       const poPayload = insertPurchaseOrderSchema.parse({
         quotationId,
-        poNumber,
+        poNumber, // Use the PO number from request body
         poDate: poDate ? new Date(poDate) : new Date(),
         documentPath,
         documentName,
@@ -243,7 +246,9 @@ export function registerPurchaseOrderRoutes(app: Express) {
         customerReference: customerReference || undefined,
       });
 
+      console.log('[CUSTOMER-PO-UPLOAD] PO payload to be inserted:', JSON.stringify(poPayload, null, 2));
       const purchaseOrder = await storage.createPurchaseOrder(poPayload);
+      console.log('[CUSTOMER-PO-UPLOAD] Created PO:', JSON.stringify(purchaseOrder, null, 2));
       res.status(201).json(purchaseOrder);
     } catch (error) {
       console.error("Error uploading PO:", error);

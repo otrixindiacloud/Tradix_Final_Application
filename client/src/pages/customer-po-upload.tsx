@@ -71,8 +71,7 @@ export default function PoUpload() {
       // Step 2: Create PO referencing uploaded file
       const payload = {
         quotationId,
-        // backend auto-generates poNumber, but include customer reference as poNumber field? Actually route does not accept poNumber, so treat as customerReference
-        customerReference: poNumber,
+        poNumber: poNumber, // Use the PO number entered by the user
         documentPath: uploaded.path, // e.g. /api/files/download/<filename>
         documentName: uploaded.name,
         documentType: uploaded.mimetype || file.type || "application/octet-stream",
@@ -80,6 +79,8 @@ export default function PoUpload() {
         poDate: new Date().toISOString(),
         currency: "BHD",
       } as any;
+
+      console.log('[FRONTEND] Sending PO upload payload:', JSON.stringify(payload, null, 2));
 
       const res = await fetch("/api/customer-po-upload", {
         method: "POST",
@@ -116,26 +117,31 @@ export default function PoUpload() {
       });
       return { previous };
     },
-    onSuccess: (po: any, vars) => {
-      // Optimistically update quotations cache so table reflects immediately
+    onSuccess: async (po: any, vars) => {
+      // Update the quotations cache with the returned data from backend
       queryClient.setQueryData(["/api/quotations"], (old: any) => {
         if (!Array.isArray(old)) return old;
         return old.map((q: any) => q.id === vars.quotationId ? {
           ...q,
-            customerPoDocument: po.documentPath,
-            customerPoDocumentName: po.documentName,
-            customerPoNumber: po.poNumber,
+          customerPoDocument: po.documentPath,
+          customerPoDocumentName: po.documentName,
+          customerPoNumber: po.poNumber,
         } : q);
       });
-      toast({ title: "Success", description: `PO uploaded. Generated PO #: ${po.poNumber}` });
+      
+      // Invalidate and refetch to ensure we have the latest data
+      await queryClient.invalidateQueries({ queryKey: ["/api/quotations"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/quotations"] });
+      
+      toast({ title: "Success", description: `PO uploaded successfully. PO #: ${po.poNumber}` });
       setSelectedQuotation(null);
       setUploadedFile(null);
       setPoNumber("");
-      // Still revalidate to ensure backend authoritative state (e.g., validationStatus)
-      queryClient.invalidateQueries({ queryKey: ["/api/quotations"] });
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/quotations"] });
+    onSettled: async () => {
+      // Ensure queries are refetched after mutation completes
+      await queryClient.invalidateQueries({ queryKey: ["/api/quotations"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/quotations"] });
     },
     onError: (error: any, _vars, ctx) => {
       if (ctx?.previous) {
@@ -173,6 +179,12 @@ export default function PoUpload() {
         name: customer.name || 'No Customer'
       } : quotation.customer || { name: 'No Customer', customerType: '-' }
     };
+  })
+  // Sort by updatedAt descending (latest first)
+  .sort((a: any, b: any) => {
+    const dateA = new Date(a.updatedAt || a.createdAt).getTime();
+    const dateB = new Date(b.updatedAt || b.createdAt).getTime();
+    return dateB - dateA;
   });
   
   const filteredQuotations = enrichedQuotations?.filter((quotation: any) =>

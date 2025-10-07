@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -177,7 +177,9 @@ export function CustomerFormDialog({ customer, onCustomerSaved, trigger }: Custo
       };
 
       if (formData.email && formData.email.trim() !== "") submitData.email = formData.email.trim();
-      if (formData.phone && formData.phone.trim() !== "") submitData.phone = formData.phone.trim();
+      if (formData.phone && formData.phone.trim() !== "") {
+        submitData.phone = formData.phone.trim();
+      }
       if (formData.address && formData.address.trim() !== "") submitData.address = formData.address.trim();
       if (formData.taxId && formData.taxId.trim() !== "") submitData.taxId = formData.taxId.trim();
       if (formData.creditLimit && formData.creditLimit.trim() !== "") submitData.creditLimit = formData.creditLimit.trim();
@@ -285,9 +287,21 @@ export function CustomerFormDialog({ customer, onCustomerSaved, trigger }: Custo
               <Label htmlFor="phone">Phone</Label>
               <Input
                 id="phone"
+                type="tel"
                 value={formData.phone}
-                onChange={(e) => handleInputChange("phone", e.target.value)}
-                placeholder="+971 50 123 4567"
+                onChange={(e) => {
+                  // Only allow numbers in phone input
+                  const numbersOnly = e.target.value.replace(/[^0-9]/g, '');
+                  handleInputChange("phone", numbersOnly);
+                }}
+                onKeyPress={(e) => {
+                  // Allow only numbers for phone number
+                  const allowedChars = /[0-9]/;
+                  if (!allowedChars.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'Tab' && e.key !== 'Enter') {
+                    e.preventDefault();
+                  }
+                }}
+                placeholder="Enter phone number"
               />
             </div>
 

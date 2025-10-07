@@ -381,49 +381,147 @@ export default function QuotationDetailPage() {
   const generateClientSidePDF = () => {
     try {
       const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
       
-      // Header
-      doc.setFontSize(20);
-      doc.text('QUOTATION', 20, 20);
+      // Company Header - Left Side (Golden Tag)
+      doc.setFontSize(22);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(218, 165, 32); // Gold color
+      doc.text('GOLDEN TAG', 20, 20);
       
-      // Quotation details
-      doc.setFontSize(12);
-      doc.text(`Quote Number: ${quotation.quoteNumber}`, 20, 40);
-      doc.text(`Date: ${formatDate(new Date(quotation.quoteDate || quotation.createdAt), "MMM dd, yyyy")}`, 20, 50);
-      doc.text(`Valid Until: ${formatDate(new Date(quotation.validUntil), "MMM dd, yyyy")}`, 20, 60);
-      doc.text(`Customer: ${customerName}`, 20, 70);
-      doc.text(`Customer Type: ${quotation.customerType}`, 20, 80);
-      doc.text(`Status: ${quotation.status}`, 20, 90);
+      // Company Details - Left Side
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(60, 60, 60);
+      doc.text('Trading & Supply Company', 20, 27);
+      doc.text('Kingdom of Bahrain', 20, 32);
+      doc.text('Mobile: +973 XXXX XXXX', 20, 37);
+      doc.text('Email: info@goldentag.com', 20, 42);
+      
+      // Document Type and Date - Right Side
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text('QUOTATION', pageWidth - 20, 20, { align: 'right' });
+      
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(60, 60, 60);
+      doc.text(`Date: ${formatDate(new Date(quotation.quoteDate || quotation.createdAt), "MMM dd, yyyy")}`, pageWidth - 20, 30, { align: 'right' });
+      doc.text(`Quote #: ${quotation.quoteNumber}`, pageWidth - 20, 35, { align: 'right' });
+      doc.text(`Valid Until: ${formatDate(new Date(quotation.validUntil), "MMM dd, yyyy")}`, pageWidth - 20, 40, { align: 'right' });
+      
+      // Horizontal line separator
+      doc.setDrawColor(218, 165, 32);
+      doc.setLineWidth(0.5);
+      doc.line(20, 48, pageWidth - 20, 48);
+      
+      // Customer Information Box
+      doc.setDrawColor(200, 200, 200);
+      doc.setFillColor(248, 249, 250);
+      doc.rect(20, 55, pageWidth - 40, 24, 'FD');
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text('BILL TO:', 25, 62);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Customer: ${customerName}`, 25, 68);
+      doc.text(`Customer Type: ${quotation.customerType}`, 25, 74);
+      doc.text(`Status: ${quotation.status}`, pageWidth - 80, 68);
       
       // Items table
       if (quotationItems && quotationItems.length > 0) {
-        const tableData = quotationItems.map((item: QuotationItem) => [
-          item.supplierCode || '',
-          item.description || '',
-          item.quantity.toString(),
-          `$${parseFloat(item.unitPrice || '0').toFixed(2)}`,
-          `$${parseFloat(item.lineTotal || '0').toFixed(2)}`
-        ]);
+        const currency = quotation.currency || 'BHD';
+        const tableData = quotationItems.map((item: QuotationItem, index: number) => {
+          const qty = parseFloat(item.quantity?.toString() || '0');
+          const unitPrice = parseFloat(item.unitPrice?.toString() || '0');
+          const lineTotal = parseFloat(item.lineTotal?.toString() || '0') || (qty * unitPrice);
+          
+          return [
+            (index + 1).toString(),
+            item.description || 'Item Description',
+            `${qty.toFixed(2)} PCS`,
+            `${currency} ${unitPrice.toFixed(3)}`,
+            `${currency} ${lineTotal.toFixed(2)}`
+          ];
+        });
         
         autoTable(doc, {
-          head: [['Supplier Code', 'Description', 'Quantity', 'Unit Price', 'Total']],
+          head: [['S.I.', 'Item Description & Specifications', 'Qty', 'Unit Rate', 'Net Total']],
           body: tableData,
-          startY: 110,
+          startY: 86,
           theme: 'grid',
-          headStyles: { fillColor: [41, 128, 185] },
-          styles: { fontSize: 10 }
+          headStyles: { 
+            fillColor: [255, 255, 255],
+            textColor: [0, 0, 0],
+            fontStyle: 'bold',
+            lineColor: [0, 0, 0],
+            lineWidth: 0.1
+          },
+          styles: { 
+            fontSize: 9,
+            cellPadding: 4,
+            lineColor: [0, 0, 0],
+            lineWidth: 0.1,
+            textColor: [0, 0, 0]
+          },
+          columnStyles: {
+            0: { cellWidth: 12, halign: 'center' },
+            1: { cellWidth: 80, halign: 'left' },
+            2: { cellWidth: 25, halign: 'center' },
+            3: { cellWidth: 30, halign: 'right' },
+            4: { cellWidth: 30, halign: 'right' }
+          },
+          alternateRowStyles: {
+            fillColor: [248, 249, 250]
+          }
         });
       }
       
       // Pricing summary
       const finalY = (doc as any).lastAutoTable?.finalY || 150;
-      doc.text(`Subtotal: $${parseFloat(quotation.subtotal || '0').toFixed(2)}`, 140, finalY + 20);
-      if (parseFloat(quotation.discountAmount || '0') > 0) {
-        doc.text(`Discount: -$${parseFloat(quotation.discountAmount || '0').toFixed(2)}`, 140, finalY + 30);
-      }
-      doc.text(`Tax: $${parseFloat(quotation.taxAmount || '0').toFixed(2)}`, 140, finalY + 40);
-      doc.setFontSize(14);
-      doc.text(`Total: $${parseFloat(quotation.totalAmount || '0').toFixed(2)}`, 140, finalY + 55);
+      const currency = quotation.currency || 'BHD';
+      
+      // Calculate values safely
+      const subtotal = parseFloat(quotation.subtotal?.toString() || '0') || 0;
+      const discountAmount = parseFloat(quotation.discountAmount?.toString() || '0') || 0;
+      const taxAmount = parseFloat(quotation.taxAmount?.toString() || '0') || 0;
+      const netAmount = subtotal - discountAmount;
+      const totalAmount = parseFloat(quotation.totalAmount?.toString() || '0') || (netAmount + taxAmount);
+      
+      // Summary table (right-aligned)
+      const summaryData = [
+        ['Total Amount', `${currency} ${subtotal.toFixed(2)}`],
+        ['Discount Amount', `${currency} ${discountAmount.toFixed(2)}`],
+        ['Net Amount', `${currency} ${netAmount.toFixed(2)}`],
+        ['VAT Amount', `${currency} ${taxAmount.toFixed(2)}`],
+        ['Grand Total', `${currency} ${totalAmount.toFixed(2)}`]
+      ];
+      
+      autoTable(doc, {
+        startY: finalY + 5,
+        body: summaryData,
+        theme: 'plain',
+        styles: {
+          fontSize: 9,
+          cellPadding: 2,
+          textColor: [0, 0, 0]
+        },
+        columnStyles: {
+          0: { halign: 'right', cellWidth: 40, fontStyle: 'bold' },
+          1: { halign: 'right', cellWidth: 30, fontStyle: 'bold' }
+        },
+        margin: { left: pageWidth - 75 }
+      });
+      
+      // Footer
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(100, 100, 100);
+      const pageHeight = doc.internal.pageSize.height;
+      doc.text('Thank you for your business!', 105, pageHeight - 20, { align: 'center' });
+      doc.text('Golden Tag - Your Trusted Trading Partner', 105, pageHeight - 15, { align: 'center' });
+      doc.text('This is a computer-generated quotation and does not require a signature.', 105, pageHeight - 10, { align: 'center' });
       
       // Save the PDF
       doc.save(`quotation-${quotation.quoteNumber}.pdf`);
@@ -670,35 +768,35 @@ export default function QuotationDetailPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span>Subtotal:</span>
-                      <span>{parseFloat(quotation.subtotal || "0").toFixed(2)}</span>
-                    </div>
-                    
-                    {parseFloat(quotation.discountPercentage || "0") > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span>Discount ({quotation.discountPercentage}%):</span>
-                        <span className="text-green-600">
-                          -{parseFloat(quotation.discountAmount || "0").toFixed(2)}
-                        </span>
+                  {/* Summary Stats - Items, Amount, Tax */}
+                  <div className="grid grid-cols-1 gap-3">
+                    {/* Items Count */}
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-5 w-5 text-gray-600" />
+                        <span className="text-sm font-medium text-gray-700">Total Items:</span>
                       </div>
-                    )}
-                    
-                    <div className="flex justify-between text-sm">
-                      <span>Tax:</span>
-                      <span>{parseFloat(quotation.taxAmount || "0").toFixed(2)}</span>
+                      <span className="text-lg font-bold text-gray-900">
+                        {quotationItems?.length || 0}
+                      </span>
                     </div>
-                    
-                    <Separator />
-                    
-                    <div className="flex justify-between font-bold text-lg">
-                      <span>Total:</span>
-                      <span className="text-blue-600">
+
+                    {/* Total Amount */}
+                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <DollarSign className="h-5 w-5 text-blue-600" />
+                        <span className="text-sm font-medium text-blue-700">Total Amount:</span>
+                      </div>
+                      <span className="text-lg font-bold text-blue-900">
                         ${parseFloat(quotation.totalAmount || "0").toFixed(2)}
                       </span>
                     </div>
+
+                    {/* Tax Amount */}
+                    
                   </div>
+
+                  
 
                   <div className="pt-4 border-t">
                     <div className="text-center p-3 bg-blue-50 rounded-lg">

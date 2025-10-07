@@ -163,10 +163,7 @@ function LpoItemComponent({ lpo, fetchLpoItems, onGenerate }: LpoItemComponentPr
               </span>
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 mb-1">
-              <div className="flex items-center gap-1">
-                <User className="h-3 w-3 text-gray-400" />
-                <span className="font-medium">Customer:</span> {lpo.customer?.name || lpo.customerName || 'Unknown'}
-              </div>
+              
               <div className="flex items-center gap-1">
                 <DollarSign className="h-3 w-3 text-gray-400" />
                 <span className="font-medium">Value:</span> {lpo.currency || 'BHD'} {parseFloat(lpo.totalAmount || '0').toLocaleString()}
@@ -610,10 +607,38 @@ export default function ShipmentTrackingPage() {
     },
   });
 
+  // Enrich shipments with customer names from customers data
+  const enrichedShipments = React.useMemo(() => {
+    return shipments.map((shipment: any) => {
+      // If customerName already exists, use it
+      if (shipment.customerName) {
+        return shipment;
+      }
+      
+      // Try to find customer name from LPO data
+      const matchingLpo = confirmedLpos.find((lpo: any) => 
+        lpo.lpoNumber === shipment.lpoNumber || 
+        lpo.lpoNumber === shipment.salesOrderNumber
+      );
+      
+      if (matchingLpo) {
+        return {
+          ...shipment,
+          customerName: matchingLpo.customer?.name || matchingLpo.customerName || 'Unknown Customer'
+        };
+      }
+      
+      return {
+        ...shipment,
+        customerName: 'Unknown Customer'
+      };
+    });
+  }, [shipments, confirmedLpos]);
+
   // Filter out LPOs that already have shipments generated
   const availableLpos = enrichedConfirmedLpos.filter((lpo: any) => {
     // Check if any shipment has this LPO number as salesOrderNumber
-    const hasShipment = shipments.some((shipment: any) => 
+    const hasShipment = enrichedShipments.some((shipment: any) => 
       shipment.salesOrderNumber === lpo.lpoNumber
     );
     
@@ -947,7 +972,7 @@ export default function ShipmentTrackingPage() {
 
   // Export shipments function
   const exportShipments = (format: 'csv' | 'excel') => {
-    if (!shipments || shipments.length === 0) {
+    if (!enrichedShipments || enrichedShipments.length === 0) {
       toast({
         title: "No Data",
         description: "No shipments to export",
@@ -957,7 +982,7 @@ export default function ShipmentTrackingPage() {
     }
 
     try {
-      const exportData = shipments.map((shipment: Shipment) => ({
+      const exportData = enrichedShipments.map((shipment: Shipment) => ({
         'Shipment Number': shipment.shipmentNumber,
         'Tracking Number': shipment.trackingNumber,
         'Sales Order': shipment.salesOrderNumber || '',
@@ -1219,8 +1244,8 @@ export default function ShipmentTrackingPage() {
   ];
 
   // Pagination logic
-  const totalPages = Math.ceil(shipments.length / pageSize);
-  const paginatedShipments = shipments.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const totalPages = Math.ceil(enrichedShipments.length / pageSize);
+  const paginatedShipments = enrichedShipments.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
     <div className="space-y-6">
@@ -1247,7 +1272,7 @@ export default function ShipmentTrackingPage() {
                 <div className="flex items-center gap-6">
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Globe className="h-4 w-4 text-blue-600" />
-                  <span className="font-medium">Total Shipments: <span className="text-blue-700 font-bold">{shipments.length}</span></span>
+                  <span className="font-medium">Total Shipments: <span className="text-blue-700 font-bold">{enrichedShipments.length}</span></span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Package className="h-4 w-4 text-blue-600" />
@@ -1295,7 +1320,7 @@ export default function ShipmentTrackingPage() {
             <div className="flex-1">
               <div className="text-sm font-semibold text-gray-700 mb-1">Pending</div>
               <div className="text-3xl font-bold text-gray-900 mb-1">
-                {shipments?.filter((s: Shipment) => s.status === "Pending").length || 0}
+                {enrichedShipments?.filter((s: Shipment) => s.status === "Pending").length || 0}
               </div>
               <div className="text-xs text-gray-600">Awaiting pickup</div>
             </div>
@@ -1311,7 +1336,7 @@ export default function ShipmentTrackingPage() {
             <div className="flex-1">
               <div className="text-sm font-semibold text-gray-700 mb-1">In Transit</div>
               <div className="text-3xl font-bold text-gray-900 mb-1">
-                {shipments?.filter((s: Shipment) => s.status === "In Transit").length || 0}
+                {enrichedShipments?.filter((s: Shipment) => s.status === "In Transit").length || 0}
               </div>
               <div className="text-xs text-gray-600">On the way</div>
             </div>
@@ -1327,7 +1352,7 @@ export default function ShipmentTrackingPage() {
             <div className="flex-1">
               <div className="text-sm font-semibold text-gray-700 mb-1">Out for Delivery</div>
               <div className="text-3xl font-bold text-gray-900 mb-1">
-                {shipments?.filter((s: Shipment) => s.status === "Out for Delivery").length || 0}
+                {enrichedShipments?.filter((s: Shipment) => s.status === "Out for Delivery").length || 0}
               </div>
               <div className="text-xs text-gray-600">Final mile</div>
             </div>
@@ -1343,7 +1368,7 @@ export default function ShipmentTrackingPage() {
             <div className="flex-1">
               <div className="text-sm font-semibold text-gray-700 mb-1">Delivered</div>
               <div className="text-3xl font-bold text-gray-900 mb-1">
-                {shipments?.filter((s: Shipment) => s.status === "Delivered").length || 0}
+                {enrichedShipments?.filter((s: Shipment) => s.status === "Delivered").length || 0}
               </div>
               <div className="text-xs text-gray-600">Completed</div>
             </div>
@@ -1659,7 +1684,7 @@ export default function ShipmentTrackingPage() {
                 }}
               />
               {/* Pagination Controls */}
-              {shipments.length > pageSize && (
+              {enrichedShipments.length > pageSize && (
                 <div className="flex justify-center items-center gap-2 mt-4">
                   <Button
                     variant="outline"
@@ -2416,12 +2441,7 @@ export default function ShipmentTrackingPage() {
                       <p className="text-sm font-medium">{detailShipment.salesOrderNumber}</p>
                     </div>
                   )}
-                  {detailShipment.customerReference && (
-                    <div>
-                      <Label className="text-xs font-medium text-gray-500">Customer Reference</Label>
-                      <p className="text-sm font-medium">{detailShipment.customerReference}</p>
-                    </div>
-                  )}
+                  
                 </div>
                 <div className="space-y-4">
                   <div>
@@ -2505,35 +2525,7 @@ export default function ShipmentTrackingPage() {
               </div>
 
               {/* Customer Information */}
-              {(detailShipment as any).customerName && (
-                <div className="space-y-3 p-4 border rounded-lg bg-white">
-                  <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2"><User className="h-4 w-4 text-blue-600" /> Customer Information</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                    <div>
-                      <span className="font-medium text-gray-500">Customer Name</span>
-                      <p className="text-sm font-semibold text-gray-800">{(detailShipment as any).customerName}</p>
-                    </div>
-                    {detailShipment.customerReference && (
-                      <div>
-                        <span className="font-medium text-gray-500">Customer Reference</span>
-                        <p className="text-sm font-semibold text-gray-800">{detailShipment.customerReference}</p>
-                      </div>
-                    )}
-                    {detailShipment.supplierName && (
-                      <div>
-                        <span className="font-medium text-gray-500">Supplier</span>
-                        <p className="text-sm font-semibold text-gray-800">{detailShipment.supplierName}</p>
-                      </div>
-                    )}
-                    {(detailShipment as any).paymentTerms && (
-                      <div>
-                        <span className="font-medium text-gray-500">Payment Terms</span>
-                        <p className="text-sm font-semibold text-gray-800">{(detailShipment as any).paymentTerms}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
+              
 
               {/* Items Information */}
               {(detailShipment as any).items && (detailShipment as any).items.length > 0 && (
@@ -2576,14 +2568,20 @@ export default function ShipmentTrackingPage() {
                   <div className="bg-blue-50 rounded p-3 border border-blue-200">
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-medium text-blue-800">Total Items:</span>
-                      <span className="font-semibold text-blue-900">{(detailShipment as any).items.length}</span>
+                      <span className="font-semibold text-blue-900">
+                        {(detailShipment as any).items.reduce((sum: number, item: any) => sum + (parseInt(item.quantity) || 0), 0)} items
+                      </span>
                     </div>
-                    {(detailShipment as any).subtotal && (
-                      <div className="flex items-center justify-between text-xs mt-1">
-                        <span className="font-medium text-blue-800">Subtotal:</span>
-                        <span className="font-semibold text-blue-900">{detailShipment.currency || 'BHD'} {parseFloat((detailShipment as any).subtotal).toLocaleString()}</span>
-                      </div>
-                    )}
+                    <div className="flex items-center justify-between text-xs mt-1">
+                      <span className="font-medium text-blue-800">Subtotal:</span>
+                      <span className="font-semibold text-blue-900">
+                        {detailShipment.currency || 'BHD'} {
+                          (detailShipment as any).items
+                            .reduce((sum: number, item: any) => sum + (parseFloat(item.totalCost) || 0), 0)
+                            .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                        }
+                      </span>
+                    </div>
                   </div>
                 </div>
               )}
@@ -2679,10 +2677,6 @@ export default function ShipmentTrackingPage() {
                   <div>
                     <span className="font-medium text-green-700">Supplier:</span>
                     <p className="text-green-800 font-semibold">{confirmedLpoData.supplierName}</p>
-                  </div>
-                  <div>
-                    <span className="font-medium text-green-700">Customer:</span>
-                    <p className="text-green-800 font-semibold">{confirmedLpoData.customerName || 'Unknown Customer'}</p>
                   </div>
                   <div>
                     <span className="font-medium text-green-700">Total Value:</span>

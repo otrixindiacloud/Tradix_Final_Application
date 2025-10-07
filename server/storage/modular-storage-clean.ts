@@ -116,6 +116,10 @@ export class ModularStorage extends BaseStorage {
     return this.customerStorage.updateCustomer(id, customer);
   }
 
+  async deleteCustomer(id: string) {
+    return this.customerStorage.deleteCustomer(id);
+  }
+
   async getCustomerDetails(id: string) {
     return this.customerStorage.getCustomerDetails(id);
   }

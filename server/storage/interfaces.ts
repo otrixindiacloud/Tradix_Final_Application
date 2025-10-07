@@ -89,6 +89,7 @@ export interface ICustomerStorage {
   getCustomerPerformanceMetrics(customerId: string): Promise<any>;
   createCustomer(customer: InsertCustomer): Promise<Customer>;
   updateCustomer(id: string, customer: Partial<InsertCustomer>): Promise<Customer>;
+  deleteCustomer(id: string): Promise<void>;
 }
 
 export interface ISupplierStorage {

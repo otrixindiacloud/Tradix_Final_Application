@@ -44,11 +44,15 @@ export class CustomerStorage extends BaseStorage implements ICustomerStorage {
     }
     
     let query = db.select().from(customers);
-    
+
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      return query
+        .where(and(...conditions))
+        .limit(limit)
+        .offset(offset)
+        .orderBy(desc(customers.createdAt));
     }
-    
+
     return query
       .limit(limit)
       .offset(offset)
@@ -94,12 +98,11 @@ export class CustomerStorage extends BaseStorage implements ICustomerStorage {
     }
     
     let query = db.select({ count: count() }).from(customers);
-    
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
-    
-    const result = await query;
+
+    const result = conditions.length > 0
+      ? await query.where(and(...conditions))
+      : await query;
+
     return Number(result[0]?.count || 0);
   }
 
@@ -263,7 +266,9 @@ export class CustomerStorage extends BaseStorage implements ICustomerStorage {
         ...recentEnquiries,
         ...recentQuotations,
         ...recentSalesOrders
-      ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      ].sort((a, b) => 
+        new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime()
+      )
        .slice(0, limit);
 
       return allActivities;
@@ -444,6 +449,16 @@ export class CustomerStorage extends BaseStorage implements ICustomerStorage {
     
     await this.logAuditEvent("customer", id, "update", undefined, oldCustomer, customer);
     return customer;
+  }
+
+  async deleteCustomer(id: string): Promise<void> {
+    const oldCustomer = await this.getCustomer(id);
+    await db.update(customers).set({
+      isActive: false,
+      updatedAt: new Date()
+    }).where(eq(customers.id, id));
+    
+    await this.logAuditEvent("customer", id, "delete", undefined, oldCustomer, { isActive: false });
   }
 
   async logAuditEvent(

@@ -15,6 +15,42 @@ import { Plus, Edit, Trash2, RefreshCw, Search, User, Mail, Phone, MapPin, Credi
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 
+// Country codes data
+const countryCodes = [
+  { code: "+1", country: "US/CA", name: "United States/Canada" },
+  { code: "+91", country: "IN", name: "India" },
+  { code: "+44", country: "GB", name: "United Kingdom" },
+  { code: "+86", country: "CN", name: "China" },
+  { code: "+81", country: "JP", name: "Japan" },
+  { code: "+49", country: "DE", name: "Germany" },
+  { code: "+33", country: "FR", name: "France" },
+  { code: "+39", country: "IT", name: "Italy" },
+  { code: "+34", country: "ES", name: "Spain" },
+  { code: "+7", country: "RU", name: "Russia" },
+  { code: "+55", country: "BR", name: "Brazil" },
+  { code: "+52", country: "MX", name: "Mexico" },
+  { code: "+61", country: "AU", name: "Australia" },
+  { code: "+27", country: "ZA", name: "South Africa" },
+  { code: "+20", country: "EG", name: "Egypt" },
+  { code: "+62", country: "ID", name: "Indonesia" },
+  { code: "+90", country: "TR", name: "Turkey" },
+  { code: "+82", country: "KR", name: "South Korea" },
+  { code: "+66", country: "TH", name: "Thailand" },
+  { code: "+60", country: "MY", name: "Malaysia" },
+  { code: "+65", country: "SG", name: "Singapore" },
+  { code: "+63", country: "PH", name: "Philippines" },
+  { code: "+84", country: "VN", name: "Vietnam" },
+  { code: "+92", country: "PK", name: "Pakistan" },
+  { code: "+880", country: "BD", name: "Bangladesh" },
+  { code: "+94", country: "LK", name: "Sri Lanka" },
+  { code: "+977", country: "NP", name: "Nepal" },
+  { code: "+971", country: "AE", name: "UAE" },
+  { code: "+966", country: "SA", name: "Saudi Arabia" },
+  { code: "+98", country: "IR", name: "Iran" },
+  { code: "+964", country: "IQ", name: "Iraq" },
+  { code: "+972", country: "IL", name: "Israel" }
+].sort((a, b) => a.name.localeCompare(b.name));
+
 interface Customer {
   id: string;
   name: string;
@@ -68,7 +104,7 @@ export default function CustomerManagementPage() {
     setFilters({
       customerType: "all",
       classification: "all",
-      isActive: "all",
+      isActive: "true",
       search: ""
     });
   };
@@ -85,7 +121,7 @@ export default function CustomerManagementPage() {
   const [filters, setFilters] = useState({
     customerType: "all",
     classification: "all",
-    isActive: "all",
+    isActive: "true",
     search: ""
   });
   // Filter visibility toggle
@@ -95,7 +131,7 @@ export default function CustomerManagementPage() {
   const hasActiveFilters =
     filters.customerType !== "all" ||
     filters.classification !== "all" ||
-    filters.isActive !== "all" ||
+    filters.isActive !== "true" ||
     (filters.search && filters.search.trim() !== "");
 
   // Dialog states
@@ -107,6 +143,7 @@ export default function CustomerManagementPage() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    countryCode: "+91", // Default to India
     phone: "",
     address: "",
     customerType: "Retail",
@@ -263,7 +300,11 @@ export default function CustomerManagementPage() {
       isActive: formData.isActive,
     };
     if (formData.email && formData.email.trim() !== "") payload.email = formData.email.trim();
-    if (formData.phone && formData.phone.trim() !== "") payload.phone = formData.phone.trim();
+    if (formData.phone && formData.phone.trim() !== "") {
+      // Combine country code and phone number
+      const fullPhoneNumber = `${formData.countryCode} ${formData.phone.trim()}`;
+      payload.phone = fullPhoneNumber;
+    }
     if (formData.address && formData.address.trim() !== "") payload.address = formData.address.trim();
     if (formData.taxId && formData.taxId.trim() !== "") payload.taxId = formData.taxId.trim();
     if (formData.creditLimit && formData.creditLimit.trim() !== "") payload.creditLimit = formData.creditLimit.trim();
@@ -323,10 +364,14 @@ export default function CustomerManagementPage() {
   const handleUpdateCustomer = async () => {
     if (!editingCustomer) return;
 
+    // Combine country code and phone number
+    const fullPhoneNumber = formData.phone ? `${formData.countryCode}${formData.phone}` : '';
+
     updateCustomerMutation.mutate({
       customerId: editingCustomer.id,
       data: {
         ...formData,
+        phone: fullPhoneNumber,
         creditLimit: formData.creditLimit && formData.creditLimit.trim() !== "" ? formData.creditLimit : null
       }
     });
@@ -371,6 +416,7 @@ export default function CustomerManagementPage() {
     setFormData({
       name: "",
       email: "",
+      countryCode: "+91",
       phone: "",
       address: "",
       customerType: "Retail",
@@ -385,10 +431,25 @@ export default function CustomerManagementPage() {
 
   const openEditDialog = (customer: Customer) => {
     setEditingCustomer(customer);
+    
+    // Parse existing phone number to split country code and phone number
+    let countryCode = "+91"; // Default
+    let phoneNumber = customer.phone || "";
+    
+    if (customer.phone) {
+      const phone = customer.phone.trim();
+      const matchingCountry = countryCodes.find(cc => phone.startsWith(cc.code));
+      if (matchingCountry) {
+        countryCode = matchingCountry.code;
+        phoneNumber = phone.substring(matchingCountry.code.length).trim();
+      }
+    }
+    
     setFormData({
       name: customer.name,
       email: customer.email || "",
-      phone: customer.phone || "",
+      countryCode: countryCode,
+      phone: phoneNumber,
       address: customer.address || "",
       customerType: customer.customerType,
       classification: customer.classification,
@@ -515,12 +576,24 @@ export default function CustomerManagementPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="phone">Phone</Label>
-                    <Input
-                      id="phone"
-                      value={formData.phone}
-                      onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                      placeholder="Enter phone number"
-                    />
+                    <div className="flex gap-2">
+                      
+                      <Input
+                        id="phone"
+                        type="tel"
+                        className="flex-1"
+                        value={formData.phone}
+                        onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                        onKeyPress={(e) => {
+                          // Allow only numbers, spaces, and hyphens for phone number
+                          const allowedChars = /^[0-9]+$/;
+                          if (!allowedChars.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'Tab' && e.key !== 'Enter') {
+                            e.preventDefault();
+                          }
+                        }}
+                        placeholder="50 123 4567"
+                      />
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="taxId">Tax ID</Label>
@@ -1040,12 +1113,24 @@ export default function CustomerManagementPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="edit-phone">Phone</Label>
-                <Input
-                  id="edit-phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                  placeholder="Enter phone number"
-                />
+                <div className="flex gap-2">
+                
+                  <Input
+                    id="edit-phone"
+                    type="tel"
+                    className="flex-1"
+                    value={formData.phone}
+                    onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                    onKeyPress={(e) => {
+                      // Allow only numbers, spaces, and hyphens for phone number
+                      const allowedChars = /^[0-9]+$/;
+                      if (!allowedChars.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'Tab' && e.key !== 'Enter') {
+                        e.preventDefault();
+                      }
+                    }}
+                    placeholder="50 123 4567"
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-taxId">Tax ID</Label>

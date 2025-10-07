@@ -143,10 +143,22 @@ export default function QuotationsPage() {
   // Merge quotations with customer names
   const enrichedQuotations = quotations.map((quotation: Quotation) => {
     const customer = customers.find((c: any) => c.id === quotation.customerId);
-    return {
+    const enriched = {
       ...quotation,
       customerName: customer?.name || 'Unknown Customer'
     };
+    
+    // Debug: Log quotation data to help troubleshoot
+    console.log('Quotation data:', {
+      id: quotation.id,
+      quotationNumber: quotation.quoteNumber,
+      subtotal: quotation.subtotal,
+      totalAmount: quotation.totalAmount,
+      taxAmount: quotation.taxAmount,
+      discountPercentage: quotation.discountPercentage
+    });
+    
+    return enriched;
   });
 
   // Delete quotation mutation
@@ -493,12 +505,15 @@ export default function QuotationsPage() {
     },
     {
       key: "totalAmount",
-      header: "Total",
+      header: "Total Amount",
       className: "text-right",
       render: (value: string, quotation: Quotation) => (
         <div className="text-right">
-          <div className="font-medium">${parseFloat(value).toLocaleString()}</div>
-          {parseFloat(quotation.discountPercentage) > 0 && (
+          <div className="font-semibold text-gray-900">${parseFloat(value || "0").toFixed(2)}</div>
+          <div className="text-xs text-gray-500">
+            Subtotal: ${parseFloat(quotation.subtotal || "0").toFixed(2)}
+          </div>
+          {parseFloat(quotation.discountPercentage || "0") > 0 && (
             <div className="text-xs text-green-600">
               -{quotation.discountPercentage}% discount
             </div>
