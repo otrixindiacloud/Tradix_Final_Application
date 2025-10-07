@@ -135,7 +135,6 @@ export function buildEnhancedInvoicePdf(ctx: InvoicePdfContext): Buffer {
   const custAddress = customer.address || 'N/A';
   const custEmail = customer.email || 'N/A';
   const custPhone = (customer as any).phone || customer.phone || 'N/A';
-  
   const contactPerson = (invoice as any).contactPerson || (customer as any).contactPerson || 'N/A';
   const contactEmail = (customer as any).contactEmail || customer.email || 'N/A';
   const contactPhone = (customer as any).contactPhone || customer.phone || 'N/A';
@@ -186,10 +185,58 @@ export function buildEnhancedInvoicePdf(ctx: InvoicePdfContext): Buffer {
     const net = gross - discAmt;
     const vatPerc = Number((it as any).taxRate) || Number((invoice as any).taxRate) || 0;
     const vatAmt = net * vatPerc / 100;
-    
+
+    // Build enhanced description ensuring base item description always first
+    const descParts: string[] = [];
+    const baseName = (it as any).item?.itemName || it.description || (it as any).itemDescription || (it as any).name || 'Item';
+    descParts.push(baseName);
+    const originalName = (it as any).originalName || (it as any).originalItemName || (it as any).oemName;
+    if (originalName && originalName !== baseName) {
+      descParts.push(`Original: ${originalName}`);
+    }
+    // Original quantity (if differs)
+    const originalQty = (it as any).originalQuantity ?? (it as any).sourceQuantity ?? (it as any).baseQuantity;
+    if (originalQty != null && !Number.isNaN(Number(originalQty)) && Number(originalQty) !== qty) {
+      descParts.push(`Original Qty: ${Number(originalQty).toFixed(2)}`);
+    }
+    // Original unit cost (if differs)
+    const originalUnitRaw = (it as any).originalUnitPrice ?? (it as any).baseUnitPrice ?? (it as any).sourceUnitPrice ?? (it as any).item?.unitPrice;
+    if (originalUnitRaw != null && !Number.isNaN(Number(originalUnitRaw)) && Number(originalUnitRaw) !== unit) {
+      descParts.push(`Original Unit Cost: ${currency} ${Number(originalUnitRaw).toFixed(3)}`);
+    }
+    // Try to include original source references (quotation / enquiry) if available
+    const sourceQuote = (it as any).quotationItemNumber || (it as any).quotationReference;
+    const sourceEnquiry = (it as any).enquiryItemNumber || (it as any).enquiryReference;
+    if (sourceQuote) descParts.push(`Quote Ref: ${sourceQuote}`);
+    if (sourceEnquiry) descParts.push(`Enquiry Ref: ${sourceEnquiry}`);
+    // Optional secondary display (productName)
+    if ((it as any).productName && (it as any).productName !== baseName) descParts.push((it as any).productName);
+    // Specifications / technical details
+    const specRaw = (it as any).specifications || (it as any).specification || (it as any).itemSpecification || (it as any).technicalDetails;
+    if (specRaw) {
+      const specStr = String(specRaw).trim();
+      if (specStr && !/^(n\/a|none)$/i.test(specStr)) {
+        descParts.push(`Specs: ${specStr}`);
+      }
+    }
+    // Notes / additional description
+    const notes = (it as any).notes || (it as any).remarks || (it as any).additionalDescription;
+    if (notes) {
+      const notesStr = String(notes).trim();
+      if (notesStr && notesStr.length > 0 && notesStr.toLowerCase() !== 'n/a') {
+        descParts.push(`Notes: ${notesStr}`);
+      }
+    }
+    // Supplier / catalog meta
+    if ((it as any).supplierCode) descParts.push(`Supplier Code: ${(it as any).supplierCode}`);
+    if ((it as any).barcode) descParts.push(`Barcode: ${(it as any).barcode}`);
+    if ((it as any).item?.category) descParts.push(`Category: ${(it as any).item.category}`);
+    // Collapse multiple blank lines & join
+    const enhancedDesc = descParts.filter(p => p && p.trim().length > 0).join('\n');
+
     return [
       (i+1).toString(),
-      it.description || 'Product Description',
+      enhancedDesc,
       `${qty.toFixed(2)} PCS`,
       `${currency} ${unit.toFixed(3)}`,
       discPerc > 0 ? `${discPerc.toFixed(1)}%` : '0%',
@@ -202,7 +249,7 @@ export function buildEnhancedInvoicePdf(ctx: InvoicePdfContext): Buffer {
   
   autoTable(doc, {
     startY: afterAddress,
-    head: [[ 'S.I.', 'Item Description & Specifications', 'Qty', 'Unit Rate', 'Disc. %', 'Disc. Amt', 'Net Total', 'VAT %', 'VAT Amt' ]],
+    head: [[ 'S.I.', 'Item Description & Specifications', 'Qty', 'Unit Cost', 'Disc %', 'Disc Amt', 'Net Total', 'VAT %', 'VAT Amt' ]],
     body: itemRows,
     styles: { 
       fontSize: 7, 
@@ -226,13 +273,13 @@ export function buildEnhancedInvoicePdf(ctx: InvoicePdfContext): Buffer {
     },
     columnStyles: {
       0: { cellWidth: 10, halign:'center' },
-      1: { cellWidth: 55, halign: 'left' },
+      1: { cellWidth: 53, halign: 'left' },
       2: { cellWidth: 18, halign:'center' },
-      3: { cellWidth: 20, halign:'right' },
-      4: { cellWidth: 12, halign:'center' },
+  3: { cellWidth: 20, halign:'right' },
+      4: { cellWidth: 14, halign:'center' },
       5: { cellWidth: 18, halign:'right' },
       6: { cellWidth: 20, halign:'right' },
-      7: { cellWidth: 12, halign:'center' },
+      7: { cellWidth: 14, halign:'center' },
       8: { cellWidth: 20, halign:'right' }
     },
     alternateRowStyles: {
@@ -768,11 +815,54 @@ export function buildEnhancedPurchaseInvoicePdf(ctx: PurchaseInvoicePdfContext):
     const net = gross - discAmt;
     const vatPerc = Number(it.taxRate) || 0;
     const vatAmt = net * vatPerc / 100;
-    
+
+    // Build enriched description using multiple possible sources
+    const descParts: string[] = [];
+    const baseName = it.item?.itemName || it.itemName || it.description || it.itemDescription || 'Item';
+    descParts.push(baseName);
+  const originalName = it.originalName || it.originalItemName || it.oemName;
+  if (originalName && originalName !== baseName) descParts.push(`Original: ${originalName}`);
+  if (it.item?.itemCode) descParts.push(`Code: ${it.item.itemCode}`);
+    const itemId = it.itemId || it.item?.id;
+    if (itemId) descParts.push(`Item ID: ${itemId}`);
+    if (it.itemCode && it.itemCode !== it.item?.itemCode) descParts.push(`Item Code: ${it.itemCode}`);
+    // Source references (goods receipt, PO, supplier quote)
+    const originalQty = it.originalQuantity ?? it.sourceQuantity ?? it.baseQuantity;
+    if (originalQty != null && !Number.isNaN(Number(originalQty)) && Number(originalQty) !== qty) {
+      descParts.push(`Original Qty: ${Number(originalQty).toFixed(2)}`);
+    }
+    const originalUnitRaw = it.originalUnitPrice ?? it.baseUnitPrice ?? it.sourceUnitPrice ?? it.item?.unitPrice;
+    if (originalUnitRaw != null && !Number.isNaN(Number(originalUnitRaw)) && Number(originalUnitRaw) !== unit) {
+      descParts.push(`Original Unit Rate: ${currency} ${Number(originalUnitRaw).toFixed(3)}`);
+    }
+    if (it.goodsReceiptItemId) descParts.push(`GR Item ID: ${it.goodsReceiptItemId}`);
+    if (it.purchaseOrderItemId) descParts.push(`PO Item ID: ${it.purchaseOrderItemId}`);
+    if (it.supplierQuoteItemId) descParts.push(`SQ Item ID: ${it.supplierQuoteItemId}`);
+    // Specifications & technical details
+    const specs = it.specifications || it.specification || it.itemSpecification || it.technicalDetails;
+    if (specs && String(specs).trim() && !/^(n\/a|none)$/i.test(String(specs))) {
+      descParts.push(`Specs: ${String(specs).trim()}`);
+    }
+    // Packaging / UOM extra
+    if (it.packaging) descParts.push(`Pack: ${it.packaging}`);
+    if (it.unitOfMeasure && !/pcs/i.test(it.unitOfMeasure)) descParts.push(`UOM: ${it.unitOfMeasure}`);
+    // Supplier meta
+    if (it.supplierPartNumber) descParts.push(`Supplier PN: ${it.supplierPartNumber}`);
+    if (it.manufacturerPartNumber) descParts.push(`MFR PN: ${it.manufacturerPartNumber}`);
+    if (it.brand) descParts.push(`Brand: ${it.brand}`);
+    if (it.countryOfOrigin) descParts.push(`Origin: ${it.countryOfOrigin}`);
+    // Notes
+    if (it.notes) {
+      const notesStr = String(it.notes).trim();
+      if (notesStr && notesStr.length > 0) descParts.push(`Notes: ${notesStr}`);
+    }
+    // original name already added above if different
+  const enrichedDescription = descParts.filter(Boolean).join('\n');
+
     return [
       (i+1).toString(),
-      it.description || 'Product Description',
-      `${qty.toFixed(2)} PCS`,
+      enrichedDescription,
+      `${qty.toFixed(2)} ${ (it.unitOfMeasure || 'PCS').toUpperCase() }`,
       `${currency} ${unit.toFixed(3)}`,
       discPerc > 0 ? `${discPerc.toFixed(1)}%` : '0%',
       `${currency} ${discAmt.toFixed(2)}`,
@@ -784,7 +874,7 @@ export function buildEnhancedPurchaseInvoicePdf(ctx: PurchaseInvoicePdfContext):
   
   autoTable(doc, {
     startY: afterAddress,
-    head: [[ 'S.I.', 'Item Description & Specifications', 'Qty', 'Unit Rate', 'Disc. %', 'Disc. Amt', 'Net Total', 'VAT %', 'VAT Amt' ]],
+    head: [[ 'S.I.', 'Item Description & Specifications', 'Qty', 'Unit Cost', 'Disc %', 'Disc Amt', 'Net Total', 'VAT %', 'VAT Amt' ]],
     body: itemRows,
     styles: { 
       fontSize: 7, 
@@ -808,13 +898,13 @@ export function buildEnhancedPurchaseInvoicePdf(ctx: PurchaseInvoicePdfContext):
     },
     columnStyles: {
       0: { cellWidth: 10, halign:'center' },
-      1: { cellWidth: 55, halign: 'left' },
+      1: { cellWidth: 53, halign: 'left' },
       2: { cellWidth: 18, halign:'center' },
       3: { cellWidth: 20, halign:'right' },
-      4: { cellWidth: 12, halign:'center' },
+      4: { cellWidth: 14, halign:'center' },
       5: { cellWidth: 18, halign:'right' },
       6: { cellWidth: 20, halign:'right' },
-      7: { cellWidth: 12, halign:'center' },
+      7: { cellWidth: 14, halign:'center' },
       8: { cellWidth: 20, halign:'right' }
     },
     alternateRowStyles: {

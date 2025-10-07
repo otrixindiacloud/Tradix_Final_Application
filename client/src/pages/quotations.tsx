@@ -509,9 +509,9 @@ export default function QuotationsPage() {
       className: "text-right",
       render: (value: string, quotation: Quotation) => (
         <div className="text-right">
-          <div className="font-semibold text-gray-900">${parseFloat(value || "0").toFixed(2)}</div>
+          <div className="font-semibold text-gray-900">BHD {parseFloat(value || "0").toFixed(2)}</div>
           <div className="text-xs text-gray-500">
-            Subtotal: ${parseFloat(quotation.subtotal || "0").toFixed(2)}
+            Subtotal: BHD {parseFloat(quotation.subtotal || "0").toFixed(2)}
           </div>
           {parseFloat(quotation.discountPercentage || "0") > 0 && (
             <div className="text-xs text-green-600">

@@ -309,11 +309,11 @@ export default function EnquiryItemsManager({ enquiryId }: EnquiryItemsManagerPr
                     {item.quantity}
                   </TableCell>
                   <TableCell data-testid={`text-unit-price-${item.id}`}>
-                    {item.unitPrice ? `$${parseFloat(item.unitPrice).toFixed(2)}` : "-"}
+                    {item.unitPrice ? `BHD ${parseFloat(item.unitPrice).toFixed(2)}` : "-"}
                   </TableCell>
                   <TableCell data-testid={`text-total-${item.id}`}>
                     {item.unitPrice 
-                      ? `$${(parseFloat(item.unitPrice) * item.quantity).toFixed(2)}`
+                      ? `BHD ${(parseFloat(item.unitPrice) * item.quantity).toFixed(2)}`
                       : "-"
                     }
                   </TableCell>

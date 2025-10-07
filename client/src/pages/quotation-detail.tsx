@@ -784,11 +784,11 @@ export default function QuotationDetailPage() {
                     {/* Total Amount */}
                     <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
                       <div className="flex items-center gap-2">
-                        <DollarSign className="h-5 w-5 text-blue-600" />
+                        
                         <span className="text-sm font-medium text-blue-700">Total Amount:</span>
                       </div>
                       <span className="text-lg font-bold text-blue-900">
-                        ${parseFloat(quotation.totalAmount || "0").toFixed(2)}
+                        BHD {parseFloat(quotation.totalAmount || "0").toFixed(2)}
                       </span>
                     </div>
 
@@ -800,7 +800,7 @@ export default function QuotationDetailPage() {
 
                   <div className="pt-4 border-t">
                     <div className="text-center p-3 bg-blue-50 rounded-lg">
-                      <DollarSign className="h-6 w-6 mx-auto text-gray-600 mb-1" />
+                      
                       <div className="text-sm text-gray-800 font-medium">
                         {quotation.customerType} Pricing Applied
                       </div>
@@ -966,7 +966,7 @@ export default function QuotationDetailPage() {
                           </div>
                           <div className="text-right">
                             <div className="text-2xl font-bold text-gray-900">
-                              ${parseFloat(revision.totalAmount || "0").toFixed(2)}
+                              BHD {parseFloat(revision.totalAmount || "0").toFixed(2)}
                             </div>
                             <div className="text-sm text-gray-500">Total Amount</div>
                           </div>

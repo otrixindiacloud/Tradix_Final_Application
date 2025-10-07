@@ -1,5 +1,5 @@
 import { db } from '../db';
-import { invoices, invoiceItems, InsertInvoice, InsertInvoiceItem, salesOrders, deliveryItems, deliveries, salesOrderItems, items } from '@shared/schema';
+import { invoices, invoiceItems, InsertInvoice, InsertInvoiceItem, salesOrders, deliveryItems, deliveries, salesOrderItems, items as itemsTable, enquiryItems } from '@shared/schema';
 import { and, desc, eq, sql } from 'drizzle-orm';
 import { BaseStorage } from './base';
 
@@ -140,7 +140,7 @@ export class InvoiceStorage extends BaseStorage {
     let lineNumber = 1;
     for (const di of itemsToProcess as any[]) {
       console.log(`[DEBUG] Processing delivery item: ${di.id}`);
-      let soItemArr = [];
+      let soItemArr: any[] = [];
       const isValidSalesOrderItemId = di.salesOrderItemId && 
         di.salesOrderItemId !== null && 
         di.salesOrderItemId !== undefined && 
@@ -157,7 +157,20 @@ export class InvoiceStorage extends BaseStorage {
           soItemArr = [];
         }
       }
-      const soItem: any = soItemArr[0];
+  const soItem: any = soItemArr[0];
+      // Attempt to fetch linked enquiry item (via salesOrderItem -> maybe has enquiryItemId or fallback by itemId & description)
+      let linkedEnquiryItem: any = null;
+      try {
+        if (soItem?.enquiryItemId) {
+          const enquiryItemRows: any[] = await db.select().from(enquiryItems).where(eq(enquiryItems.id, soItem.enquiryItemId)).limit(1);
+          linkedEnquiryItem = enquiryItemRows[0] || null;
+        } else if (soItem?.itemId) {
+          const enquiryItemRows: any[] = await db.select().from(enquiryItems).where(eq(enquiryItems.itemId, soItem.itemId)).limit(1);
+          linkedEnquiryItem = enquiryItemRows[0] || null;
+        }
+      } catch (enqErr) {
+        console.log(`[DEBUG] Unable to fetch linked enquiry item for sales order item ${soItem?.id}:`, enqErr);
+      }
       console.log(`[DEBUG] Sales order item: ${soItem?.id || 'None'}`);
       console.log(`[DEBUG] Sales order item data:`, soItem ? {
         id: soItem.id,
@@ -173,8 +186,15 @@ export class InvoiceStorage extends BaseStorage {
       subtotal += lineTotal;
       const barcode = di.barcode || soItem?.barcode || `AUTO-${lineNumber}`;
       const supplierCode = di.supplierCode || soItem?.supplierCode || 'AUTO-SUP';
-      const description = soItem?.description || di.description || 'Item';
-      const itemId = soItem?.itemId || di.itemId || null;
+  // Compose richer description: priority order -> delivery item description, sales order item description, enquiry item description
+  // plus notes/specifications appended.
+  const baseDesc: string = di.description || soItem?.description || linkedEnquiryItem?.description || 'Item';
+  const extraNotes: string[] = [];
+  if (linkedEnquiryItem?.notes) extraNotes.push(linkedEnquiryItem.notes);
+  if (soItem?.notes) extraNotes.push(soItem.notes);
+  if (di?.pickingNotes) extraNotes.push(di.pickingNotes);
+  const composedDescription = extraNotes.length ? `${baseDesc}\n${extraNotes.join('\n')}` : baseDesc;
+  const itemId = soItem?.itemId || di.itemId || null;
       console.log(`[DEBUG] Item ID: ${itemId}, Barcode: ${barcode}, Supplier Code: ${supplierCode}`);
       
       // Check if the item exists in the items table - validate itemId more strictly
@@ -189,8 +209,8 @@ export class InvoiceStorage extends BaseStorage {
       
       if (isValidItemId) {
         try {
-          const itemArr = await db.select().from(items).where(eq(items.id, itemId)).limit(1);
-          const item = itemArr[0];
+          const itemArr: any[] = await db.select().from(itemsTable).where(eq(itemsTable.id, itemId)).limit(1);
+          const item: any = itemArr[0];
           console.log(`[DEBUG] Item master data:`, item ? {
             id: item.id,
             supplierCode: item.supplierCode,
@@ -227,7 +247,7 @@ export class InvoiceStorage extends BaseStorage {
             isActive: true
           };
           
-          const [createdItem] = await db.insert(items).values(minimalItem).returning();
+          const [createdItem]: any[] = await db.insert(itemsTable).values(minimalItem as any).returning();
           console.log(`[DEBUG] Created minimal item: ${createdItem.id}`);
           
           // Update the itemId for this delivery item
@@ -273,7 +293,7 @@ export class InvoiceStorage extends BaseStorage {
       
       // Ensure we have all required fields - but be more lenient with barcode and supplierCode
       // since they might not be available in sales order items due to schema limitations
-      if (!description) {
+      if (!baseDesc) {
         console.log(`[DEBUG] WARNING: Missing description for delivery item ${di.id}, skipping...`);
         continue;
       }
@@ -285,7 +305,7 @@ export class InvoiceStorage extends BaseStorage {
         itemId: itemId,
         barcode,
         supplierCode,
-        description: soItem?.description || di.description || 'Item',
+        description: composedDescription,
         lineNumber,
         quantity: qty,
         unitPrice: unitPrice,
@@ -299,7 +319,7 @@ export class InvoiceStorage extends BaseStorage {
         discountAmountBase: 0,
         taxAmountBase: 0,
         returnQuantity: 0,
-        notes: null
+        notes: linkedEnquiryItem?.notes || soItem?.notes || null
       });
       lineNumber++;
     }

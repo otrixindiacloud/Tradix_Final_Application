@@ -108,10 +108,14 @@ export default function DeliveryNote() {
       setEnquiryItems([]);
       setEnquiryItemsLoading(true);
       try {
-        let enquiryId = selectedDeliveryNote?.salesOrder?.quotation?.enquiryId;
-        // If only quotationId is present, fetch full quotation
-        if (!enquiryId && selectedDeliveryNote?.salesOrder?.quotationId) {
-          const quotationRes = await fetch(`/api/quotations/${selectedDeliveryNote.salesOrder.quotationId}`);
+        let enquiryId: string | undefined;
+        const quotationId = selectedDeliveryNote?.salesOrder?.quotationId;
+        if (quotationId && typeof quotationId === "object" && "enquiryId" in quotationId) {
+          enquiryId = (quotationId as any).enquiryId;
+        }
+        // If only quotationId is present and is a string, fetch full quotation
+        if (!enquiryId && quotationId && typeof quotationId === "string") {
+          const quotationRes = await fetch(`/api/quotations/${quotationId}`);
           if (quotationRes.ok) {
             const quotationData = await quotationRes.json();
             enquiryId = quotationData.enquiryId;
@@ -129,7 +133,9 @@ export default function DeliveryNote() {
       }
       setEnquiryItemsLoading(false);
     };
-    const hasQuotation = selectedDeliveryNote?.salesOrder?.quotation?.enquiryId || selectedDeliveryNote?.salesOrder?.quotationId;
+    const hasQuotation = typeof selectedDeliveryNote?.salesOrder?.quotationId === "object"
+      ? (selectedDeliveryNote?.salesOrder?.quotationId as any).enquiryId
+      : selectedDeliveryNote?.salesOrder?.quotationId;
     if (showDetailsDialog && hasQuotation) {
       fetchEnquiryItems();
     } else {
@@ -810,10 +816,14 @@ export default function DeliveryNote() {
             title="Print"
             aria-label="Print"
             onClick={async () => {
-              let enquiryId = item?.salesOrder?.quotation?.enquiryId;
-              // If only quotationId is present, fetch full quotation
-              if (!enquiryId && item?.salesOrder?.quotationId) {
-                const quotationRes = await fetch(`/api/quotations/${item.salesOrder.quotationId}`);
+              let enquiryId: string | undefined;
+              const quotationId = item?.salesOrder?.quotationId;
+              if (quotationId && typeof quotationId === "object" && "enquiryId" in quotationId) {
+                enquiryId = (quotationId as any).enquiryId;
+              }
+              // If only quotationId is present and is a string, fetch full quotation
+              if (!enquiryId && quotationId && typeof quotationId === "string") {
+                const quotationRes = await fetch(`/api/quotations/${quotationId}`);
                 if (quotationRes.ok) {
                   const quotationData = await quotationRes.json();
                   enquiryId = quotationData.enquiryId;
@@ -1251,7 +1261,7 @@ export default function DeliveryNote() {
                       <div key={item.id || idx} className="flex justify-between items-center bg-gray-50 rounded p-2">
                         <span className="font-medium">{item.description}</span>
                         <span className="text-gray-700 font-mono">Qty: {item.quantity}</span>
-                        <span className="text-blue-700 font-mono">{item.unitPrice ? `BHD ${item.unitPrice}` : "No price"}</span>
+                        
                       </div>
                     ))}
                   </div>

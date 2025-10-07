@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatCurrencyCompact, formatDate, getStatusColor } from "@/lib/utils";
+import { ENHANCED_WORKFLOW_STEPS } from "@/lib/enhanced-workflow-constants";
 import { Download, Plus, TrendingUp, TrendingDown, Eye, CheckCircle, HelpCircle, FileText, ShoppingCart, DollarSign, CheckCircle2, Upload, Package, BarChart3, Clock } from "lucide-react";
 import { 
   FaDownload, 
@@ -972,11 +973,16 @@ export default function Dashboard() {
             );
           }
 
+          // Final sanitation: remove duplicates & clamp to known step ids
+          const maxStepId =  ENHANCED_WORKFLOW_STEPS?.[ENHANCED_WORKFLOW_STEPS.length - 1]?.id || 23; // fallback to last known id
+          const sanitizedCompleted = Array.from(new Set(completedSteps.filter(s => s >= 1 && s <= maxStepId))).sort((a,b)=>a-b);
+          const sanitizedCurrent = Math.min(Math.max(currentStep, 1), maxStepId);
+
           return (
             <div>
               <WorkflowStepper
-                currentStep={currentStep}
-                completedSteps={completedSteps}
+                currentStep={sanitizedCurrent}
+                completedSteps={sanitizedCompleted}
                 quotationId={currentQuote?.id}
                 quotationNumber={currentQuote?.quoteNumber || "QT-2024-001"}
                 quotationStatus={currentQuote?.status}

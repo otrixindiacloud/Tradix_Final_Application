@@ -275,10 +275,7 @@ function DeliveredShipmentsSection({ createGoodsReceipt }: { createGoodsReceipt:
                     )}
                   </div>
                           <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 mb-1">
-                            <div className="flex items-center gap-1">
-                              <Package className="h-3 w-3 text-gray-400" />
-                              <span className="font-medium">Customer:</span> {shipment.customerName || 'Unknown'}
-                            </div>
+                            
                             <div className="flex items-center gap-1">
                               <CheckCircle className="h-3 w-3 text-gray-400" />
                               <span className="font-medium">LPO Value:</span> {shipment.currency || 'BHD'} {parseFloat(shipment.declaredValue || '0').toLocaleString()}
@@ -363,28 +360,7 @@ function DeliveredShipmentsSection({ createGoodsReceipt }: { createGoodsReceipt:
                               )}
 
                       {/* Customer Details */}
-                      {shipment.customerName && (
-                        <div className="bg-purple-50 rounded-lg p-3">
-                          <h5 className="text-sm font-semibold text-purple-800 mb-2 flex items-center gap-2">
-                            <Package className="h-4 w-4" />
-                            Customer Information
-                          </h5>
-                          <div className="grid grid-cols-2 gap-2 text-xs">
-                            <div>
-                              <span className="font-medium text-purple-700">Name:</span> {customer?.name || shipment.customerName}
-                            </div>
-                            <div>
-                              <span className="font-medium text-purple-700">Email:</span> {customer?.email || 'N/A'}
-                            </div>
-                            <div>
-                              <span className="font-medium text-purple-700">Phone:</span> {customer?.phone || 'N/A'}
-                            </div>
-                            <div>
-                              <span className="font-medium text-purple-700">Address:</span> {customer?.address || 'N/A'}
-                            </div>
-                          </div>
-                        </div>
-                      )}
+                      
 
                               {/* LPO Information */}
                               {shipment.lpoNumber && (

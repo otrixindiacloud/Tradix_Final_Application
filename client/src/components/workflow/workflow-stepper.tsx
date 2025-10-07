@@ -56,8 +56,14 @@ export default function WorkflowStepper({
   // Progress expressed as a fraction (0-1) instead of percent so we can
   // accurately size the active bar when we add horizontal insets to hide
   // the left "extra" line before the first step circle.
-  const progressFraction = (completedSteps.length + (currentStep > 0 ? 1 : 0)) / ENHANCED_WORKFLOW_STEPS.length;
-  const progressPercent = progressFraction * 100; // still available if needed elsewhere
+  // Ensure we work with unique completed step IDs to avoid inflation if duplicates are passed
+  const uniqueCompleted = Array.from(new Set(completedSteps));
+  // Clamp currentStep to known range (defensive in case caller mis-aligns numbering)
+  const maxStepId = ENHANCED_WORKFLOW_STEPS[ENHANCED_WORKFLOW_STEPS.length - 1]?.id || 1;
+  const normalizedCurrent = Math.min(Math.max(currentStep, 1), maxStepId);
+  // +1 to include the in-progress current step visually; divide by total steps being represented
+  const progressFraction = (uniqueCompleted.length + (normalizedCurrent ? 1 : 0)) / ENHANCED_WORKFLOW_STEPS.length;
+  const progressPercent = Math.min(100, Math.max(0, progressFraction * 100)); // bounded 0-100
 
   const handleMarkComplete = () => {
     console.log('Mark Complete button clicked', { onMarkComplete, quotationId });
@@ -119,10 +125,14 @@ export default function WorkflowStepper({
         {/* Active progress bar sized relative to the track width */}
         <div
           className="absolute top-4 h-0.5 bg-gray-400 transition-all duration-500"
+          // Correct CSS calc usage; previously multiplication occurred outside calc() causing invalid style
           style={{ 
             left: '2rem',
-            width: `calc(100% - 4rem) * ${progressFraction}` 
+            width: `calc((100% - 4rem) * ${progressFraction})` 
           }}
+          aria-label="workflow-progress"
+          data-progress-fraction={progressFraction.toFixed(4)}
+          data-progress-percent={progressPercent.toFixed(2)}
         />
         
         {/* Steps */}

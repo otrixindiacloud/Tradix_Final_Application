@@ -508,16 +508,16 @@ export default function QuotationItemsManager({
                       {item.quantity}
                     </TableCell>
                     <TableCell data-testid={`text-cost-${item.id}`}>
-                      ${parseFloat(item.costPrice).toFixed(2)}
+                      BHD {parseFloat(item.costPrice).toFixed(2)}
                     </TableCell>
                     <TableCell data-testid={`text-markup-${item.id}`}>
                       {parseFloat(item.markup).toFixed(1)}%
                     </TableCell>
                     <TableCell data-testid={`text-unit-price-${item.id}`}>
-                      ${parseFloat(item.unitPrice).toFixed(2)}
+                      BHD {parseFloat(item.unitPrice).toFixed(2)}
                     </TableCell>
                     <TableCell data-testid={`text-line-total-${item.id}`}>
-                      ${parseFloat(item.lineTotal).toFixed(2)}
+                      BHD {parseFloat(item.lineTotal).toFixed(2)}
                     </TableCell>
                     <TableCell>
                       <Badge 
@@ -560,7 +560,7 @@ export default function QuotationItemsManager({
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-medium">Total Amount:</span>
                   <span className="text-xl font-bold text-green-600">
-                    ${totalAmount.toFixed(2)}
+                    BHD {totalAmount.toFixed(2)}
                   </span>
                 </div>
                 <div className="text-sm text-gray-600 mt-1">
