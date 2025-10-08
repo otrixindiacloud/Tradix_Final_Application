@@ -1257,15 +1257,15 @@ export default function GoodsReceipt() {
               {selectedReceipt && (
                 <div>
                   {(() => {
-                    let color = "bg-gray-100 text-gray-700 border-gray-300";
+                    let colorClasses = "bg-gray-100 text-gray-700 border-gray-300";
                     const v = selectedReceipt.status;
-                    if (v === "Draft") color = "bg-yellow-100 text-yellow-700 border-yellow-300";
-                    else if (v === "Pending") color = "bg-gray-100 text-gray-700 border-gray-300";
-                    else if (v === "Partial") color = "bg-blue-100 text-blue-700 border-blue-300";
-                    else if (v === "Complete" || v === "Completed") color = "bg-green-100 text-green-700 border-green-300";
-                    else if (v === "Approved") color = "bg-emerald-100 text-emerald-700 border-emerald-300";
-                    else if (v === "Discrepancy") color = "bg-red-100 text-red-700 border-red-300";
-                    return <Badge className={`${color} text-sm px-3 py-1.5 font-semibold`}>{v}</Badge>;
+                    if (v === "Draft") colorClasses = "bg-yellow-100 text-yellow-700 border-yellow-300";
+                    else if (v === "Pending") colorClasses = "bg-gray-100 text-gray-700 border-gray-300";
+                    else if (v === "Partial") colorClasses = "bg-blue-100 text-blue-700 border-blue-300";
+                    else if (v === "Complete" || v === "Completed") colorClasses = "bg-green-100 text-green-700 border-green-300";
+                    else if (v === "Approved") colorClasses = "bg-emerald-100 text-emerald-700 border-emerald-300";
+                    else if (v === "Discrepancy") colorClasses = "bg-red-100 text-red-700 border-red-300";
+                    return <Badge variant="outline" className={`${colorClasses} text-sm px-3 py-1.5 font-semibold border`}>{v}</Badge>;
                   })()}
                 </div>
               )}
@@ -1525,9 +1525,19 @@ export default function GoodsReceipt() {
                 </div>
                 <div className="text-sm text-gray-600">
                   <span className="font-medium">Current Status:</span> 
-                  <Badge variant="outline" className="ml-2">
-                    {selectedReceipt.status}
-                  </Badge>
+                  {(() => {
+                    let colorClasses = "bg-gray-100 text-gray-700 border-gray-300";
+                    const v = selectedReceipt.status;
+                    if (v === "Draft") colorClasses = "bg-yellow-100 text-yellow-700 border-yellow-300";
+                    else if (v === "Pending") colorClasses = "bg-gray-100 text-gray-700 border-gray-300";
+                    else if (v === "Partial") colorClasses = "bg-blue-100 text-blue-700 border-blue-300";
+                    else if (v === "Complete" || v === "Completed") colorClasses = "bg-green-100 text-green-700 border-green-300";
+                    else if (v === "Approved") colorClasses = "bg-emerald-100 text-emerald-700 border-emerald-300";
+                    else if (v === "Discrepancy") colorClasses = "bg-red-100 text-red-700 border-red-300";
+                    return <Badge variant="outline" className={`ml-2 ${colorClasses} border`}>
+                      {selectedReceipt.status}
+                    </Badge>;
+                  })()}
                 </div>
               </div>
               

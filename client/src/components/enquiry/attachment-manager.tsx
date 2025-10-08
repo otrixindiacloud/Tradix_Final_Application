@@ -14,6 +14,7 @@ interface AttachmentManagerProps {
   maxSizeBytes?: number;
   allowedTypes?: string[];
   readOnly?: boolean;
+  title?: string;
 }
 
 export default function AttachmentManager({
@@ -23,6 +24,7 @@ export default function AttachmentManager({
   maxSizeBytes = 10 * 1024 * 1024, // 10MB
   allowedTypes = ["image/*", "application/pdf", ".doc", ".docx", ".txt"],
   readOnly = false,
+  title = "Attachments",
 }: AttachmentManagerProps) {
   const [previewFile, setPreviewFile] = useState<any>(null);
   const [uploading, setUploading] = useState(false);
@@ -163,7 +165,7 @@ export default function AttachmentManager({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Upload className="h-5 w-5" />
-          Attachments
+          {title}
           {attachments.length > 0 && (
             <Badge variant="secondary">{attachments.length}</Badge>
           )}

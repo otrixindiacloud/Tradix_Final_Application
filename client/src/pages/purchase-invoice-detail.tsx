@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Link, useParams, useLocation } from "wouter";
 import { formatDate } from "date-fns";
@@ -30,6 +30,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import AttachmentManager from "@/components/enquiry/attachment-manager";
 
 interface PurchaseInvoice {
   id: string;
@@ -98,6 +99,79 @@ interface PurchaseInvoiceItem {
 // Payments not yet implemented on backend for derived purchase invoices
 type PaymentEntry = never;
 
+type SupplierInvoiceAttachment = {
+  id: string;
+  name: string;
+  filename?: string;
+  size?: number;
+  type?: string;
+  url: string;
+  uploadedAt?: string;
+};
+
+const normalizeSupplierInvoiceAttachments = (
+  raw: any[] | null | undefined,
+  fallbackDate?: string
+): SupplierInvoiceAttachment[] => {
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+
+  const normalized: SupplierInvoiceAttachment[] = [];
+
+  raw.forEach((attachment: any, index: number) => {
+    if (!attachment) {
+      return;
+    }
+
+    if (typeof attachment === "string") {
+      const fileName = attachment.split("/").pop() || `attachment-${index + 1}`;
+      const url = attachment.startsWith("/api")
+        ? attachment
+        : `/api/files/download/${attachment}`;
+
+      normalized.push({
+        id: `${index}-${fileName}`,
+        name: fileName,
+        filename: fileName,
+        size: 0,
+        type: "application/octet-stream",
+        url,
+        uploadedAt: fallbackDate,
+      });
+      return;
+    }
+
+    const fileName =
+      attachment.filename ||
+      attachment.name ||
+      attachment.originalname ||
+      (typeof attachment.url === "string" ? attachment.url.split("/").pop() : undefined) ||
+      `attachment-${index + 1}`;
+
+    const url =
+      attachment.url ||
+      attachment.path ||
+      (typeof fileName === "string" ? `/api/files/download/${fileName}` : undefined);
+
+    if (!url) {
+      return;
+    }
+
+    normalized.push({
+      id: attachment.id || `${index}-${fileName}`,
+      name: attachment.name || attachment.originalname || fileName,
+      filename: fileName,
+      size: attachment.size ?? 0,
+      type: attachment.type || attachment.mimetype || "application/octet-stream",
+      url,
+      uploadedAt: attachment.uploadedAt || fallbackDate,
+    });
+  });
+
+  return normalized;
+};
+
 export default function PurchaseInvoiceDetailPage() {
   const { id } = useParams();
   const [, navigate] = useLocation();
@@ -113,6 +187,7 @@ export default function PurchaseInvoiceDetailPage() {
   const [paymentMethod, setPaymentMethod] = useState<"Bank Transfer" | "Cheque" | "Cash" | "Credit Card" | "Letter of Credit">("Bank Transfer");
   const [paymentReference, setPaymentReference] = useState("");
   const [paymentNotes, setPaymentNotes] = useState("");
+  const [supplierInvoiceAttachments, setSupplierInvoiceAttachments] = useState<SupplierInvoiceAttachment[]>([]);
 
   // Download PDF handler
   const handleDownloadPDF = async () => {
@@ -161,66 +236,6 @@ export default function PurchaseInvoiceDetailPage() {
     }
   };
 
-  // Print Invoice handler
-  const handlePrint = async () => {
-    if (!invoice) {
-      toast({
-        title: "Error",
-        description: "No invoice data available for printing.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      toast({
-        title: "Generating PDF",
-        description: "Please wait while the PDF is being generated for printing...",
-      });
-
-      const response = await fetch(`/api/purchase-invoices/${invoice.id}/pdf?mode=enhanced`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to generate PDF');
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      
-      // Open PDF in new window for printing
-      const printWindow = window.open(url, '_blank');
-      if (printWindow) {
-        printWindow.onload = () => {
-          printWindow.print();
-        };
-      } else {
-        // Fallback: trigger download if popup blocked
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `purchase-invoice-${invoice.invoiceNumber}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      }
-
-      // Clean up the URL after a delay
-      setTimeout(() => {
-        window.URL.revokeObjectURL(url);
-      }, 1000);
-
-      toast({
-        title: "Print Started",
-        description: "Purchase invoice PDF opened for printing.",
-      });
-    } catch (error) {
-      console.error('Error printing PDF:', error);
-      toast({
-        title: "Print Failed",
-        description: "Failed to generate PDF for printing. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
   // Fetch single purchase invoice
   const { data: invoice, isLoading } = useQuery<PurchaseInvoice>({
     queryKey: ["/api/purchase-invoices", id],
@@ -265,6 +280,21 @@ export default function PurchaseInvoiceDetailPage() {
     },
   });
 
+  const updateSupplierInvoiceAttachments = useMutation({
+    mutationFn: async (attachments: SupplierInvoiceAttachment[]) => {
+      const response = await apiRequest("PATCH", `/api/purchase-invoices/${id}`, { attachments });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/purchase-invoices", id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/purchase-invoices"] });
+      toast({ title: "Supplier Invoice Updated", description: "Supplier invoice document saved successfully." });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to update supplier invoice document", variant: "destructive" });
+    },
+  });
+
   // Fetch items from purchase invoice items endpoint
   const { data: invoiceItems = [] } = useQuery<PurchaseInvoiceItem[]>({
     queryKey: ["/api/purchase-invoices", id, "items"],
@@ -287,6 +317,19 @@ export default function PurchaseInvoiceDetailPage() {
     }
   });
 
+  useEffect(() => {
+    const normalized = normalizeSupplierInvoiceAttachments(
+      invoice?.attachments,
+      invoice?.updatedAt || invoice?.createdAt
+    );
+
+    setSupplierInvoiceAttachments((prev) => {
+      const prevSerialized = JSON.stringify(prev);
+      const nextSerialized = JSON.stringify(normalized);
+      return prevSerialized === nextSerialized ? prev : normalized;
+    });
+  }, [invoice?.attachments, invoice?.updatedAt, invoice?.createdAt]);
+
   // Merge invoice items with goods receipt items for complete details
   const enrichedItems = invoiceItems.map(invItem => {
     const grItem = goodsReceiptItems.find((gr: any) => gr.id === invItem.goodsReceiptItemId);
@@ -304,6 +347,19 @@ export default function PurchaseInvoiceDetailPage() {
   });
 
   const paymentHistory: PaymentEntry[] = [];
+
+  const handleSupplierAttachmentsChange = useCallback(
+    (attachments: SupplierInvoiceAttachment[]) => {
+      const previous = supplierInvoiceAttachments;
+      setSupplierInvoiceAttachments(attachments);
+      updateSupplierInvoiceAttachments.mutate(attachments, {
+        onError: () => {
+          setSupplierInvoiceAttachments(previous);
+        },
+      });
+    },
+    [supplierInvoiceAttachments, updateSupplierInvoiceAttachments]
+  );
 
   // Handler functions
   const handleEdit = () => {
@@ -630,7 +686,7 @@ export default function PurchaseInvoiceDetailPage() {
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-gray-600">Supplier Invoice Number</Label>
-                  <p className="text-lg">{invoice?.supplierInvoiceNumber || "N/A"}</p>
+                  <p className="text-lg">{invoice?.supplierInvoiceNumber || "Nb/A"}</p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-gray-600">Invoice Date</Label>
@@ -925,6 +981,15 @@ export default function PurchaseInvoiceDetailPage() {
           {/* Payment History (not available yet) */}
           
 
+          <AttachmentManager
+            title="Supplier Invoice Documents"
+            attachments={supplierInvoiceAttachments}
+            onAttachmentsChange={handleSupplierAttachmentsChange}
+            maxFiles={5}
+            allowedTypes={["application/pdf", "image/*"]}
+            readOnly={updateSupplierInvoiceAttachments.isPending}
+          />
+
 
           {/* Quick Actions (limited - derived data) */}
           <Card className="shadow-lg">
@@ -935,10 +1000,6 @@ export default function PurchaseInvoiceDetailPage() {
               <Button variant="outline" onClick={handleDownloadPDF} className="w-full justify-start">
                 <Download className="h-4 w-4 mr-2" />
                 Download PDF
-              </Button>
-              <Button variant="outline" onClick={handlePrint} className="w-full justify-start">
-                <FileText className="h-4 w-4 mr-2" />
-                Print Invoice
               </Button>
               <Button onClick={handleRecordPayment} className="w-full justify-start">Record Payment</Button>
               <Button variant="destructive" onClick={handleDelete} className="w-full justify-start">
