@@ -399,6 +399,18 @@ export default function Invoicing() {
   const totalPages = Math.ceil(filteredInvoices.length / pageSize);
   const paginatedInvoices = filteredInvoices.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
+  // Fetch invoice items for selected invoice (to show item name / description)
+  const { data: selectedInvoiceItems = [], isLoading: isLoadingInvoiceItems, error: invoiceItemsError } = useQuery({
+    queryKey: ["/api/invoices", selectedInvoice?.id, "items"],
+    queryFn: async () => {
+      if (!selectedInvoice?.id) return [];
+      const response = await fetch(`/api/invoices/${selectedInvoice.id}/items`);
+      if (!response.ok) throw new Error("Failed to fetch invoice items");
+      return response.json();
+    },
+    enabled: !!selectedInvoice?.id,
+  });
+
   const columns: Column<any>[] = [
     {
       key: "invoiceNumber",
@@ -1019,6 +1031,49 @@ export default function Invoicing() {
                 </h4>
                 <div className="text-sm text-gray-600 mb-3">
                   This invoice includes detailed material specifications, supplier codes, barcodes, and comprehensive item information as required for business operations.
+                </div>
+                {/* Invoice Items Table */}
+                <div className="overflow-x-auto mb-4 border rounded-md bg-white">
+                  <table className="min-w-full text-sm">
+                    <thead className="bg-gray-100 text-gray-700">
+                      <tr>
+                        <th className="px-3 py-2 text-left font-medium">Line</th>
+                        <th className="px-3 py-2 text-left font-medium">Item Name</th>
+                        <th className="px-3 py-2 text-left font-medium">Supplier Code</th>
+                        <th className="px-3 py-2 text-left font-medium">Barcode</th>
+                        <th className="px-3 py-2 text-right font-medium">Qty</th>
+                        <th className="px-3 py-2 text-right font-medium">Unit Price</th>
+                        <th className="px-3 py-2 text-right font-medium">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {isLoadingInvoiceItems && (
+                        <tr><td colSpan={7} className="px-3 py-4 text-center text-gray-500">Loading items...</td></tr>
+                      )}
+                      {!isLoadingInvoiceItems && invoiceItemsError && (
+                        <tr><td colSpan={7} className="px-3 py-4 text-center text-red-600">Failed to load items</td></tr>
+                      )}
+                      {!isLoadingInvoiceItems && !invoiceItemsError && selectedInvoiceItems.length === 0 && (
+                        <tr><td colSpan={7} className="px-3 py-4 text-center text-gray-500">No items found for this invoice.</td></tr>
+                      )}
+                      {!isLoadingInvoiceItems && !invoiceItemsError && selectedInvoiceItems.map((item: any) => (
+                        <tr key={item.id} className="border-t hover:bg-gray-50">
+                          <td className="px-3 py-2 font-mono text-xs text-gray-600">{item.lineNumber}</td>
+                          <td className="px-3 py-2">
+                            <div className="flex flex-col">
+                              <span className="font-medium text-gray-900">{item.description}</span>
+                              {item.notes && <span className="text-xs text-gray-500">{item.notes}</span>}
+                            </div>
+                          </td>
+                          <td className="px-3 py-2 text-gray-700 font-mono text-xs">{item.supplierCode}</td>
+                          <td className="px-3 py-2 text-gray-700 font-mono text-xs">{item.barcode}</td>
+                          <td className="px-3 py-2 text-right">{item.quantity}</td>
+                          <td className="px-3 py-2 text-right">{formatCurrency(Number(item.unitPrice || 0))}</td>
+                          <td className="px-3 py-2 text-right font-medium">{formatCurrency(Number(item.totalPrice || 0))}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div className="bg-white p-3 rounded border">

@@ -1366,10 +1366,7 @@ export default function SalesOrders() {
                           <p className="text-xs text-gray-600">Supplier Code</p>
                           <p className="font-mono text-sm">{item.supplierCode || item.itemId}</p>
                         </div>
-                        <div>
-                          <p className="text-xs text-gray-600">Supplier Name</p>
-                          <p className="font-medium text-sm">{item.supplierName || 'N/A'}</p>
-                        </div>
+                        
                         <div>
                           <p className="text-xs text-gray-600">Barcode *</p>
                           <p className="font-mono text-sm text-blue-600">
