@@ -784,11 +784,18 @@ export default function QuotationDetailPage() {
                     {/* Total Amount */}
                     <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
                       <div className="flex items-center gap-2">
-                        
                         <span className="text-sm font-medium text-blue-700">Total Amount:</span>
                       </div>
                       <span className="text-lg font-bold text-blue-900">
-                        BHD {parseFloat(quotation.totalAmount || "0").toFixed(2)}
+                        {(() => {
+                          const currency = quotation.currency || 'BHD';
+                          // Sum up all lineTotal values from quotationItems
+                          const total = quotationItems?.reduce((sum: number, item: any) => {
+                            const lineTotal = parseFloat(item.lineTotal?.toString() || '0');
+                            return sum + lineTotal;
+                          }, 0) || 0;
+                          return `${currency} ${total.toFixed(2)}`;
+                        })()}
                       </span>
                     </div>
 

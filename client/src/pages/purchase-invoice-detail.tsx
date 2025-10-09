@@ -307,15 +307,32 @@ export default function PurchaseInvoiceDetailPage() {
   });
 
   // Fetch goods receipt items for additional details
-  const { data: goodsReceiptItems = [] } = useQuery<any[]>({
+  const { data: goodsReceiptItems = [], isLoading: isLoadingGRItems, error: grItemsError } = useQuery<any[]>({
     queryKey: ["/api/goods-receipt-headers", invoice?.goodsReceiptId, "items"],
     enabled: !!invoice?.goodsReceiptId,
     queryFn: async () => {
+      console.log('Fetching goods receipt items for ID:', invoice?.goodsReceiptId);
       const resp = await fetch(`/api/goods-receipt-headers/${invoice?.goodsReceiptId}/items`);
-      if (!resp.ok) throw new Error("Failed to fetch goods receipt items");
-      return resp.json();
+      if (!resp.ok) {
+        console.error('Failed to fetch goods receipt items:', resp.status, resp.statusText);
+        throw new Error("Failed to fetch goods receipt items");
+      }
+      const data = await resp.json();
+      console.log('Fetched goods receipt items:', data);
+      return data;
     }
   });
+
+  // Log when goods receipt items change
+  useEffect(() => {
+    console.log('Goods Receipt Items Updated:', {
+      count: goodsReceiptItems.length,
+      items: goodsReceiptItems,
+      goodsReceiptId: invoice?.goodsReceiptId,
+      isLoading: isLoadingGRItems,
+      error: grItemsError
+    });
+  }, [goodsReceiptItems, invoice?.goodsReceiptId, isLoadingGRItems, grItemsError]);
 
   useEffect(() => {
     const normalized = normalizeSupplierInvoiceAttachments(
@@ -330,21 +347,100 @@ export default function PurchaseInvoiceDetailPage() {
     });
   }, [invoice?.attachments, invoice?.updatedAt, invoice?.createdAt]);
 
+  const coerceNumber = (value: any) => {
+    if (value === null || value === undefined || value === "") return 0;
+    const coerced = Number(value);
+    return Number.isFinite(coerced) ? coerced : 0;
+  };
+
   // Merge invoice items with goods receipt items for complete details
   const enrichedItems = invoiceItems.map(invItem => {
     const grItem = goodsReceiptItems.find((gr: any) => gr.id === invItem.goodsReceiptItemId);
-    return {
-      ...invItem,
-      // Add goods receipt specific details
-      quantityExpected: grItem?.quantityExpected,
-      quantityReceived: grItem?.quantityReceived,
-      quantityDamaged: grItem?.quantityDamaged,
-      quantityShort: grItem?.quantityShort,
-      discrepancyReason: grItem?.discrepancyReason,
-      scannedAt: grItem?.scannedAt,
-      receivedAt: grItem?.receivedAt,
-    };
+    
+    console.log('Enriching item:', {
+      invoiceItemId: invItem.id,
+      goodsReceiptItemId: invItem.goodsReceiptItemId,
+      foundGRItem: !!grItem,
+      grItem: grItem
+    });
+    
+    // If we have a goods receipt item, merge all its details
+    if (grItem) {
+      return {
+        ...invItem,
+        // Preserve item description, barcode, supplier code from GR if not in invoice
+        itemDescription: invItem.itemDescription || grItem.itemDescription,
+        barcode: invItem.barcode || grItem.barcode,
+        supplierCode: invItem.supplierCode || grItem.supplierCode,
+        
+        // Add goods receipt specific details
+        goodsReceiptItemId: grItem.id,
+        quantityExpected: grItem.quantityExpected,
+        quantityReceived: grItem.quantityReceived,
+        quantityDamaged: grItem.quantityDamaged || 0,
+        quantityShort: grItem.quantityShort || 0,
+        discrepancyReason: grItem.discrepancyReason,
+        
+        // Cost and condition from GR
+        unitCostFromGR: grItem.unitCost,
+        totalCostFromGR: grItem.totalCost,
+        conditionFromGR: grItem.condition,
+        
+        // Storage and tracking
+        storageLocationFromGR: grItem.storageLocation,
+        batchNumberFromGR: grItem.batchNumber,
+        expiryDateFromGR: grItem.expiryDate,
+        
+        // Notes and timestamps
+        notesFromGR: grItem.notes,
+        scannedAt: grItem.scannedAt,
+        receivedAt: grItem.receivedAt,
+      };
+    }
+    
+    // If no GR item found, return invoice item as is
+    console.log('No GR item found for invoice item:', invItem.id);
+    return invItem;
   });
+
+  console.log('Enriched Items Result:', {
+    invoiceItemsCount: invoiceItems.length,
+    goodsReceiptItemsCount: goodsReceiptItems.length,
+    enrichedItemsCount: enrichedItems.length,
+    enrichedItems: enrichedItems
+  });
+
+  const displayItems = invoiceItems.length > 0
+    ? enrichedItems
+    : goodsReceiptItems.map((gr: any) => ({
+        id: gr.id,
+        itemDescription: gr.itemDescription,
+        supplierCode: gr.supplierCode,
+        barcode: gr.barcode,
+        unitOfMeasure: gr.unitOfMeasure,
+        quantity: gr.quantityReceived ?? gr.quantityExpected ?? gr.quantityDamaged ?? gr.quantityShort,
+        unitPrice: gr.unitCost,
+        totalPrice: gr.totalCost,
+        discountAmount: gr.discountAmount,
+        discountRate: gr.discountRate,
+        taxAmount: gr.taxAmount,
+        taxRate: gr.taxRate,
+        batchNumberFromGR: gr.batchNumber,
+        expiryDateFromGR: gr.expiryDate,
+        notesFromGR: gr.notes,
+        goodsReceiptItemId: gr.id,
+        quantityExpected: gr.quantityExpected,
+        quantityReceived: gr.quantityReceived,
+        quantityDamaged: gr.quantityDamaged || 0,
+        quantityShort: gr.quantityShort || 0,
+        discrepancyReason: gr.discrepancyReason,
+        unitCostFromGR: gr.unitCost,
+        totalCostFromGR: gr.totalCost,
+        conditionFromGR: gr.condition,
+        storageLocationFromGR: gr.storageLocation,
+        scannedAt: gr.scannedAt,
+        receivedAt: gr.receivedAt,
+      }));
 
   const paymentHistory: PaymentEntry[] = [];
 
@@ -733,216 +829,353 @@ export default function PurchaseInvoiceDetailPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Package className="h-5 w-5" />
-                Invoice Items ({enrichedItems.length})
+                Invoice Items ({displayItems.length})
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {enrichedItems.map((item: any, index: number) => (
-                  <div key={item.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <Package className="h-5 w-5 text-blue-600" />
+                {displayItems.map((item: any, index: number) => {
+                  const displaySupplierCode = item.supplierCode || item.supplierCodeFromGR;
+                  const displayBarcode = item.barcode || item.barcodeFromGR;
+                  const displayStorageLocation = item.storageLocation || item.storageLocationFromGR;
+                  const displayCondition = item.condition || item.conditionFromGR;
+                  const displayBatchNumber = item.batchNumber || item.batchNumberFromGR;
+                  const displayExpiryDate = item.expiryDate || item.expiryDateFromGR;
+                  const displayQuantity =
+                    item.quantity ??
+                    item.quantityReceived ??
+                    item.quantityExpected ??
+                    item.quantityDamaged ??
+                    item.quantityShort ??
+                    0;
+                  const displayUnitOfMeasure = item.unitOfMeasure || item.unitOfMeasureFromGR || 'units';
+                  const rawUnitPrice = item.unitPrice ?? item.unitCostFromGR ?? item.unitCost;
+                  const rawTotalPrice =
+                    item.totalPrice ??
+                    item.totalCostFromGR ??
+                    item.totalCost ??
+                    coerceNumber(displayQuantity) * coerceNumber(rawUnitPrice);
+                  const displayDiscountAmount = item.discountAmount ?? item.discountAmountFromGR;
+                  const displayTaxAmount = item.taxAmount ?? item.taxAmountFromGR;
+                  const displayNotes = item.notes || item.notesFromGR;
+
+                  return (
+                    <div
+                      key={item.id}
+                      className="rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-sm transition-all hover:shadow-lg"
+                    >
+                      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                        <div className="flex flex-1 gap-4">
+                          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+                            <Package className="h-5 w-5" />
                           </div>
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900 text-base mb-1">
-                              {item.itemDescription || item.description || `Item ${index + 1}`}
-                            </h4>
-                            <div className="flex flex-wrap gap-2 mb-2">
-                              {item.supplierCode && (
-                                <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
-                                  <span className="font-medium">Code:</span> {item.supplierCode}
-                                </Badge>
-                              )}
-                              {item.barcode && (
-                                <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
-                                  <span className="font-medium">Barcode:</span> {item.barcode}
-                                </Badge>
-                              )}
-                              {item.storageLocation && (
-                                <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                                  <span className="font-medium">Location:</span> {item.storageLocation}
-                                </Badge>
-                              )}
-                              {item.condition && (
-                                <Badge 
-                                  variant="outline" 
-                                  className={`text-xs ${
-                                    item.condition === 'Good' ? 'bg-green-50 text-green-700 border-green-200' :
-                                    item.condition === 'Damaged' ? 'bg-red-50 text-red-700 border-red-200' :
-                                    'bg-gray-50 text-gray-700 border-gray-200'
-                                  }`}
-                                >
-                                  <span className="font-medium">Condition:</span> {item.condition}
-                                </Badge>
+                          <div className="flex-1 space-y-4">
+                            <div className="space-y-2">
+                              <div className="flex flex-wrap items-center gap-3">
+                                <h4 className="text-lg font-semibold text-slate-900">
+                                  {item.itemDescription || item.description || `Item ${index + 1}`}
+                                </h4>
+                                {displaySupplierCode && (
+                                  <Badge variant="outline" className="text-xs font-medium bg-blue-50 text-blue-700 border-blue-200">
+                                    Code: {displaySupplierCode}
+                                  </Badge>
+                                )}
+                                {displayBarcode && (
+                                  <Badge variant="outline" className="text-xs font-medium bg-purple-50 text-purple-700 border-purple-200">
+                                    Barcode: {displayBarcode}
+                                  </Badge>
+                                )}
+                                {displayStorageLocation && (
+                                  <Badge variant="outline" className="text-xs font-medium bg-emerald-50 text-emerald-700 border-emerald-200">
+                                    Location: {displayStorageLocation}
+                                  </Badge>
+                                )}
+                                {displayCondition && (
+                                  <Badge
+                                    variant="outline"
+                                    className={`text-xs font-medium ${
+                                      displayCondition === "Good"
+                                        ? "bg-green-50 text-green-700 border-green-200"
+                                        : displayCondition === "Damaged"
+                                          ? "bg-red-50 text-red-700 border-red-200"
+                                          : "bg-slate-50 text-slate-700 border-slate-200"
+                                    }`}
+                                  >
+                                    Condition: {displayCondition}
+                                  </Badge>
+                                )}
+                              </div>
+                              {(displayBatchNumber || displayExpiryDate) && (
+                                <div className="flex flex-wrap gap-3 text-xs text-slate-600">
+                                  {displayBatchNumber && (
+                                    <span className="flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 font-medium">
+                                      Batch #{displayBatchNumber}
+                                    </span>
+                                  )}
+                                  {displayExpiryDate && (
+                                    <span className="flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 font-medium text-amber-700">
+                                      📅 {formatDate(new Date(displayExpiryDate), "MMM dd, yyyy")}
+                                    </span>
+                                  )}
+                                </div>
                               )}
                             </div>
-                            
-                            {/* Goods Receipt Details */}
-                            {(item.quantityExpected || item.quantityReceived) && (
-                              <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3 mb-3">
-                                <p className="text-xs font-semibold text-indigo-900 mb-2">📦 Goods Receipt Details</p>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                                  {item.quantityExpected && (
-                                    <div>
-                                      <p className="text-indigo-600 text-xs font-medium">Expected</p>
-                                      <p className="font-semibold text-indigo-900">{item.quantityExpected}</p>
+
+                            {(item.quantityExpected !== undefined || item.quantityReceived !== undefined || item.goodsReceiptItemId) && (
+                              <div className="rounded-2xl border border-indigo-200 bg-indigo-50/70 p-4">
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                  <p className="text-xs font-semibold text-indigo-900">📦 Goods Receipt Item Details</p>
+                                  {item.goodsReceiptItemId && (
+                                    <Badge variant="outline" className="text-xs bg-indigo-100 text-indigo-700 border-indigo-300">
+                                      GR Item: {item.goodsReceiptItemId.slice(0, 8)}...
+                                    </Badge>
+                                  )}
+                                </div>
+
+                                <div className="mt-3 grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
+                                  {item.quantityExpected !== undefined && (
+                                    <div className="rounded-xl bg-white/90 px-3 py-2 shadow-sm">
+                                      <p className="text-xs font-medium uppercase tracking-wide text-indigo-500">Expected</p>
+                                      <p className="text-base font-semibold text-indigo-900">{item.quantityExpected}</p>
                                     </div>
                                   )}
                                   {item.quantityReceived !== undefined && (
-                                    <div>
-                                      <p className="text-green-600 text-xs font-medium">Received</p>
-                                      <p className="font-semibold text-green-700">{item.quantityReceived}</p>
+                                    <div className="rounded-xl bg-white/90 px-3 py-2 shadow-sm">
+                                      <p className="text-xs font-medium uppercase tracking-wide text-emerald-500">Received</p>
+                                      <p className="text-base font-semibold text-emerald-600">{item.quantityReceived}</p>
                                     </div>
                                   )}
                                   {item.quantityDamaged > 0 && (
-                                    <div>
-                                      <p className="text-red-600 text-xs font-medium">Damaged</p>
-                                      <p className="font-semibold text-red-700">{item.quantityDamaged}</p>
+                                    <div className="rounded-xl bg-white/90 px-3 py-2 shadow-sm">
+                                      <p className="text-xs font-medium uppercase tracking-wide text-rose-500">Damaged</p>
+                                      <p className="text-base font-semibold text-rose-600">{item.quantityDamaged}</p>
                                     </div>
                                   )}
                                   {item.quantityShort > 0 && (
-                                    <div>
-                                      <p className="text-orange-600 text-xs font-medium">Short</p>
-                                      <p className="font-semibold text-orange-700">{item.quantityShort}</p>
+                                    <div className="rounded-xl bg-white/90 px-3 py-2 shadow-sm">
+                                      <p className="text-xs font-medium uppercase tracking-wide text-orange-500">Short</p>
+                                      <p className="text-base font-semibold text-orange-600">{item.quantityShort}</p>
                                     </div>
                                   )}
                                 </div>
-                                {item.discrepancyReason && (
-                                  <div className="mt-2 pt-2 border-t border-indigo-200">
-                                    <p className="text-xs text-indigo-600 font-medium">Discrepancy:</p>
-                                    <p className="text-sm text-indigo-900 italic">{item.discrepancyReason}</p>
-                                  </div>
-                                )}
-                                {(item.scannedAt || item.receivedAt) && (
-                                  <div className="mt-2 pt-2 border-t border-indigo-200 flex flex-wrap gap-3 text-xs">
-                                    {item.scannedAt && (
+
+                                {(item.unitCostFromGR || item.totalCostFromGR || item.conditionFromGR) && (
+                                  <div className="mt-4 grid grid-cols-2 gap-3 border-t border-indigo-200 pt-4 text-sm md:grid-cols-3">
+                                    {item.unitCostFromGR && (
                                       <div>
-                                        <span className="text-indigo-600 font-medium">Scanned:</span>{' '}
-                                        <span className="text-indigo-900">{formatDate(new Date(item.scannedAt), 'MMM dd, yyyy HH:mm')}</span>
+                                        <p className="text-xs font-medium uppercase tracking-wide text-indigo-500">GR Unit Cost</p>
+                                        <p className="text-base font-semibold text-indigo-900">
+                                          {invoice?.currency} {parseFloat(item.unitCostFromGR).toLocaleString()}
+                                        </p>
                                       </div>
                                     )}
-                                    {item.receivedAt && (
+                                    {item.totalCostFromGR && (
                                       <div>
-                                        <span className="text-indigo-600 font-medium">Received:</span>{' '}
-                                        <span className="text-indigo-900">{formatDate(new Date(item.receivedAt), 'MMM dd, yyyy HH:mm')}</span>
+                                        <p className="text-xs font-medium uppercase tracking-wide text-indigo-500">GR Total Cost</p>
+                                        <p className="text-base font-semibold text-indigo-900">
+                                          {invoice?.currency} {parseFloat(item.totalCostFromGR).toLocaleString()}
+                                        </p>
                                       </div>
+                                    )}
+                                    {item.conditionFromGR && (
+                                      <div className="flex flex-col gap-1">
+                                        <p className="text-xs font-medium uppercase tracking-wide text-indigo-500">GR Condition</p>
+                                        <Badge
+                                          variant="outline"
+                                          className={`w-fit text-xs ${
+                                            item.conditionFromGR === "Good"
+                                              ? "bg-green-50 text-green-700 border-green-200"
+                                              : item.conditionFromGR === "Damaged"
+                                                ? "bg-red-50 text-red-700 border-red-200"
+                                                : "bg-slate-50 text-slate-700 border-slate-200"
+                                          }`}
+                                        >
+                                          {item.conditionFromGR}
+                                        </Badge>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+
+                                {(item.storageLocationFromGR || item.batchNumberFromGR || item.expiryDateFromGR) && (
+                                  <div className="mt-4 grid grid-cols-2 gap-3 border-t border-indigo-200 pt-4 text-sm md:grid-cols-3">
+                                    {item.storageLocationFromGR && (
+                                      <div>
+                                        <p className="text-xs font-medium uppercase tracking-wide text-indigo-500">Storage Location</p>
+                                        <Badge variant="outline" className="w-fit text-xs bg-emerald-50 text-emerald-700 border-emerald-200">
+                                          📍 {item.storageLocationFromGR}
+                                        </Badge>
+                                      </div>
+                                    )}
+                                    {item.batchNumberFromGR && (
+                                      <div>
+                                        <p className="text-xs font-medium uppercase tracking-wide text-indigo-500">Batch Number</p>
+                                        <p className="rounded-lg bg-indigo-100 px-3 py-1 font-mono text-xs font-semibold text-indigo-900">
+                                          {item.batchNumberFromGR}
+                                        </p>
+                                      </div>
+                                    )}
+                                    {item.expiryDateFromGR && (
+                                      <div>
+                                        <p className="text-xs font-medium uppercase tracking-wide text-indigo-500">Expiry Date</p>
+                                        <p className="text-xs font-semibold text-indigo-900">
+                                          📅 {formatDate(new Date(item.expiryDateFromGR), "MMM dd, yyyy")}
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+
+                                {item.discrepancyReason && (
+                                  <div className="mt-4 rounded-xl border border-orange-200 bg-orange-50/80 px-4 py-3">
+                                    <div className="flex items-start gap-2">
+                                      <AlertTriangle className="h-4 w-4 flex-shrink-0 text-orange-600" />
+                                      <div className="space-y-1 text-sm text-orange-900">
+                                        <p className="text-xs font-semibold uppercase tracking-wide">Discrepancy Noted</p>
+                                        <p className="italic">{item.discrepancyReason}</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {item.notesFromGR && (
+                                  <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50/80 px-4 py-3 text-sm text-amber-900">
+                                    <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">GR Notes</p>
+                                    <p className="mt-1">💬 {item.notesFromGR}</p>
+                                  </div>
+                                )}
+
+                                {(item.scannedAt || item.receivedAt) && (
+                                  <div className="mt-4 flex flex-wrap gap-3 border-t border-indigo-200 pt-4 text-xs text-indigo-900">
+                                    {item.scannedAt && (
+                                      <span>
+                                        <span className="font-medium text-indigo-600">Scanned:</span>{" "}
+                                        {formatDate(new Date(item.scannedAt), "MMM dd, yyyy HH:mm")}
+                                      </span>
+                                    )}
+                                    {item.receivedAt && (
+                                      <span>
+                                        <span className="font-medium text-indigo-600">Received:</span>{" "}
+                                        {formatDate(new Date(item.receivedAt), "MMM dd, yyyy HH:mm")}
+                                      </span>
                                     )}
                                   </div>
                                 )}
                               </div>
                             )}
 
-                            {/* Invoice Details Grid */}
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3 text-sm">
-                              <div>
-                                <p className="text-gray-500 text-xs font-medium">Invoiced Qty</p>
-                                <p className="font-semibold text-gray-900">
-                                  {item.quantity} {item.unitOfMeasure || 'units'}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-gray-500 text-xs font-medium">Unit Price</p>
-                                <p className="font-semibold text-gray-900">
-                                  {invoice?.currency} {parseFloat(item.unitPrice || '0').toLocaleString()}
-                                </p>
-                              </div>
-                              {item.discountAmount && parseFloat(item.discountAmount) > 0 && (
+                            <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 text-sm">
+                              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                                 <div>
-                                  <p className="text-gray-500 text-xs font-medium">Discount</p>
-                                  <p className="font-semibold text-green-600">
-                                    -{invoice?.currency} {parseFloat(item.discountAmount).toLocaleString()}
-                                    {item.discountRate && ` (${item.discountRate}%)`}
+                                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Invoiced Qty</p>
+                                  <p className="text-base font-semibold text-slate-900">
+                                    {displayQuantity} {displayUnitOfMeasure}
                                   </p>
                                 </div>
-                              )}
-                              <div>
-                                <p className="text-gray-500 text-xs font-medium">Tax</p>
-                                <p className="font-semibold text-gray-900">
-                                  {invoice?.currency} {parseFloat(item.taxAmount || '0').toLocaleString()}
-                                  {item.taxRate && ` (${item.taxRate}%)`}
-                                </p>
+                                <div>
+                                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Unit Price</p>
+                                  <p className="text-base font-semibold text-slate-900">
+                                    {invoice?.currency} {coerceNumber(rawUnitPrice).toLocaleString()}
+                                  </p>
+                                </div>
+                                {displayDiscountAmount && coerceNumber(displayDiscountAmount) > 0 && (
+                                  <div>
+                                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Discount</p>
+                                    <p className="text-base font-semibold text-emerald-600">
+                                      -{invoice?.currency} {coerceNumber(displayDiscountAmount).toLocaleString()}
+                                      {item.discountRate && ` (${item.discountRate}%)`}
+                                    </p>
+                                  </div>
+                                )}
+                                <div>
+                                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Tax</p>
+                                  <p className="text-base font-semibold text-slate-900">
+                                    {invoice?.currency} {coerceNumber(displayTaxAmount).toLocaleString()}
+                                    {item.taxRate && ` (${item.taxRate}%)`}
+                                  </p>
+                                </div>
                               </div>
                             </div>
 
-                            {/* Batch and Expiry Info */}
-                            {(item.batchNumber || item.expiryDate) && (
-                              <div className="mt-3 pt-3 border-t border-gray-200">
-                                <div className="flex flex-wrap gap-4 text-sm">
-                                  {item.batchNumber && (
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-gray-500 font-medium">Batch:</span>
-                                      <span className="text-gray-900 font-mono">{item.batchNumber}</span>
-                                    </div>
-                                  )}
-                                  {item.expiryDate && (
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-gray-500 font-medium">Expiry:</span>
-                                      <span className="text-gray-900">{formatDate(new Date(item.expiryDate), 'MMM dd, yyyy')}</span>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Item Notes */}
-                            {item.notes && (
-                              <div className="mt-3 pt-3 border-t border-gray-200">
-                                <p className="text-xs text-gray-500 font-medium mb-1">Notes:</p>
-                                <p className="text-sm text-gray-700 italic">{item.notes}</p>
+                            {displayNotes && (
+                              <div className="rounded-2xl border border-slate-200 bg-white/80 p-4 text-sm text-slate-700">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Notes</p>
+                                <p className="mt-1 italic">{displayNotes}</p>
                               </div>
                             )}
                           </div>
                         </div>
-                      </div>
-                      
-                      {/* Item Total */}
-                      <div className="text-right ml-4">
-                        <p className="text-xs text-gray-500 font-medium mb-1">Total</p>
-                        <p className="text-xl font-bold text-gray-900">
-                          {invoice?.currency} {parseFloat(item.totalPrice || '0').toLocaleString()}
-                        </p>
+                        <div className="shrink-0 rounded-2xl bg-slate-50 px-4 py-3 text-right">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Total</p>
+                          <p className="text-2xl font-bold text-slate-900">
+                            {invoice?.currency} {coerceNumber(rawTotalPrice).toLocaleString()}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <Separator className="my-6" />
 
               {/* Invoice Totals */}
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Subtotal:</span>
-                  <span className="font-medium">{invoice?.currency} {parseFloat(invoice?.subtotal || '0').toLocaleString()}</span>
-                </div>
-                {invoice?.discountAmount && parseFloat(invoice.discountAmount) > 0 && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Discount:</span>
-                    <span className="text-green-600">-{invoice?.currency} {parseFloat(invoice.discountAmount).toLocaleString()}</span>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-6 shadow-sm">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Invoice Total</p>
+                    <p className="text-3xl font-bold text-slate-900">
+                      {invoice?.currency} {parseFloat(invoice?.totalAmount || "0").toLocaleString()}
+                    </p>
                   </div>
-                )}
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Tax:</span>
-                  <span className="font-medium">{invoice?.currency} {parseFloat(invoice.taxAmount || '0').toLocaleString()}</span>
-                </div>
-                <Separator />
-                <div className="flex justify-between text-lg font-bold">
-                  <span>Total:</span>
-                  <span>{invoice?.currency} {parseFloat(invoice?.totalAmount || '0').toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between text-green-600">
-                  <span>Paid:</span>
-                  <span>{invoice?.currency} {parseFloat(invoice?.paidAmount || '0').toLocaleString()}</span>
-                </div>
-                {invoice?.remainingAmount && parseFloat(invoice.remainingAmount) > 0 && (
-                  <div className="flex justify-between text-red-600 font-medium">
-                    <span>Remaining:</span>
-                    <span>{invoice?.currency} {parseFloat(invoice.remainingAmount).toLocaleString()}</span>
+                  <div className="flex w-full flex-col gap-2 text-sm font-semibold sm:w-auto sm:items-end">
+                    <span className="flex items-center gap-2 text-emerald-600">
+                      <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-700">Paid</span>
+                      {invoice?.currency} {parseFloat(invoice?.paidAmount || "0").toLocaleString()}
+                    </span>
+                    <span
+                      className={`flex items-center gap-2 ${
+                        invoice?.remainingAmount && parseFloat(invoice.remainingAmount) > 0
+                          ? "text-rose-600"
+                          : "text-slate-500"
+                      }`}
+                    >
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${
+                          invoice?.remainingAmount && parseFloat(invoice.remainingAmount) > 0
+                            ? "bg-rose-100 text-rose-700"
+                            : "bg-slate-100 text-slate-600"
+                        }`}
+                      >
+                        Remaining
+                      </span>
+                      {invoice?.currency} {parseFloat(invoice?.remainingAmount || "0").toLocaleString()}
+                    </span>
                   </div>
-                )}
+                </div>
+
+                <div className="mt-5 grid gap-3 text-sm">
+                  <div className="flex items-center justify-between text-slate-600">
+                    <span>Subtotal</span>
+                    <span className="font-medium text-slate-900">
+                      {invoice?.currency} {parseFloat(invoice?.subtotal || "0").toLocaleString()}
+                    </span>
+                  </div>
+                  {invoice?.discountAmount && parseFloat(invoice.discountAmount) > 0 && (
+                    <div className="flex items-center justify-between text-emerald-600">
+                      <span>Discount</span>
+                      <span>
+                        -{invoice?.currency} {parseFloat(invoice.discountAmount).toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between text-slate-600">
+                    <span>Tax</span>
+                    <span className="font-medium text-slate-900">
+                      {invoice?.currency} {parseFloat(invoice.taxAmount || "0").toLocaleString()}
+                    </span>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -951,32 +1184,7 @@ export default function PurchaseInvoiceDetailPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Supplier Information */}
-          <Card className="shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="h-5 w-5" />
-                Supplier Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <Label className="text-sm font-medium text-gray-600">Name</Label>
-                <p className="font-medium">{invoice?.supplierName}</p>
-              </div>
-              {invoice?.supplierEmail && (
-                <div>
-                  <Label className="text-sm font-medium text-gray-600">Email</Label>
-                  <p className="text-blue-600">{invoice.supplierEmail}</p>
-                </div>
-              )}
-              {invoice?.supplierPhone && (
-                <div>
-                  <Label className="text-sm font-medium text-gray-600">Phone</Label>
-                  <p>{invoice.supplierPhone}</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          
 
           {/* Payment History (not available yet) */}
           

@@ -754,20 +754,7 @@ export default function SupplierLpoPage() {
               </div>
             </Button>
             
-            <Button
-              variant="outline"
-              className="group flex items-center gap-3 bg-blue-600 text-white font-semibold px-6 py-3"
-              onClick={() => setShowCreateLpo(true)}
-              data-testid="button-new-supplier-lpo"
-            >
-              {/* <div className="w-8 h-8 bg-blue-100 border border-blue-200 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors"> */}
-                <Plus className="h-4 w-4 text-white-600 group-hover:scale-110 transition-transform duration-200" />
-              {/* </div> */}
-              <div className="text-left">
-                <div className="text-sm  font-bold">New Supplier</div>
-                <div className="text-xs opacity-80">LPO</div>
-              </div>
-            </Button>
+            
           </div>
         </div>
       </div>
@@ -1960,6 +1947,33 @@ function LpoDetailDialog({
     enabled: open && !!detailedLpo?.sourceQuotationIds && Array.isArray(detailedLpo.sourceQuotationIds) && detailedLpo.sourceQuotationIds.length > 0,
   });
 
+  // Fetch supplier quote items to get original item descriptions
+  const { data: sourceQuoteItems } = useQuery({
+    queryKey: ["/api/supplier-quotes", "items", "from-lpo", lpo.id],
+    queryFn: async () => {
+      if (!detailedLpo?.sourceQuotationIds || !Array.isArray(detailedLpo.sourceQuotationIds) || detailedLpo.sourceQuotationIds.length === 0) {
+        return [];
+      }
+      
+      // Fetch items from all source supplier quotes
+      const allItems = [];
+      for (const quoteId of detailedLpo.sourceQuotationIds) {
+        const response = await fetch(`/api/supplier-quotes/${quoteId}/items`);
+        if (response.ok) {
+          const items = await response.json();
+          if (Array.isArray(items)) {
+            allItems.push(...items.map((item: any) => ({
+              ...item,
+              sourceQuoteId: quoteId
+            })));
+          }
+        }
+      }
+      return allItems;
+    },
+    enabled: open && !!detailedLpo?.sourceQuotationIds && Array.isArray(detailedLpo.sourceQuotationIds) && detailedLpo.sourceQuotationIds.length > 0,
+  });
+
   const lpoData = detailedLpo || lpo;
 
   // Pagination logic for items
@@ -2341,42 +2355,99 @@ function LpoDetailDialog({
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {paginatedItems.map((item: any, index: number) => (
-                          <TableRow key={item.id || (startIndex + index)}>
-                            <TableCell className="max-w-xs">
-                              <div className="font-medium">{item.itemDescription || "N/A"}</div>
-                              {item.specialInstructions && (
-                                <div className="text-xs text-gray-500 mt-1">
-                                  {item.specialInstructions}
-                                </div>
-                              )}
-                            </TableCell>
-                            <TableCell>{item.supplierCode || "N/A"}</TableCell>
-                            <TableCell>{item.barcode || "N/A"}</TableCell>
-                            <TableCell className="text-center">{item.quantity || 0}</TableCell>
-                            <TableCell className="text-right">
-                              {lpoData.currency} {Number(item.unitCost || 0).toLocaleString()}
-                            </TableCell>
-                            <TableCell className="text-right font-medium">
-                              {lpoData.currency} {Number(item.totalCost || 0).toLocaleString()}
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="outline" className={
-                                item.urgency === 'Urgent' ? 'bg-red-50 text-red-700 border-red-200' :
-                                item.urgency === 'High' ? 'bg-orange-50 text-orange-700 border-orange-200' :
-                                item.urgency === 'Normal' ? 'bg-green-50 text-green-700 border-green-200' :
-                                'bg-gray-50 text-gray-700 border-gray-200'
-                              }>
-                                {item.urgency || 'Normal'}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <Badge className={statusColors[item.deliveryStatus as keyof typeof statusColors] || "text-white"}>
-                                {item.deliveryStatus || "Pending"}
-                              </Badge>
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                        {paginatedItems.map((item: any, index: number) => {
+                          // Find the original item from supplier quote if available
+                          const originalQuoteItem = sourceQuoteItems?.find((qi: any) => 
+                            qi.id === item.sourceQuoteItemId || 
+                            (qi.itemDescription && qi.itemDescription === item.originalItemDescription) ||
+                            (qi.supplierCode && item.supplierCode && qi.supplierCode === item.supplierCode) ||
+                            (qi.barcode && item.barcode && qi.barcode === item.barcode)
+                          );
+
+                          // Find the original item from sales order if available
+                          const originalSalesOrderItem = originalItems?.find((soi: any) => 
+                            soi.id === item.sourceSalesOrderItemId || 
+                            (soi.itemDescription && soi.itemDescription === item.originalItemDescription) ||
+                            (soi.supplierCode && item.supplierCode && soi.supplierCode === item.supplierCode) ||
+                            (soi.barcode && item.barcode && soi.barcode === item.barcode)
+                          );
+
+                          // Determine the best description to show - priority order
+                          let displayDescription = "Item Description Not Available";
+                          let descriptionSource = "";
+                          
+                          if (originalQuoteItem?.itemDescription) {
+                            displayDescription = originalQuoteItem.itemDescription;
+                            descriptionSource = "quote";
+                          } else if (originalSalesOrderItem?.itemDescription) {
+                            displayDescription = originalSalesOrderItem.itemDescription;
+                            descriptionSource = "salesOrder";
+                          } else if (item.originalItemDescription) {
+                            displayDescription = item.originalItemDescription;
+                            descriptionSource = "original";
+                          } else if (item.itemDescription && 
+                                     item.itemDescription !== "Auto-generated from Sales Order" && 
+                                     item.itemDescription !== "N/A" &&
+                                     item.itemDescription.trim() !== "") {
+                            displayDescription = item.itemDescription;
+                            descriptionSource = "current";
+                          } else if (item.supplierCode || item.barcode) {
+                            displayDescription = `${item.supplierCode || 'No Code'} - ${item.barcode || 'No Barcode'}`;
+                            descriptionSource = "codes";
+                          }
+                          
+                          return (
+                            <TableRow key={item.id || (startIndex + index)}>
+                              <TableCell className="max-w-xs">
+                                <div className="font-medium">{displayDescription}</div>
+                                {descriptionSource === "quote" && (
+                                    <div className="text-xs text-blue-600 mt-1">
+                                    ✓ From Supplier Quote
+                                  </div>
+                                )}
+                                {descriptionSource === "salesOrder" && (
+                                  <div className="text-xs text-green-600 mt-1">
+                                    ✓ From Sales Order
+                                  </div>
+                                )}
+                                {descriptionSource === "codes" && (
+                                  <div className="text-xs text-amber-600 mt-1">
+                                    ⚠ Description unavailable - showing codes
+                                  </div>
+                                )}
+                                {item.specialInstructions && (
+                                  <div className="text-xs text-gray-500 mt-1 border-t pt-1">
+                                    <span className="font-medium">Instructions:</span> {item.specialInstructions}
+                                  </div>
+                                )}
+                              </TableCell>
+                              <TableCell>{item.supplierCode || "N/A"}</TableCell>
+                              <TableCell>{item.barcode || "N/A"}</TableCell>
+                              <TableCell className="text-center">{item.quantity || 0}</TableCell>
+                              <TableCell className="text-right">
+                                {lpoData.currency} {Number(item.unitCost || 0).toLocaleString()}
+                              </TableCell>
+                              <TableCell className="text-right font-medium">
+                                {lpoData.currency} {Number(item.totalCost || 0).toLocaleString()}
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className={
+                                  item.urgency === 'Urgent' ? 'bg-red-50 text-red-700 border-red-200' :
+                                  item.urgency === 'High' ? 'bg-orange-50 text-orange-700 border-orange-200' :
+                                  item.urgency === 'Normal' ? 'bg-green-50 text-green-700 border-green-200' :
+                                  'bg-gray-50 text-gray-700 border-gray-200'
+                                }>
+                                  {item.urgency || 'Normal'}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Badge className={statusColors[item.deliveryStatus as keyof typeof statusColors] || "text-white"}>
+                                  {item.deliveryStatus || "Pending"}
+                                </Badge>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
                       </TableBody>
                     </Table>
                   </div>
