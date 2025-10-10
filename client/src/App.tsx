@@ -26,6 +26,7 @@ import InventoryManagement from "@/pages/inventory-management";
 import PhysicalStock from "@/pages/physical-stock";
 import DeliveryManagement from "@/pages/delivery-management";
 import Delivery from "@/pages/delivery";
+import DeliveryIssues from "@/pages/delivery-issues";
 import Invoicing from "@/pages/invoicing";
 import PricingManagement from "@/pages/pricing-management";
 import MainLayout from "@/components/layout/main-layout";
@@ -98,6 +99,7 @@ function ProtectedRoutes() {
           <Route path="/physical-stock" component={PhysicalStock} />
           <Route path="/items" component={ItemsPage} />
           <Route path="/delivery" component={Delivery} />
+          <Route path="/delivery-issues" component={DeliveryIssues} />
           <Route path="/delivery-management" component={DeliveryManagement} />
           <Route path="/invoicing" component={Invoicing} />
           <Route path="/pricing" component={PricingManagement} />

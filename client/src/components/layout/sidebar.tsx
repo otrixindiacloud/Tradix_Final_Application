@@ -362,34 +362,7 @@ export default function Sidebar() {
                 <span className="font-medium">Inventory Items</span>
               </a>
             </Link>
-            <Link href="/delivery">
-              <a
-                className={cn(
-                  "sidebar-item",
-                  isActive("/delivery")
-                    ? "sidebar-item-active"
-                    : "text-gray-700"
-                )}
-                data-testid="link-delivery-&-picking"
-              >
-                <FaTruckLoading className="h-5 w-5 text-blue-600" />
-                <span className="font-medium">Delivery & Picking</span>
-              </a>
-            </Link>
-            {/* <Link href="/delivery-management">
-              <a
-                className={cn(
-                  "sidebar-item",
-                  isActive("/delivery-management")
-                    ? "sidebar-item-active"
-                    : "text-gray-700"
-                )}
-                data-testid="link-delivery-management"
-              >
-                <FaTruckMoving className="h-5 w-5 text-blue-500" />
-                <span className="font-medium">Delivery Management</span>
-              </a>
-            </Link> */}
+
             <Link href="/inventory-management">
               <a 
                 className={cn(
@@ -404,6 +377,51 @@ export default function Sidebar() {
                 <span className="font-medium">Inventory Management</span>
               </a>
             </Link>
+<Link href="/receipts">
+              <a
+                className={cn(
+                  "sidebar-item",
+                  isActive("/receipts")
+                    ? "sidebar-item-active"
+                    : "text-gray-700"
+                )}
+                data-testid="link-receipts"
+              >
+                <FaReceipt className="h-5 w-5 text-green-700" />
+                <span className="font-medium">Inventory Receipts</span>
+              </a>
+            </Link>
+                
+<Link href="/receipt-returns">
+              <a
+                className={cn(
+                  "sidebar-item",
+                  isActive("/receipt-returns")
+                    ? "sidebar-item-active"
+                    : "text-gray-700"
+                )}
+                data-testid="link-receipt-returns"
+              >
+                <FaMoneyBillWave className="h-5 w-5 text-red-600" />
+                <span className="font-medium">Returns Receipt </span>
+              </a>
+            </Link>
+            
+            {/* <Link href="/delivery-management">
+              <a
+                className={cn(
+                  "sidebar-item",
+                  isActive("/delivery-management")
+                    ? "sidebar-item-active"
+                    : "text-gray-700"
+                )}
+                data-testid="link-delivery-management"
+              >
+                <FaTruckMoving className="h-5 w-5 text-blue-500" />
+                <span className="font-medium">Delivery Management</span>
+              </a>
+            </Link> */}
+            
             {/* New Inventory Management Navigation */}
             {/* <Link href="/items">
               <a
@@ -433,20 +451,7 @@ export default function Sidebar() {
                 <span className="font-medium">Material Requests</span>
               </a>
             </Link>
-            <Link href="/receipts">
-              <a
-                className={cn(
-                  "sidebar-item",
-                  isActive("/receipts")
-                    ? "sidebar-item-active"
-                    : "text-gray-700"
-                )}
-                data-testid="link-receipts"
-              >
-                <FaReceipt className="h-5 w-5 text-green-700" />
-                <span className="font-medium">Inventory Receipts</span>
-              </a>
-            </Link>
+            
             <Link href="/stock-issues">
               <a
                 className={cn(
@@ -458,23 +463,10 @@ export default function Sidebar() {
                 data-testid="link-stock-issues"
               >
                 <FaBoxOpen className="h-5 w-5 text-orange-500" />
-                <span className="font-medium">Stock Issues</span>
+                <span className="font-medium">Material Issues</span>
               </a>
             </Link>
-            <Link href="/receipt-returns">
-              <a
-                className={cn(
-                  "sidebar-item",
-                  isActive("/receipt-returns")
-                    ? "sidebar-item-active"
-                    : "text-gray-700"
-                )}
-                data-testid="link-receipt-returns"
-              >
-                <FaMoneyBillWave className="h-5 w-5 text-red-600" />
-                <span className="font-medium">Returns Receipt </span>
-              </a>
-            </Link>
+            
             <Link href="/stock-transfer">
               <a
                 className={cn(
@@ -503,6 +495,37 @@ export default function Sidebar() {
                 <span className="font-medium">Physical Stock</span>
               </a>
             </Link>
+
+
+<Link href="/delivery">
+              <a
+                className={cn(
+                  "sidebar-item",
+                  isActive("/delivery")
+                    ? "sidebar-item-active"
+                    : "text-gray-700"
+                )}
+                data-testid="link-delivery-&-picking"
+              >
+                <FaTruckLoading className="h-5 w-5 text-blue-600" />
+                <span className="font-medium">Delivery & Picking</span>
+              </a>
+            </Link>
+            <Link href="/delivery-issues">
+              <a
+                className={cn(
+                  "sidebar-item",
+                  isActive("/delivery-issues")
+                    ? "sidebar-item-active"
+                    : "text-gray-700"
+                )}
+                data-testid="link-delivery-issues"
+              >
+                <FaTruckLoading className="h-5 w-5 text-blue-600" />
+                <span className="font-medium">Issues Return</span>
+              </a>
+            </Link>
+
           </div>
         </div>
 

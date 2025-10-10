@@ -5,6 +5,7 @@ import { generatePurchaseInvoicePdf } from "../pdf/pdf-utils";
 import { z } from "zod";
 
 export function registerPurchaseInvoiceRoutes(app: Express) {
+  const purchaseInvoiceStorage = storage as any;
   // Create purchase invoice
   app.post("/api/purchase-invoices", async (req, res) => {
     try {
@@ -22,12 +23,12 @@ export function registerPurchaseInvoiceRoutes(app: Express) {
         const validatedItems = z.array(insertPurchaseInvoiceItemSchema).parse(req.body.items);
         console.log('[PURCHASE INVOICE][ITEMS PARSED]', validatedItems);
         
-        const purchaseInvoice = await storage.createPurchaseInvoice(validatedInvoice, validatedItems);
+        const purchaseInvoice = await purchaseInvoiceStorage.createPurchaseInvoice(validatedInvoice, validatedItems);
         res.status(201).json(purchaseInvoice);
       } else {
         // Old format without items
         const validatedData = insertPurchaseInvoiceSchema.parse(req.body);
-        const purchaseInvoice = await storage.createPurchaseInvoice(validatedData);
+        const purchaseInvoice = await purchaseInvoiceStorage.createPurchaseInvoice(validatedData);
         res.status(201).json(purchaseInvoice);
       }
     } catch (error) {
@@ -39,7 +40,7 @@ export function registerPurchaseInvoiceRoutes(app: Express) {
   // List purchase invoices
   app.get("/api/purchase-invoices", async (req, res) => {
     try {
-      const purchaseInvoices = await storage.getPurchaseInvoices();
+  const purchaseInvoices = await purchaseInvoiceStorage.getPurchaseInvoices();
       res.json(purchaseInvoices);
     } catch (error) {
       console.error("Error fetching purchase invoices:", error);
@@ -51,7 +52,7 @@ export function registerPurchaseInvoiceRoutes(app: Express) {
   app.get("/api/purchase-invoices/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      const purchaseInvoice = await storage.getPurchaseInvoice(id);
+  const purchaseInvoice = await purchaseInvoiceStorage.getPurchaseInvoice(id);
       if (!purchaseInvoice) {
         return res.status(404).json({ message: "Purchase invoice not found" });
       }
@@ -62,11 +63,26 @@ export function registerPurchaseInvoiceRoutes(app: Express) {
     }
   });
 
+  // Get purchase invoice by invoice number
+  app.get("/api/purchase-invoices/by-number/:invoiceNumber", async (req, res) => {
+    try {
+      const { invoiceNumber } = req.params;
+  const purchaseInvoice = await purchaseInvoiceStorage.getPurchaseInvoiceByNumber(invoiceNumber);
+      if (!purchaseInvoice) {
+        return res.status(404).json({ message: "Purchase invoice not found" });
+      }
+      res.json(purchaseInvoice);
+    } catch (error) {
+      console.error("Error fetching purchase invoice by number:", error);
+      res.status(500).json({ message: "Failed to fetch purchase invoice by number" });
+    }
+  });
+
   // Get purchase invoice items
   app.get("/api/purchase-invoices/:id/items", async (req, res) => {
     try {
       const { id } = req.params;
-      const items = await storage.getPurchaseInvoiceItems(id);
+  const items = await purchaseInvoiceStorage.getPurchaseInvoiceItems(id);
       res.json(items);
     } catch (error) {
       console.error("Error fetching purchase invoice items:", error);
@@ -78,7 +94,7 @@ export function registerPurchaseInvoiceRoutes(app: Express) {
   app.patch("/api/purchase-invoices/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      const purchaseInvoice = await storage.updatePurchaseInvoice(id, req.body);
+  const purchaseInvoice = await purchaseInvoiceStorage.updatePurchaseInvoice(id, req.body);
       if (!purchaseInvoice) {
         return res.status(404).json({ message: "Purchase invoice not found" });
       }
@@ -93,7 +109,7 @@ export function registerPurchaseInvoiceRoutes(app: Express) {
   app.delete("/api/purchase-invoices/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      const deleted = await storage.deletePurchaseInvoice(id);
+  const deleted = await purchaseInvoiceStorage.deletePurchaseInvoice(id);
       if (!deleted) {
         return res.status(404).json({ message: "Purchase invoice not found" });
       }
@@ -111,7 +127,7 @@ export function registerPurchaseInvoiceRoutes(app: Express) {
       const { mode = 'enhanced' } = req.query;
       
       // Get purchase invoice
-      const purchaseInvoice = await storage.getPurchaseInvoice(id);
+  const purchaseInvoice = await purchaseInvoiceStorage.getPurchaseInvoice(id);
       if (!purchaseInvoice) {
         return res.status(404).json({ message: "Purchase invoice not found" });
       }

@@ -38,6 +38,7 @@ import { registerRecentActivitiesRoutes } from "./recent-activities";
 import { registerAuthRoutes } from "./auth";
 import { registerFileRoutes } from "./files";
 import { registerEmailRoutes } from "./email-simple";
+import { registerDocumentExtractionRoutes } from "./document-extraction";
 import tableValidationRoutes from "./table-validation";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -87,6 +88,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerAuthRoutes(app);
   registerFileRoutes(app);
   registerEmailRoutes(app);
+  registerDocumentExtractionRoutes(app);
 
   // Register administration routes
   app.use("/api/audit", auditRoutes);

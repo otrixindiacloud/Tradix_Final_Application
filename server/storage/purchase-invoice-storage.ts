@@ -158,8 +158,21 @@ export class PurchaseInvoiceStorage {
           isRecurring: purchaseInvoices.isRecurring,
           createdAt: purchaseInvoices.createdAt,
           updatedAt: purchaseInvoices.updatedAt,
+          supplierName: suppliers.name,
+          supplierEmail: suppliers.email,
+          supplierPhone: suppliers.phone,
+          supplierAddress: suppliers.address,
+          goodsReceiptNumber: goodsReceiptHeaders.receiptNumber,
+          lpoNumber: supplierLpos.lpoNumber,
+          lpoDate: supplierLpos.lpoDate,
+          lpoStatus: supplierLpos.status,
+          lpoTotalAmount: supplierLpos.totalAmount,
+          lpoCurrency: supplierLpos.currency,
         })
         .from(purchaseInvoices)
+        .leftJoin(suppliers, eq(purchaseInvoices.supplierId, suppliers.id))
+        .leftJoin(goodsReceiptHeaders, eq(purchaseInvoices.goodsReceiptId, goodsReceiptHeaders.id))
+        .leftJoin(supplierLpos, eq(purchaseInvoices.lpoId, supplierLpos.id))
         .where(eq(purchaseInvoices.id, id))
         .limit(1);
 
@@ -172,6 +185,68 @@ export class PurchaseInvoiceStorage {
       return r[0];
     } catch (err) {
       console.error('[PurchaseInvoiceStorage.getPurchaseInvoice] Error', err, { id });
+      throw err;
+    }
+  }
+
+  async getPurchaseInvoiceByNumber(invoiceNumber: string) {
+    try {
+      console.log('[PurchaseInvoiceStorage.getPurchaseInvoiceByNumber][START]', { invoiceNumber });
+
+      const r = await db
+        .select({
+          id: purchaseInvoices.id,
+          invoiceNumber: purchaseInvoices.invoiceNumber,
+          supplierInvoiceNumber: purchaseInvoices.supplierInvoiceNumber,
+          supplierId: purchaseInvoices.supplierId,
+          goodsReceiptId: purchaseInvoices.goodsReceiptId,
+          lpoId: purchaseInvoices.lpoId,
+          status: purchaseInvoices.status,
+          paymentStatus: purchaseInvoices.paymentStatus,
+          invoiceDate: purchaseInvoices.invoiceDate,
+          dueDate: purchaseInvoices.dueDate,
+          receivedDate: purchaseInvoices.receivedDate,
+          paymentDate: purchaseInvoices.paymentDate,
+          subtotal: purchaseInvoices.subtotal,
+          taxAmount: purchaseInvoices.taxAmount,
+          discountAmount: purchaseInvoices.discountAmount,
+          totalAmount: purchaseInvoices.totalAmount,
+          paidAmount: purchaseInvoices.paidAmount,
+          remainingAmount: purchaseInvoices.remainingAmount,
+          currency: purchaseInvoices.currency,
+          paymentTerms: purchaseInvoices.paymentTerms,
+          notes: purchaseInvoices.notes,
+          attachments: purchaseInvoices.attachments,
+          isRecurring: purchaseInvoices.isRecurring,
+          createdAt: purchaseInvoices.createdAt,
+          updatedAt: purchaseInvoices.updatedAt,
+          supplierName: suppliers.name,
+          supplierEmail: suppliers.email,
+          supplierPhone: suppliers.phone,
+          supplierAddress: suppliers.address,
+          goodsReceiptNumber: goodsReceiptHeaders.receiptNumber,
+          lpoNumber: supplierLpos.lpoNumber,
+          lpoDate: supplierLpos.lpoDate,
+          lpoStatus: supplierLpos.status,
+          lpoTotalAmount: supplierLpos.totalAmount,
+          lpoCurrency: supplierLpos.currency,
+        })
+        .from(purchaseInvoices)
+        .leftJoin(suppliers, eq(purchaseInvoices.supplierId, suppliers.id))
+        .leftJoin(goodsReceiptHeaders, eq(purchaseInvoices.goodsReceiptId, goodsReceiptHeaders.id))
+        .leftJoin(supplierLpos, eq(purchaseInvoices.lpoId, supplierLpos.id))
+        .where(eq(purchaseInvoices.invoiceNumber, invoiceNumber))
+        .limit(1);
+
+      if (!r.length) {
+        console.log('[PurchaseInvoiceStorage.getPurchaseInvoiceByNumber][NOT_FOUND]', { invoiceNumber });
+        return null;
+      }
+
+      console.log('[PurchaseInvoiceStorage.getPurchaseInvoiceByNumber][SUCCESS]', { invoiceNumber });
+      return r[0];
+    } catch (err) {
+      console.error('[PurchaseInvoiceStorage.getPurchaseInvoiceByNumber] Error', err, { invoiceNumber });
       throw err;
     }
   }

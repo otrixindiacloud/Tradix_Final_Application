@@ -1277,6 +1277,10 @@ export class ModularStorage extends BaseStorage {
     return purchaseInvoiceStorage.getPurchaseInvoice(id);
   }
 
+  async getPurchaseInvoiceByNumber(invoiceNumber: string) {
+    return purchaseInvoiceStorage.getPurchaseInvoiceByNumber(invoiceNumber);
+  }
+
   // Added: expose purchase invoice items retrieval used by route /api/purchase-invoices/:id/items
   async getPurchaseInvoiceItems(purchaseInvoiceId: string) {
     return purchaseInvoiceStorage.getPurchaseInvoiceItems(purchaseInvoiceId);

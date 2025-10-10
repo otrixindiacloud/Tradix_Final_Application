@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState, type ChangeEvent } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -33,7 +33,9 @@ import {
   Package,
   Undo2,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  Scan,
+  ClipboardCheck
 } from "lucide-react";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -93,6 +95,9 @@ export default function ReceiptReturnsPage() {
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   // Local search state for goods receipt selection (previously incorrectly inside render callback)
   const [receiptSearchTerm, setReceiptSearchTerm] = useState("");
+  const [wizardStep, setWizardStep] = useState(1);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [uploadPreview, setUploadPreview] = useState<string | null>(null);
   // Local state for item and quantity selection in dialogs
   // (Removed local selectedItemId/quantity state; using form values directly)
 
@@ -133,6 +138,13 @@ export default function ReceiptReturnsPage() {
       }
     },
   });
+
+  const filteredReceiptOptions = useMemo(() => {
+    return goodsReceipts.filter((receipt: any) => {
+      const searchStr = `${receipt.receiptNumber || ""} ${receipt.supplierName || receipt.supplier?.name || ""}`.toLowerCase();
+      return searchStr.includes(receiptSearchTerm.toLowerCase());
+    });
+  }, [goodsReceipts, receiptSearchTerm]);
 
   // Fetch items for dropdown
   const { data: items = [] } = useQuery({
@@ -212,7 +224,7 @@ export default function ReceiptReturnsPage() {
       }
       setTimeout(() => {
         setShowCreateDialog(false);
-        form.reset();
+        resetCreateState();
         toast({
           title: "Success",
           description: "Receipt return created successfully",
@@ -302,9 +314,74 @@ export default function ReceiptReturnsPage() {
       status: "Draft",
       notes: "",
       itemId: "",
-  returnQuantity: 1,
+      returnQuantity: 1,
     },
   });
+
+  const watchedValues = form.watch();
+
+  function resetCreateState() {
+    setWizardStep(1);
+    setUploadedFile(null);
+    setUploadPreview(null);
+    setReceiptSearchTerm("");
+    form.reset();
+  }
+
+  const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadedFile(file);
+
+    if (file.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        setUploadPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setUploadPreview(null);
+    }
+  };
+
+  const handleNextStep = async () => {
+    if (wizardStep === 1) {
+      setWizardStep(prev => Math.min(prev + 1, 4));
+      return;
+    }
+
+    if (wizardStep === 2) {
+      const isValid = await form.trigger([
+        "returnNumber",
+        "goodsReceiptId",
+        "returnDate",
+        "returnReason",
+        "status",
+      ]);
+      if (!isValid) return;
+    }
+
+    if (wizardStep === 3) {
+      const isValid = await form.trigger(["itemId", "returnQuantity"]);
+      if (!isValid) return;
+      const quantity = form.getValues("returnQuantity");
+      if (!quantity || quantity < 1) {
+        toast({
+          title: "Invalid quantity",
+          description: "Please enter a return quantity of at least 1.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    setWizardStep(prev => Math.min(prev + 1, 4));
+  };
+
+  const handlePreviousStep = () => {
+    setWizardStep(prev => Math.max(prev - 1, 1));
+  };
 
   const onSubmit = (data: ExtendedReceiptReturnForm) => {
     // Manual enforcement for create scenario (itemId & returnQuantity required)
@@ -318,6 +395,7 @@ export default function ReceiptReturnsPage() {
     }
     const selectedReceipt = goodsReceipts.find((r: any) => r.id === data.goodsReceiptId);
     const supplierId = selectedReceipt?.supplierId || "";
+    form.setValue("supplierId", supplierId, { shouldValidate: true });
     const payload: ReceiptReturnForm = {
       returnNumber: data.returnNumber,
       goodsReceiptId: data.goodsReceiptId,
@@ -327,21 +405,7 @@ export default function ReceiptReturnsPage() {
       status: data.status,
       notes: data.notes,
     };
-    createReturnMutation.mutate(payload, {
-      onSuccess: (createdReturn: any) => {
-        if (createdReturn && createdReturn.id && data.itemId && data.returnQuantity) {
-          const itemPayload: ReceiptReturnItemForm = {
-            itemId: data.itemId,
-            quantityReturned: data.returnQuantity,
-            unitCost: 0,
-            totalCost: 0,
-            returnReason: data.returnReason,
-            conditionNotes: data.notes,
-          };
-          apiRequest("POST", `/api/receipt-returns/${createdReturn.id}/items`, itemPayload);
-        }
-      },
-    });
+    createReturnMutation.mutate(payload);
   };
 
   // Filter receipt returns
@@ -497,287 +561,494 @@ export default function ReceiptReturnsPage() {
               </div>
             </div>
           </div>
-          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+          <Dialog
+            open={showCreateDialog}
+            onOpenChange={(open) => {
+              setShowCreateDialog(open);
+              if (!open) {
+                resetCreateState();
+              } else {
+                setWizardStep(1);
+                setReceiptSearchTerm("");
+                form.reset();
+              }
+            }}
+          >
             <DialogTrigger asChild>
               <Button className="px-6 py-2.5 font-medium">
                 <Plus className="h-4 w-4 mr-2" />
                 Process Return
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Process Receipt Return</DialogTitle>
-                <DialogDescription>
-                  Create a new return for received goods
-                </DialogDescription>
-              </DialogHeader>
+            <DialogContent className="max-w-5xl overflow-hidden flex flex-col">
               <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit((data) => {
-                    // Validate item and quantity
-                    // Find supplierId from selected goods receipt
-                    const selectedReceipt = goodsReceipts.find((r: any) => r.id === data.goodsReceiptId);
-                    const supplierId = selectedReceipt?.supplierId || "";
-                      const payload: ReceiptReturnForm = {
-                        returnNumber: data.returnNumber,
-                        goodsReceiptId: data.goodsReceiptId,
-                        supplierId,
-                        returnReason: data.returnReason,
-                        returnDate: data.returnDate,
-                        status: data.status,
-                        notes: data.notes,
-                      };
-                    createReturnMutation.mutate(payload, {
-                      onSuccess: (createdReturn: any) => {
-                        // Create supplierReturnItem for the returned item
-                        if (createdReturn && createdReturn.id && data.itemId && data.returnQuantity) {
-                          const itemPayload: ReceiptReturnItemForm = {
-                            itemId: data.itemId,
-                            quantityReturned: data.returnQuantity,
-                            unitCost: 0,
-                            totalCost: 0,
-                            returnReason: data.returnReason,
-                            conditionNotes: data.notes,
-                          };
-                          apiRequest("POST", `/api/receipt-returns/${createdReturn.id}/items`, itemPayload);
-                        }
-                      },
-                      onError: (error: any) => {
-                        toast({
-                          title: "Error",
-                          description: error.message || "Failed to create receipt return",
-                          variant: "destructive",
-                        });
-                      },
-                    });
-                  })}
-                  className="space-y-4"
-                >
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="returnNumber"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Return Number <span className="text-red-500">*</span></FormLabel>
-                          <FormControl>
-                            <Input required placeholder="Enter return number" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="goodsReceiptId"
-                      render={({ field }) => {
-                        // Filter receipts outside of hook misuse
-                        const filteredReceipts = goodsReceipts.filter((receipt: any) => {
-                          const searchStr = `${receipt.receiptNumber || ""} ${receipt.supplierName || receipt.supplier?.name || ""}`.toLowerCase();
-                          return searchStr.includes(receiptSearchTerm.toLowerCase());
-                        });
-                        return (
-                          <FormItem>
-                            <FormLabel>Receipt Number <span className="text-red-500">*</span></FormLabel>
-                            <Select
-                              required
-                              onValueChange={(val) => {
-                                field.onChange(val);
-                                const selected = goodsReceipts.find((r: any) => r.id === val);
-                                if (selected?.supplierId) {
-                                  form.setValue("supplierId", selected.supplierId, { shouldValidate: true });
-                                }
-                              }}
-                              defaultValue={field.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select Receipt" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <div className="px-2 py-2 sticky top-0 bg-white z-10">
-                                  <Input
-                                    placeholder="Search receipt number or supplier..."
-                                    value={receiptSearchTerm}
-                                    onChange={e => setReceiptSearchTerm(e.target.value)}
-                                    className="mb-2"
-                                  />
-                                </div>
-                                {filteredReceipts.length === 0 ? (
-                                  <div className="px-4 py-2 text-gray-500 text-sm">No receipts found</div>
-                                ) : (
-                                  filteredReceipts.map((receipt: any) => (
-                                    <SelectItem key={receipt.id} value={receipt.id}>
-                                      {receipt.receiptNumber && typeof receipt.receiptNumber === "string"
-                                        ? receipt.receiptNumber
-                                        : `GR-${receipt.id}`}
-                                      {receipt.supplierName
-                                        ? ` — ${receipt.supplierName}`
-                                        : receipt.supplier?.name
-                                          ? ` — ${receipt.supplier.name}`
-                                          : ""}
-                                    </SelectItem>
-                                  ))
-                                )}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        );
-                      }}
-                    />
+                <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1">
+                  <DialogHeader className="flex-shrink-0 pb-3 border-b">
+                    <DialogTitle className="text-xl font-bold text-gray-900">Process Receipt Return</DialogTitle>
+                    <DialogDescription className="text-sm mt-1">
+                      Step {wizardStep} of 4: {wizardStep === 1 ? "Upload Return Evidence" : wizardStep === 2 ? "Return Details" : wizardStep === 3 ? "Return Items" : "Review & Submit"}
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <div className="flex items-center justify-between my-4 px-4 flex-shrink-0">
+                    <div className="flex items-center gap-2">
+                      <div className={`flex items-center justify-center w-9 h-9 rounded-full font-semibold transition-all text-sm ${wizardStep >= 1 ? "bg-orange-600 text-white shadow-lg" : "bg-gray-200 text-gray-600"}`}>
+                        {wizardStep > 1 ? <CheckCircle className="h-5 w-5" /> : "1"}
+                      </div>
+                      <div className="text-left">
+                        <span className={`text-xs font-semibold block ${wizardStep >= 1 ? "text-gray-900" : "text-gray-500"}`}>Upload</span>
+                        <span className="text-[10px] text-gray-400">Attachment</span>
+                      </div>
+                    </div>
+                    <div className={`flex-1 h-1 mx-3 rounded ${wizardStep >= 2 ? "bg-orange-600" : "bg-gray-200"}`}></div>
+                    <div className="flex items-center gap-2">
+                      <div className={`flex items-center justify-center w-9 h-9 rounded-full font-semibold transition-all text-sm ${wizardStep >= 2 ? "bg-orange-600 text-white shadow-lg" : "bg-gray-200 text-gray-600"}`}>
+                        {wizardStep > 2 ? <CheckCircle className="h-5 w-5" /> : "2"}
+                      </div>
+                      <div className="text-left">
+                        <span className={`text-xs font-semibold block ${wizardStep >= 2 ? "text-gray-900" : "text-gray-500"}`}>Details</span>
+                        <span className="text-[10px] text-gray-400">Return Info</span>
+                      </div>
+                    </div>
+                    <div className={`flex-1 h-1 mx-3 rounded ${wizardStep >= 3 ? "bg-orange-600" : "bg-gray-200"}`}></div>
+                    <div className="flex items-center gap-2">
+                      <div className={`flex items-center justify-center w-9 h-9 rounded-full font-semibold transition-all text-sm ${wizardStep >= 3 ? "bg-orange-600 text-white shadow-lg" : "bg-gray-200 text-gray-600"}`}>
+                        {wizardStep > 3 ? <CheckCircle className="h-5 w-5" /> : "3"}
+                      </div>
+                      <div className="text-left">
+                        <span className={`text-xs font-semibold block ${wizardStep >= 3 ? "text-gray-900" : "text-gray-500"}`}>Items</span>
+                        <span className="text-[10px] text-gray-400">Line Items</span>
+                      </div>
+                    </div>
+                    <div className={`flex-1 h-1 mx-3 rounded ${wizardStep >= 4 ? "bg-orange-600" : "bg-gray-200"}`}></div>
+                    <div className="flex items-center gap-2">
+                      <div className={`flex items-center justify-center w-9 h-9 rounded-full font-semibold transition-all text-sm ${wizardStep >= 4 ? "bg-orange-600 text-white shadow-lg" : "bg-gray-200 text-gray-600"}`}>
+                        4
+                      </div>
+                      <div className="text-left">
+                        <span className={`text-xs font-semibold block ${wizardStep >= 4 ? "text-gray-900" : "text-gray-500"}`}>Review</span>
+                        <span className="text-[10px] text-gray-400">Confirm</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="itemId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Item <span className="text-red-500">*</span></FormLabel>
-                          <Select required onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select item" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {items.length === 0 ? (
-                                <div className="px-4 py-2 text-gray-500 text-sm">No items available</div>
-                              ) : (
-                                items.map((item: any) => (
-                                  <SelectItem key={item.id} value={item.id}>
-                                    {item.name
-                                      ? item.name
-                                      : item.description
-                                        ? item.description
-                                        : item.itemCode
-                                          ? item.itemCode
-                                          : `Item-${item.id}`}
-                                  </SelectItem>
-                                ))
-                              )}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="returnQuantity"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Return Quantity <span className="text-red-500">*</span></FormLabel>
-                          <FormControl>
-                            <Input
-                              required
-                              type="number"
-                              min={1}
-                              placeholder="Enter quantity"
-                              {...field}
-                              value={field.value}
-                              onChange={e => field.onChange(Number(e.target.value))}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="returnDate"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Return Date <span className="text-red-500">*</span></FormLabel>
-                          <FormControl>
-                            <Input required type="date" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <FormField
-                    control={form.control}
-                    name="returnReason"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Return Reason</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select return reason" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="Damaged">Damaged</SelectItem>
-                            <SelectItem value="Wrong Item">Wrong Item</SelectItem>
-                            <SelectItem value="Quality Issue">Quality Issue</SelectItem>
-                            <SelectItem value="Excess Quantity">Excess Quantity</SelectItem>
-                            <SelectItem value="Expired">Expired</SelectItem>
-                            <SelectItem value="Customer Request">Customer Request</SelectItem>
-                            <SelectItem value="Other">Other</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="status"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Status</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select status" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="Draft">Draft</SelectItem>
-                            <SelectItem value="Pending Approval">Pending Approval</SelectItem>
-                            <SelectItem value="Approved">Approved</SelectItem>
-                            <SelectItem value="Returned">Returned</SelectItem>
-                            <SelectItem value="Credited">Credited</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="notes"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Notes</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Enter any additional notes..."
-                            rows={3}
-                            {...field} 
+
+                  <div className="flex-1 overflow-y-auto px-6 min-h-[380px] max-h-[380px]">
+                    {wizardStep === 1 && (
+                      <div className="space-y-4 h-full flex flex-col justify-center">
+                        <div className="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center hover:border-orange-500 hover:bg-orange-50/30 transition-all duration-200 bg-gray-50/50">
+                          <input
+                            type="file"
+                            id="return-upload"
+                            className="hidden"
+                            accept="image/*,.pdf"
+                            onChange={handleFileUpload}
                           />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                          <label htmlFor="return-upload" className="cursor-pointer">
+                            <div className="flex flex-col items-center gap-5">
+                              {uploadPreview ? (
+                                <div className="relative group">
+                                  <img src={uploadPreview} alt="Return preview" className="max-h-56 rounded-xl shadow-lg border-2 border-gray-200" />
+                                  <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="sm"
+                                    className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                                    onClick={(event) => {
+                                      event.preventDefault();
+                                      setUploadedFile(null);
+                                      setUploadPreview(null);
+                                    }}
+                                  >
+                                    <XCircle className="h-4 w-4 mr-1" />
+                                    Remove
+                                  </Button>
+                                </div>
+                              ) : uploadedFile ? (
+                                <div className="flex items-center gap-4 bg-orange-50 p-5 rounded-xl border-2 border-orange-200 shadow-sm min-w-[400px]">
+                                  <div className="p-3 bg-orange-100 rounded-lg">
+                                    <FileText className="h-8 w-8 text-orange-600" />
+                                  </div>
+                                  <div className="text-left flex-1">
+                                    <p className="font-semibold text-gray-900 text-base">{uploadedFile.name}</p>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                      {(uploadedFile.size / 1024).toFixed(2)} KB • {uploadedFile.type.split("/")[1]?.toUpperCase()}
+                                    </p>
+                                  </div>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="hover:bg-red-50"
+                                    onClick={(event) => {
+                                      event.preventDefault();
+                                      setUploadedFile(null);
+                                      setUploadPreview(null);
+                                    }}
+                                  >
+                                    <XCircle className="h-5 w-5 text-red-500" />
+                                  </Button>
+                                </div>
+                              ) : (
+                                <>
+                                  <div className="p-5 bg-gray-100 rounded-full">
+                                    <Scan className="h-16 w-16 text-gray-400" />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <p className="text-xl font-bold text-gray-900">Upload supporting document</p>
+                                    <p className="text-sm text-gray-600">Click to browse or drag and drop your file here (optional)</p>
+                                    <div className="flex items-center justify-center gap-3 text-xs text-gray-500 pt-1">
+                                      <div className="flex items-center gap-1.5">
+                                        <FileText className="h-3.5 w-3.5" />
+                                        <span>Images (JPG, PNG)</span>
+                                      </div>
+                                      <span>•</span>
+                                      <div className="flex items-center gap-1.5">
+                                        <FileText className="h-3.5 w-3.5" />
+                                        <span>PDF Documents</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          </label>
+                        </div>
+                        {uploadedFile && (
+                          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2.5">
+                            <ClipboardCheck className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                            <div className="text-xs text-amber-800">
+                              <p className="font-medium">Attachment ready</p>
+                              <p className="text-amber-600 mt-0.5">
+                                The uploaded file will be stored with this return for audit reference.
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     )}
-                  />
-                  <div className="flex justify-end gap-3 pt-4">
-                    <Button type="button" variant="outline" onClick={() => setShowCreateDialog(false)}>
-                      Cancel
+
+                    {wizardStep === 2 && (
+                      <div className="space-y-5 py-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="returnNumber"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs font-semibold text-gray-700">Return Number *</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    required
+                                    placeholder="e.g., RR-20251010-01"
+                                    className="h-9 text-sm"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="returnDate"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs font-semibold text-gray-700">Return Date *</FormLabel>
+                                <FormControl>
+                                  <Input required type="date" className="h-9 text-sm" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <FormField
+                          control={form.control}
+                          name="goodsReceiptId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs font-semibold text-gray-700">Associated Goods Receipt *</FormLabel>
+                              <Select
+                                required
+                                onValueChange={(val) => {
+                                  field.onChange(val);
+                                  const selected = goodsReceipts.find((r: any) => r.id === val);
+                                  if (selected?.supplierId) {
+                                    form.setValue("supplierId", selected.supplierId, { shouldValidate: true });
+                                  }
+                                }}
+                                value={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger className="h-9 text-sm">
+                                    <SelectValue placeholder="Select receipt" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <div className="px-2 py-2 sticky top-0 bg-white z-10">
+                                    <Input
+                                      placeholder="Search receipt number or supplier..."
+                                      value={receiptSearchTerm}
+                                      onChange={e => setReceiptSearchTerm(e.target.value)}
+                                      className="mb-2"
+                                    />
+                                  </div>
+                                  {filteredReceiptOptions.length === 0 ? (
+                                    <div className="px-4 py-2 text-gray-500 text-sm">No receipts found</div>
+                                  ) : (
+                                    filteredReceiptOptions.map((receipt: any) => (
+                                      <SelectItem key={receipt.id} value={receipt.id}>
+                                        {receipt.receiptNumber && typeof receipt.receiptNumber === "string" ? receipt.receiptNumber : `GR-${receipt.id}`}
+                                        {receipt.supplierName
+                                          ? ` — ${receipt.supplierName}`
+                                          : receipt.supplier?.name
+                                            ? ` — ${receipt.supplier.name}`
+                                            : ""}
+                                      </SelectItem>
+                                    ))
+                                  )}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="returnReason"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs font-semibold text-gray-700">Return Reason *</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger className="h-9 text-sm">
+                                      <SelectValue placeholder="Select return reason" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="Damaged">Damaged</SelectItem>
+                                    <SelectItem value="Wrong Item">Wrong Item</SelectItem>
+                                    <SelectItem value="Quality Issue">Quality Issue</SelectItem>
+                                    <SelectItem value="Excess Quantity">Excess Quantity</SelectItem>
+                                    <SelectItem value="Expired">Expired</SelectItem>
+                                    <SelectItem value="Customer Request">Customer Request</SelectItem>
+                                    <SelectItem value="Other">Other</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="status"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs font-semibold text-gray-700">Status *</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger className="h-9 text-sm">
+                                      <SelectValue placeholder="Select status" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="Draft">Draft</SelectItem>
+                                    <SelectItem value="Pending Approval">Pending Approval</SelectItem>
+                                    <SelectItem value="Approved">Approved</SelectItem>
+                                    <SelectItem value="Returned">Returned</SelectItem>
+                                    <SelectItem value="Credited">Credited</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <FormField
+                          control={form.control}
+                          name="notes"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs font-semibold text-gray-700">Notes</FormLabel>
+                              <FormControl>
+                                <Textarea rows={3} className="text-sm" placeholder="Add any additional notes about this return" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    )}
+
+                    {wizardStep === 3 && (
+                      <div className="space-y-5 py-2">
+                        <div className="rounded-lg border border-dashed border-gray-200 bg-white p-4">
+                          <div className="flex flex-col gap-1 text-sm text-gray-600">
+                            <span className="font-medium text-gray-900">Selected Receipt Summary</span>
+                            {(() => {
+                              const selectedReceipt = goodsReceipts.find((receipt: any) => receipt.id === watchedValues.goodsReceiptId);
+                              if (!selectedReceipt) {
+                                return <span className="text-xs text-gray-500">Select a goods receipt in the previous step to link items.</span>;
+                              }
+                              return (
+                                <div className="text-xs text-gray-600 space-y-1">
+                                  <p><span className="font-semibold text-gray-800">Receipt:</span> {selectedReceipt.receiptNumber || `GR-${selectedReceipt.id}`}</p>
+                                  <p><span className="font-semibold text-gray-800">Supplier:</span> {selectedReceipt.supplierName || selectedReceipt.supplier?.name || "N/A"}</p>
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="itemId"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs font-semibold text-gray-700">Item *</FormLabel>
+                                <Select required onValueChange={field.onChange} value={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger className="h-9 text-sm">
+                                      <SelectValue placeholder="Select item" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {items.length === 0 ? (
+                                      <div className="px-4 py-2 text-gray-500 text-sm">No items available</div>
+                                    ) : (
+                                      items.map((item: any) => (
+                                        <SelectItem key={item.id} value={item.id}>
+                                          {item.name || item.description || item.itemCode || `Item-${item.id}`}
+                                        </SelectItem>
+                                      ))
+                                    )}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="returnQuantity"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs font-semibold text-gray-700">Return Quantity *</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    required
+                                    type="number"
+                                    min={1}
+                                    className="h-9 text-sm"
+                                    placeholder="Enter quantity"
+                                    {...field}
+                                    value={field.value}
+                                    onChange={event => field.onChange(Number(event.target.value))}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <div className="rounded-lg border border-orange-200 bg-orange-50/60 p-4 text-xs text-orange-800">
+                          <p className="font-medium">Tip</p>
+                          <p className="mt-1">Ensure the quantity returned does not exceed the originally received quantity. You can update item costs after the return is processed.</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {wizardStep === 4 && (
+                      <div className="space-y-5 py-2">
+                        <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm space-y-4">
+                          <h3 className="text-base font-semibold text-gray-900">Return Summary</h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <Label className="text-xs font-semibold text-gray-500">Return Number</Label>
+                              <p className="font-medium text-gray-900">{watchedValues.returnNumber || "—"}</p>
+                            </div>
+                            <div>
+                              <Label className="text-xs font-semibold text-gray-500">Return Date</Label>
+                              <p className="font-medium text-gray-900">{watchedValues.returnDate ? formatDate(watchedValues.returnDate) : "—"}</p>
+                            </div>
+                            <div>
+                              <Label className="text-xs font-semibold text-gray-500">Goods Receipt</Label>
+                              <p className="font-medium text-gray-900">
+                                {(() => {
+                                  const receipt = goodsReceipts.find((entry: any) => entry.id === watchedValues.goodsReceiptId);
+                                  if (!receipt) return "—";
+                                  const label = receipt.receiptNumber && typeof receipt.receiptNumber === "string" ? receipt.receiptNumber : `GR-${receipt.id}`;
+                                  const supplierLabel = receipt.supplierName || receipt.supplier?.name;
+                                  return supplierLabel ? `${label} — ${supplierLabel}` : label;
+                                })()}
+                              </p>
+                            </div>
+                            <div>
+                              <Label className="text-xs font-semibold text-gray-500">Status</Label>
+                              <p className="font-medium text-gray-900">{watchedValues.status}</p>
+                            </div>
+                            <div>
+                              <Label className="text-xs font-semibold text-gray-500">Return Reason</Label>
+                              <p className="font-medium text-gray-900">{watchedValues.returnReason}</p>
+                            </div>
+                            <div>
+                              <Label className="text-xs font-semibold text-gray-500">Item</Label>
+                              <p className="font-medium text-gray-900">
+                                {(() => {
+                                  const item = items.find((entry: any) => entry.id === watchedValues.itemId);
+                                  return item?.name || item?.description || item?.itemCode || "—";
+                                })()}
+                              </p>
+                            </div>
+                            <div>
+                              <Label className="text-xs font-semibold text-gray-500">Quantity Returned</Label>
+                              <p className="font-medium text-orange-600">{watchedValues.returnQuantity || 0}</p>
+                            </div>
+                          </div>
+                          {watchedValues.notes && (
+                            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-700">
+                              <Label className="text-xs font-semibold text-gray-500">Notes</Label>
+                              <p className="mt-1 whitespace-pre-wrap">{watchedValues.notes}</p>
+                            </div>
+                          )}
+                          {uploadedFile && (
+                            <div className="flex items-center gap-3 text-sm text-gray-700 border border-dashed border-gray-300 rounded-lg p-3">
+                              <FileText className="h-5 w-5 text-orange-600" />
+                              <div>
+                                <p className="font-medium">Attachment: {uploadedFile.name}</p>
+                                <p className="text-xs text-gray-500">{(uploadedFile.size / 1024).toFixed(2)} KB</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between border-t px-6 py-4 bg-white flex-shrink-0 gap-3">
+                    <Button type="button" variant="ghost" onClick={wizardStep === 1 ? () => setShowCreateDialog(false) : handlePreviousStep} disabled={createReturnMutation.isPending}>
+                      {wizardStep === 1 ? "Cancel" : "Back"}
                     </Button>
-                    <Button
-                      type="submit"
-                      
-                      disabled={createReturnMutation.isPending}
-                    >
-                      {createReturnMutation.isPending ? "Processing..." : "Process Return"}
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button type="button" variant="outline" onClick={resetCreateState} disabled={createReturnMutation.isPending}>
+                        Reset
+                      </Button>
+                      {wizardStep < 4 ? (
+                        <Button type="button" onClick={handleNextStep} className="min-w-[110px]">
+                          Next
+                        </Button>
+                      ) : (
+                        <Button
+                          type="submit"
+                          disabled={createReturnMutation.isPending}
+                          className="min-w-[140px] flex items-center justify-center gap-2"
+                        >
+                          {createReturnMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                          {createReturnMutation.isPending ? "Processing..." : "Process Return"}
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </form>
               </Form>
